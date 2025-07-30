@@ -14,6 +14,7 @@ interface Viewport3DProps {
   activeTool: string | null;
   drawingSettings: DrawingSettings;
   isOrthographic: boolean;
+  selectedModelId: string | null;
 }
 
 const Viewport3D: React.FC<Viewport3DProps> = ({ 
@@ -21,7 +22,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   onModelsChange, 
   activeTool, 
   drawingSettings,
-  isOrthographic
+  isOrthographic,
+  selectedModelId
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();

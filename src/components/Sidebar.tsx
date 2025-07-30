@@ -20,6 +20,8 @@ interface SidebarProps {
   onToolSelect: (toolId: string) => void;
   drawingSettings: DrawingSettings;
   onDrawingSettingsChange: (settings: DrawingSettings) => void;
+  selectedModelId: string | null;
+  onModelSelect: (modelId: string | null) => void;
 }
 
 interface TransformValues {
@@ -109,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleModelSelect = (modelId: string) => {
     console.log('Selecting model:', modelId);
-    setSelectedModelId(modelId);
+    onModelSelect(modelId);
     
     // Get current transform values from the model if it exists
     const model = models.find(m => m.id === modelId);
