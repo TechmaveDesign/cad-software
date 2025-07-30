@@ -22,7 +22,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   onModelsChange, 
   activeTool, 
   drawingSettings,
-  isOrthographic
+  isOrthographic,
   onModelSelect
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
