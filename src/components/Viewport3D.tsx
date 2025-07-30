@@ -254,12 +254,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       event.stopPropagation();
       
       const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
+      const mouse = new Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1
       );
       
-      const raycaster = new THREE.Raycaster();
+      const raycaster = new Raycaster();
       raycaster.setFromCamera(mouse, camera);
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
