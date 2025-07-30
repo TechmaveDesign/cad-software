@@ -282,9 +282,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // STL Loader
     loaderRef.current = new STLLoader();
 
-    // Model translation event listener
-    window.addEventListener('model-translate', handleModelTranslateEvent);
-
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
       if (!activeTool || !['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) return;
@@ -481,7 +478,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-view-front', handleCameraEvents);
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
-      window.removeEventListener('model-translate', handleModelTranslateEvent);
       
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
@@ -510,6 +506,15 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       controls.dispose();
       transformControls.dispose();
       renderer.dispose();
+    };
+  }, []);
+  
+  // Separate effect for model translation event listener
+  useEffect(() => {
+    window.addEventListener('model-translate', handleModelTranslateEvent);
+    
+    return () => {
+      window.removeEventListener('model-translate', handleModelTranslateEvent);
     };
   }, [handleModelTranslateEvent]);
   
@@ -845,10 +850,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   useEffect(() => {
     if (!sceneRef.current || !loaderRef.current) return;
 
+    console.log('Processing models:', models.length);
+
     models.forEach((model) => {
       if (model.file && !model.mesh) {
+        console.log('Loading new model:', model.name);
         const reader = new FileReader();
         reader.onload = (event) => {
+          console.log('File loaded, parsing STL...');
           const geometry = loaderRef.current!.parse(event.target!.result as ArrayBuffer);
           
           // Center and scale the geometry
@@ -876,16 +885,20 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           mesh.visible = model.visible;
           mesh.position.x = model.type === 'upper' ? 0 : 20;
 
+          console.log('Adding mesh to scene:', mesh.uuid);
           sceneRef.current!.add(mesh);
 
           // Update model with mesh reference
           const updatedModels = models.map(m => 
             m.id === model.id ? { ...m, mesh } : m
           );
+          console.log('Updating models with mesh reference');
           onModelsChange(updatedModels);
         };
+        console.log('Reading file as ArrayBuffer...');
         reader.readAsArrayBuffer(model.file);
       } else if (model.mesh) {
+        console.log('Updating existing model visibility/color:', model.name);
         model.mesh.visible = model.visible;
         (model.mesh.material as THREE.MeshStandardMaterial).color.setHex(
           parseInt(model.color.replace('#', ''), 16)
