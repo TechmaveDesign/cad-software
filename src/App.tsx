@@ -125,12 +125,11 @@ function App() {
         />
       </div>
       
+      <ToothLibrary
         isOpen={isToothLibraryOpen}
         onClose={() => setIsToothLibraryOpen(false)}
         onToothSelect={handleToothSelect}
       />
-}
-
-export default App;
-  )
+    </div>
+  );
 }
