@@ -22,7 +22,9 @@ import {
   Line,
   CubicBezierCurve3,
   Box3,
-  PCFSoftShadowMap
+  PCFSoftShadowMap,
+  Material,
+  Object3D
 } from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
