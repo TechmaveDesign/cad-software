@@ -13,9 +13,32 @@ interface Viewport3DProps {
   onModelsChange: (models: STLModel[]) => void;
   activeTool: string | null;
   drawingSettings: DrawingSettings;
+  isOrthographic: boolean;
+  onResetView: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onFitToScreen: () => void;
+  onViewTop: () => void;
+  onViewFront: () => void;
+  onViewRight: () => void;
+  onViewIsometric: () => void;
 }
 
-const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeTool, drawingSettings }) => {
+const Viewport3D: React.FC<Viewport3DProps> = ({ 
+  models, 
+  onModelsChange, 
+  activeTool, 
+  drawingSettings,
+  isOrthographic,
+  onResetView,
+  onZoomIn,
+  onZoomOut,
+  onFitToScreen,
+  onViewTop,
+  onViewFront,
+  onViewRight,
+  onViewIsometric
+}) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
@@ -25,6 +48,10 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   const selectedModelRef = useRef<THREE.Mesh | null>(null);
   const loaderRef = useRef<STLLoader>();
   const initializedRef = useRef<boolean>(false);
+  
+  // Camera control refs
+  const orthoCameraRef = useRef<THREE.OrthographicCamera>();
+  const perspectiveCameraRef = useRef<THREE.PerspectiveCamera>();
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);

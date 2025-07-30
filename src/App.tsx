@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import DrawingToolbar from './components/DrawingToolbar';
+import CameraControls from './components/CameraControls';
 import Viewport3D from './components/Viewport3D';
 import ToothLibrary from './components/ToothLibrary';
 import { STLModel, ToothModel } from './types';
@@ -11,6 +12,7 @@ function App() {
   const [models, setModels] = useState<STLModel[]>([]);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
+  const [isOrthographic, setIsOrthographic] = useState(false);
   const [drawingSettings, setDrawingSettings] = useState<DrawingSettings>({
     brushSize: 2.0,
     brushOpacity: 0.8,
@@ -56,6 +58,43 @@ function App() {
     setIsToothLibraryOpen(false);
   };
 
+  // Camera control handlers
+  const handleResetView = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleZoomIn = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleZoomOut = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleFitToScreen = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleViewTop = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleViewFront = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleViewRight = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleViewIsometric = () => {
+    // This will be handled by the Viewport3D component
+  };
+
+  const handleToggleOrthographic = () => {
+    setIsOrthographic(!isOrthographic);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-slate-900">
       <Navbar />
@@ -63,6 +102,18 @@ function App() {
         activeTool={activeTool}
         onToolSelect={handleToolSelect}
         onSettingsChange={handleDrawingSettingsChange}
+      />
+      <CameraControls
+        onResetView={handleResetView}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onFitToScreen={handleFitToScreen}
+        onViewTop={handleViewTop}
+        onViewFront={handleViewFront}
+        onViewRight={handleViewRight}
+        onViewIsometric={handleViewIsometric}
+        onToggleOrthographic={handleToggleOrthographic}
+        isOrthographic={isOrthographic}
       />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
@@ -77,6 +128,15 @@ function App() {
           onModelsChange={setModels}
           activeTool={activeTool}
           drawingSettings={drawingSettings}
+          isOrthographic={isOrthographic}
+          onResetView={handleResetView}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onFitToScreen={handleFitToScreen}
+          onViewTop={handleViewTop}
+          onViewFront={handleViewFront}
+          onViewRight={handleViewRight}
+          onViewIsometric={handleViewIsometric}
         />
       </div>
       
