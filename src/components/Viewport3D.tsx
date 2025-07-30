@@ -358,46 +358,46 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     
     // Model selection handler
     const handleModelClick = (event: MouseEvent) => {
-      // Handle occlusal point selection first
-      if (isSelectingOcclusalPoints) {
-        handleOcclusalPointSelection(event);
-        return;
-      }
+    console.log('Model click handler triggered, active tool:', activeTool);
+    
+    // Handle occlusal point selection first
+    if (isSelectingOcclusalPoints) {
+      console.log('Handling occlusal point selection');
+      handleOcclusalPointSelection(event);
+      return;
+    }
+    
+    // Handle drawing tools
+    if (activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) {
+      console.log('Drawing tool active, skipping model selection');
+      return;
+    }
+    
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+    
+    const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+    console.log('Available meshes for selection:', meshes.length);
+    
+    const intersects = raycaster.intersectObjects(meshes);
+    console.log('Intersections found:', intersects.length);
+    
+    if (intersects.length > 0) {
+      const selectedMesh = intersects[0].object as THREE.Mesh;
+      selectedModelRef.current = selectedMesh;
+      console.log('Model selected:', selectedMesh.uuid, 'for tool:', activeTool);
       
-      if (activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) {
-        // Don't handle model selection when drawing tools are active
-        return;
-      }
-      
-      if (!['translate', 'rotate', 'scale'].includes(activeTool || '')) {
-        // Clear transform controls if no transform tool is active
-        if (transformControlsRef.current) {
-          transformControlsRef.current.detach();
-          selectedModelRef.current = null;
-        }
-        return;
-      }
-      
-      event.preventDefault();
-      event.stopPropagation();
-      
-      const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
-        ((event.clientX - rect.left) / rect.width) * 2 - 1,
-        -((event.clientY - rect.top) / rect.height) * 2 + 1
-      );
-      
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
-      
-      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycaster.intersectObjects(meshes);
-      
-      if (intersects.length > 0) {
-        const selectedMesh = intersects[0].object as THREE.Mesh;
-        selectedModelRef.current = selectedMesh;
-        console.log('Model selected:', selectedMesh.uuid, 'for tool:', activeTool);
-        
+      // Handle transform tools
+      if (['translate', 'rotate', 'scale'].includes(activeTool || '')) {
         if (transformControlsRef.current) {
           transformControlsRef.current.attach(selectedMesh);
           
@@ -410,9 +410,29 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             transformControlsRef.current.setMode('scale');
           }
         }
-      } else {
-        console.log('No model clicked');
       }
+      
+      // Handle other tools that need model selection
+      if (activeTool === 'cut' || activeTool === 'smooth' || activeTool === 'close-holes') {
+        console.log('Model selected for editing tool:', activeTool);
+        // Add visual feedback for selected model
+        selectedMesh.material.emissive = new THREE.Color(0x444444);
+      }
+    } else {
+      console.log('No model clicked');
+      // Clear selection
+      if (transformControlsRef.current) {
+        transformControlsRef.current.detach();
+      }
+      selectedModelRef.current = null;
+      
+      // Clear visual feedback
+      models.forEach(model => {
+        if (model.mesh) {
+          model.mesh.material.emissive = new THREE.Color(0x000000);
+        }
+      });
+    }
     };
     
     renderer.domElement.addEventListener('mousedown', handleMouseDown);
@@ -609,28 +629,38 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   };
 
   const handleOcclusalPointSelection = (event: MouseEvent) => {
-    if (!isSelectingOcclusalPoints || !sceneRef.current) return;
+    if (!isSelectingOcclusalPoints || !sceneRef.current || !rendererRef.current || !cameraRef.current) {
+      console.log('Occlusal selection conditions not met');
+      return;
+    }
     
     event.preventDefault();
     event.stopPropagation();
     
-    const rect = rendererRef.current!.domElement.getBoundingClientRect();
+    console.log('Processing occlusal point selection...');
+    
+    const rect = rendererRef.current.domElement.getBoundingClientRect();
     const mouse = new THREE.Vector2(
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
       -((event.clientY - rect.top) / rect.height) * 2 + 1
     );
     
+    console.log('Mouse coordinates:', mouse);
+    
     const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, cameraRef.current!);
+    raycaster.setFromCamera(mouse, cameraRef.current);
     
     const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+    console.log('Available meshes for occlusal selection:', meshes.length);
+    
     const intersects = raycaster.intersectObjects(meshes);
+    console.log('Occlusal intersections found:', intersects.length);
     
     if (intersects.length > 0) {
       const point = intersects[0].point;
       const selectedMesh = intersects[0].object as THREE.Mesh;
       
-      console.log(`Selected occlusal point ${occlusalPoints.length + 1}:`, point);
+      console.log(`Selected occlusal point ${occlusalPoints.length + 1}:`, point.toArray());
       
       // Add point to array
       const newPoints = [...occlusalPoints, point];
@@ -640,6 +670,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       const marker = createOcclusalMarker(point, occlusalPoints.length);
       sceneRef.current.add(marker);
       setOcclusalMarkers(prev => [...prev, marker]);
+      
+      console.log(`Total occlusal points: ${newPoints.length}/3`);
       
       // If we have 3 points, calculate and apply the occlusal plane
       if (newPoints.length === 3) {
@@ -656,6 +688,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         // Reset selection mode
         resetOcclusalSelection();
       }
+    } else {
+      console.log('No mesh intersection for occlusal point selection');
     }
   };
 
@@ -810,33 +844,42 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // Handle occlusal plane tool activation
     if (activeTool === 'occlusal-plane') {
       console.log('Activating occlusal plane selection mode');
-      setIsSelectingOcclusalPoints(true);
       
       // Disable orbit controls during point selection
       if (controlsRef.current) {
         controlsRef.current.enabled = false;
+        console.log('Orbit controls disabled');
       }
       
       // Clear any existing selection
       resetOcclusalSelection();
       setIsSelectingOcclusalPoints(true);
+      console.log('Occlusal point selection mode activated');
       
       return;
     } else if (isSelectingOcclusalPoints) {
       // Reset occlusal selection when switching tools
+      console.log('Resetting occlusal selection due to tool change');
       resetOcclusalSelection();
     }
     
-    if (!controlsRef.current || !transformControlsRef.current) return;
+    if (!controlsRef.current) return;
     
     // Disable camera controls when drawing tools are active
     const isDrawingTool = activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool);
     controlsRef.current.enabled = !isDrawingTool;
     
+    if (isDrawingTool) {
+      console.log('Drawing tool active, orbit controls disabled');
+    } else {
+      console.log('Orbit controls enabled');
+    }
+    
     if (!transformControlsRef.current) return;
     
     if (['translate', 'rotate', 'scale'].includes(activeTool || '')) {
       transformControlsRef.current.visible = true;
+      console.log('Transform controls visible for tool:', activeTool);
       
       // Set transform mode based on active tool
       if (activeTool === 'translate') {
@@ -850,6 +893,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControlsRef.current.visible = false;
       transformControlsRef.current.detach();
       selectedModelRef.current = null;
+      console.log('Transform controls hidden');
     }
   }, [activeTool, isSelectingOcclusalPoints]);
   
@@ -1122,6 +1166,10 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           mesh.receiveShadow = true;
           mesh.visible = model.visible;
           mesh.position.x = model.type === 'upper' ? 0 : 20;
+          
+          // Make mesh interactive
+          mesh.userData.modelId = model.id;
+          mesh.userData.interactive = true;
 
           console.log('Adding mesh to scene:', mesh.uuid);
           sceneRef.current!.add(mesh);
@@ -1141,6 +1189,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         (model.mesh.material as THREE.MeshStandardMaterial).color.setHex(
           parseInt(model.color.replace('#', ''), 16)
         );
+        (model.mesh.material as THREE.MeshStandardMaterial).wireframe = viewportSettings.wireframe;
       }
     });
   }, [models, viewportSettings.wireframe]);
@@ -1298,6 +1347,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
+          <span>Interactive: {models.filter(m => m.mesh?.userData.interactive).length}</span>
           {occlusalPoints.length > 0 && (
             <span>Occlusal Points: {occlusalPoints.length}/3</span>
           )}
@@ -1307,10 +1357,18 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           {activeTool && (
             <span>Tool: {activeTool}</span>
           )}
+          {selectedModelRef.current && (
+            <span className="text-blue-400">Model Selected</span>
+          )}
         </div>
         <div className="text-slate-400 text-sm">
           <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
-          <span>Use mouse wheel to zoom, drag to rotate</span>
+          <span>
+            {isSelectingOcclusalPoints 
+              ? 'Click 3 points on the model to set occlusal plane (ESC to cancel)'
+              : 'Use mouse wheel to zoom, drag to rotate, click models to select'
+            }
+          </span>
         </div>
       </div>
     </div>
