@@ -1,20 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Scissors, 
-  CircleDot, 
-  Wand2, 
-  Plus, 
-  Minus, 
-  PaintBucket, 
-  Pencil,
-  Polygon,
-  Bezier,
-  Eraser,
-  Type,
-  Move3D,
-  RotateCw,
-  Maximize2
-} from 'lucide-react';
+import { Scissors, CircleDot, Wand2, Plus, Minus, PaintBucket, Pencil, Hexagon as Polygon, Beer as Bezier, Eraser, Type, Move3D, RotateCw, Maximize2 } from 'lucide-react';
 
 export interface EditingTool {
   id: string;
