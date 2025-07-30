@@ -43,10 +43,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
 
   const handleTransformAction = (action: string) => {
     console.log('Dispatching transform action:', action);
-    // Add a small delay to ensure the event is properly dispatched
-    setTimeout(() => {
     window.dispatchEvent(new CustomEvent('transform-action', { detail: { action } }));
-    }, 10);
   };
 
   return (
