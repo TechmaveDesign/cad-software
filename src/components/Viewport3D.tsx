@@ -300,6 +300,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       });
       
       controls.dispose();
+      if (transformControls.parent) {
+        transformControls.parent.remove(transformControls);
+      }
       transformControls.dispose();
       renderer.dispose();
     };
