@@ -38,11 +38,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
-  const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
-  const [maskTexture, setMaskTexture] = useState<THREE.Texture | null>(null);
   const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
   const [polygonPoints, setPolygonPoints] = useState<THREE.Vector3[]>([]);
   const [bezierControlPoints, setBezierControlPoints] = useState<THREE.Vector3[]>([]);
+  const [currentStroke, setCurrentStroke] = useState<THREE.Vector3[]>([]);
+  const [currentStrokeGroup, setCurrentStrokeGroup] = useState<THREE.Group | null>(null);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
