@@ -20,8 +20,6 @@ interface SidebarProps {
   onToolSelect: (toolId: string) => void;
   drawingSettings: DrawingSettings;
   onDrawingSettingsChange: (settings: DrawingSettings) => void;
-  selectedModelId: string | null;
-  onModelSelect: (modelId: string | null) => void;
 }
 
 interface TransformValues {
@@ -93,25 +91,25 @@ const Sidebar: React.FC<SidebarProps> = ({
     const newValues = { ...transformValues, [property]: value };
     setTransformValues(newValues);
     
-    console.log('Slider transform change:', property, 'to value:', value, 'for model:', selectedModelId);
+    console.log('Transform change:', property, 'to value:', value, 'for model:', selectedModelId);
     
-    // Dispatch transform slider event to viewport
+    // Dispatch transform event to viewport
     if (selectedModelId) {
-      console.log('Dispatching transform-sliders event with values:', newValues);
-      window.dispatchEvent(new CustomEvent('transform-sliders', {
+      console.log('Dispatching model-transform event with values:', newValues);
+      window.dispatchEvent(new CustomEvent('model-transform', {
         detail: {
           modelId: selectedModelId,
           transform: newValues
         }
       }));
     } else {
-      console.log('No model selected for slider transform');
+      console.log('No model selected for transform');
     }
   };
 
   const handleModelSelect = (modelId: string) => {
     console.log('Selecting model:', modelId);
-    onModelSelect(modelId);
+    setSelectedModelId(modelId);
     
     // Get current transform values from the model if it exists
     const model = models.find(m => m.id === modelId);
@@ -163,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, [models, selectedModelId]);
 
   const resetTransformValues = () => {
-    const resetValues = {
+    setTransformValues({
       posX: 0,
       posY: 0,
       posZ: 0,
@@ -171,18 +169,21 @@ const Sidebar: React.FC<SidebarProps> = ({
       rotY: 0,
       rotZ: 0,
       scale: 1
-    };
-    
-    setTransformValues({
-      ...resetValues
     });
     
     if (selectedModelId) {
-      console.log('Resetting transform values for model:', selectedModelId);
-      window.dispatchEvent(new CustomEvent('transform-sliders', {
+      window.dispatchEvent(new CustomEvent('model-transform', {
         detail: {
           modelId: selectedModelId,
-          transform: resetValues
+          transform: {
+            posX: 0,
+            posY: 0,
+            posZ: 0,
+            rotX: 0,
+            rotY: 0,
+            rotZ: 0,
+            scale: 1
+          }
         }
       }));
     }
@@ -290,7 +291,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                             step="0.1"
                             value={transformValues.posX}
                             onChange={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="text-slate-500 text-xs mt-1">{transformValues.posX.toFixed(1)}</div>
@@ -304,7 +304,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                             step="0.1"
                             value={transformValues.posY}
                             onChange={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="text-slate-500 text-xs mt-1">{transformValues.posY.toFixed(1)}</div>
@@ -318,7 +317,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                             step="0.1"
                             value={transformValues.posZ}
                             onChange={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="text-slate-500 text-xs mt-1">{transformValues.posZ.toFixed(1)}</div>
@@ -339,7 +337,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                             step="1"
                             value={transformValues.rotX}
                             onChange={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="text-slate-500 text-xs mt-1">{transformValues.rotX}°</div>
@@ -353,7 +350,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                             step="1"
                             value={transformValues.rotY}
                             onChange={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="text-slate-500 text-xs mt-1">{transformValues.rotY}°</div>
@@ -367,7 +363,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                             step="1"
                             value={transformValues.rotZ}
                             onChange={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="text-slate-500 text-xs mt-1">{transformValues.rotZ}°</div>
@@ -387,7 +382,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                           step="0.1"
                           value={transformValues.scale}
                           onChange={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
-                          onInput={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
                           className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                         />
                         <div className="text-slate-500 text-xs mt-1">{transformValues.scale.toFixed(1)}x</div>

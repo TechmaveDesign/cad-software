@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import DrawingToolbar from './components/DrawingToolbar';
 import CameraControls from './components/CameraControls';
 import Viewport3D from './components/Viewport3D';
 import ToothLibrary from './components/ToothLibrary';
@@ -12,7 +13,6 @@ function App() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
   const [isOrthographic, setIsOrthographic] = useState(false);
-  const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
   const [drawingSettings, setDrawingSettings] = useState<DrawingSettings>({
     brushSize: 2.0,
     brushOpacity: 0.8,
@@ -101,7 +101,6 @@ function App() {
       <CameraControls
         onToggleOrthographic={handleToggleOrthographic}
         isOrthographic={isOrthographic}
-        selectedModelId={selectedModelId}
       />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
@@ -112,8 +111,6 @@ function App() {
           onToolSelect={handleToolSelect}
           drawingSettings={drawingSettings}
           onDrawingSettingsChange={handleDrawingSettingsChange}
-          selectedModelId={selectedModelId}
-          onModelSelect={setSelectedModelId}
         />
         <Viewport3D
           models={models}
@@ -121,7 +118,6 @@ function App() {
           activeTool={activeTool}
           drawingSettings={drawingSettings}
           isOrthographic={isOrthographic}
-          selectedModelId={selectedModelId}
         />
       </div>
       
