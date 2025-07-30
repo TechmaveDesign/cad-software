@@ -73,8 +73,8 @@ const CameraControls: React.FC<CameraControlsProps> = ({
     
     // Dispatch transform event to viewport
     if (selectedModelId) {
-      console.log('Camera Controls - Dispatching model-transform event with values:', newValues);
-      window.dispatchEvent(new CustomEvent('model-transform', {
+      console.log('Camera Controls - Dispatching transform-sliders event with values:', newValues);
+      window.dispatchEvent(new CustomEvent('transform-sliders', {
         detail: {
           modelId: selectedModelId,
           transform: newValues
@@ -100,7 +100,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
     
     if (selectedModelId) {
       console.log('Camera Controls - Resetting transform values for model:', selectedModelId);
-      window.dispatchEvent(new CustomEvent('model-transform', {
+      window.dispatchEvent(new CustomEvent('transform-sliders', {
         detail: {
           modelId: selectedModelId,
           transform: resetValues
