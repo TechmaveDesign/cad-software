@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import DrawingToolbar from './components/DrawingToolbar';
 import Viewport3D from './components/Viewport3D';
 import ToothLibrary from './components/ToothLibrary';
 import { STLModel, ToothModel } from './types';
+import { DrawingSettings } from './components/DrawingToolbar';
 
 function App() {
   const [models, setModels] = useState<STLModel[]>([]);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
+  const [drawingSettings, setDrawingSettings] = useState<DrawingSettings>({
+    brushSize: 2.0,
+    brushOpacity: 0.8,
+    brushColor: '#ff0000',
+    pencilSize: 0.5,
+    pencilColor: '#00ff00',
+    lineWidth: 1.0,
+    lineColor: '#0000ff'
+  });
 
   const handleModelVisibilityToggle = (id: string) => {
     setModels(prevModels =>
@@ -35,6 +46,10 @@ function App() {
     }
   };
 
+  const handleDrawingSettingsChange = (settings: DrawingSettings) => {
+    setDrawingSettings(settings);
+  };
+
   const handleToothSelect = (tooth: ToothModel) => {
     console.log('Selected tooth:', tooth);
     // Here you would add the tooth to the scene
@@ -44,6 +59,11 @@ function App() {
   return (
     <div className="h-screen flex flex-col bg-slate-900">
       <Navbar />
+      <DrawingToolbar
+        activeTool={activeTool}
+        onToolSelect={handleToolSelect}
+        onSettingsChange={handleDrawingSettingsChange}
+      />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           models={models}
@@ -56,6 +76,7 @@ function App() {
           models={models}
           onModelsChange={setModels}
           activeTool={activeTool}
+          drawingSettings={drawingSettings}
         />
       </div>
       
