@@ -68,75 +68,18 @@ const Sidebar: React.FC<SidebarProps> = ({
     const newValues = { ...transformValues, [property]: value };
     setTransformValues(newValues);
     
-    console.log('Transform change:', property, value, 'for model:', selectedModelId);
-    
     // Dispatch transform event to viewport
     if (selectedModelId) {
-      console.log('Dispatching model-transform event with values:', newValues);
       window.dispatchEvent(new CustomEvent('model-transform', {
         detail: {
           modelId: selectedModelId,
           transform: newValues
         }
       }));
-    } else {
-      console.log('No model selected for transform');
     }
   };
 
   const handleModelSelect = (modelId: string) => {
-    console.log('Model selected:', modelId);
-    setSelectedModelId(modelId);
-    
-    // Get current transform values from the model if it exists
-    const model = models.find(m => m.id === modelId);
-    if (model && model.mesh) {
-      const mesh = model.mesh;
-      console.log('Loading current transform values from mesh:', mesh.position, mesh.rotation, mesh.scale);
-      setTransformValues({
-        posX: mesh.position.x,
-        posY: mesh.position.y,
-        posZ: mesh.position.z,
-        rotX: (mesh.rotation.x * 180) / Math.PI,
-        rotY: (mesh.rotation.y * 180) / Math.PI,
-        rotZ: (mesh.rotation.z * 180) / Math.PI,
-        scale: mesh.scale.x // Assuming uniform scale
-      });
-    } else {
-      // Reset transform values when selecting a new model without mesh
-      console.log('Resetting transform values for new model');
-      setTransformValues({
-        posX: 0,
-        posY: 0,
-        posZ: 0,
-        rotX: 0,
-        rotY: 0,
-        rotZ: 0,
-        scale: 1
-      });
-    }
-  };
-  
-  // Update transform values when models change (e.g., when mesh is loaded)
-  React.useEffect(() => {
-    if (selectedModelId) {
-      const model = models.find(m => m.id === selectedModelId);
-      if (model && model.mesh) {
-        const mesh = model.mesh;
-        setTransformValues({
-          posX: mesh.position.x,
-          posY: mesh.position.y,
-          posZ: mesh.position.z,
-          rotX: (mesh.rotation.x * 180) / Math.PI,
-          rotY: (mesh.rotation.y * 180) / Math.PI,
-          rotZ: (mesh.rotation.z * 180) / Math.PI,
-          scale: mesh.scale.x
-        });
-      }
-    }
-  }, [models, selectedModelId]);
-  
-  const handleModelSelect_old = (modelId: string) => {
     setSelectedModelId(modelId);
     // Reset transform values when selecting a new model
     setTransformValues({
