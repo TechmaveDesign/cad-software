@@ -18,19 +18,21 @@ const CameraControls: React.FC<CameraControlsProps> = ({
   onResetView,
   onZoomIn,
   onZoomOut,
-  onFitToScreen,
   onViewTop,
   onViewFront,
   onViewRight,
   onViewIsometric,
-  onToggleOrthographic,
-  isOrthographic
 }) => {
   const viewButtons = [
     { id: 'top', name: 'Top', onClick: onViewTop, icon: '⬆️' },
     { id: 'front', name: 'Front', onClick: onViewFront, icon: '⬅️' },
     { id: 'right', name: 'Right', onClick: onViewRight, icon: '➡️' },
     { id: 'iso', name: 'Isometric', onClick: onViewIsometric, icon: '📐' }
+  ];
+
+  const transformButtons = [
+    { id: 'scale', name: 'Scale', icon: '🔍', action: () => window.dispatchEvent(new CustomEvent('camera-scale-mode')) },
+    { id: 'rotate', name: 'Rotate', icon: '🔄', action: () => window.dispatchEvent(new CustomEvent('camera-rotate-mode')) }
   ];
 
   return (
@@ -56,13 +58,6 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             >
               <ZoomOut size={16} />
             </button>
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('camera-fit-screen'))}
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
-              title="Fit to Screen"
-            >
-              <Maximize2 size={16} />
-            </button>
           </div>
 
           {/* View Controls */}
@@ -80,8 +75,23 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             ))}
           </div>
 
-          {/* Reset and Projection */}
+          {/* Transform Controls */}
           <div className="flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
+            {transformButtons.map(transform => (
+              <button
+                key={transform.id}
+                onClick={transform.action}
+                className="px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200 text-xs font-medium"
+                title={`${transform.name} Mode`}
+              >
+                <span className="mr-1">{transform.icon}</span>
+                {transform.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Reset and Projection */}
+          <div className="flex items-center bg-slate-700 rounded-lg p-1">
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('camera-reset'))}
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
@@ -89,24 +99,12 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             >
               <Home size={16} />
             </button>
-            <button
-              onClick={onToggleOrthographic}
-              className={`p-2 rounded transition-colors duration-200 ${
-                isOrthographic
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-600'
-              }`}
-              title={`Switch to ${isOrthographic ? 'Perspective' : 'Orthographic'} View`}
-            >
-              <Eye size={16} />
-            </button>
           </div>
         </div>
 
         {/* Camera Info */}
         <div className="text-slate-400 text-sm">
-          <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
-          <span>Use mouse wheel to zoom, drag to rotate</span>
+          <span>Use mouse wheel to zoom, drag to rotate, scale/rotate tools for precise control</span>
         </div>
       </div>
     </div>
