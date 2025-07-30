@@ -1003,24 +1003,24 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           
           // Center and scale the geometry
           geometry.computeBoundingBox();
-          const center = new Vector3();
+          const center = new THREE.Vector3();
           geometry.boundingBox!.getCenter(center);
           geometry.translate(-center.x, -center.y, -center.z);
           
-          const size = new Vector3();
+          const size = new THREE.Vector3();
           geometry.boundingBox!.getSize(size);
           const maxDim = Math.max(size.x, size.y, size.z);
           const scale = 30 / maxDim;
           geometry.scale(scale, scale, scale);
 
-          const material = new MeshStandardMaterial({
+          const material = new THREE.MeshStandardMaterial({
             color: model.color,
             metalness: 0.1,
             roughness: 0.3,
             wireframe: viewportSettings.wireframe
           });
 
-          const mesh = new Mesh(geometry, material);
+          const mesh = new THREE.Mesh(geometry, material);
           mesh.castShadow = true;
           mesh.receiveShadow = true;
           mesh.visible = model.visible;
@@ -1037,7 +1037,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         reader.readAsArrayBuffer(model.file);
       } else if (model.mesh) {
         model.mesh.visible = model.visible;
-        (model.mesh.material as MeshStandardMaterial).color.setHex(
+        (model.mesh.material as THREE.MeshStandardMaterial).color.setHex(
           parseInt(model.color.replace('#', ''), 16)
         );
       }
