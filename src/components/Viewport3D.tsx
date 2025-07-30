@@ -39,8 +39,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
   const [maskTexture, setMaskTexture] = useState<THREE.Texture | null>(null);
   const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
-  const [polygonPoints, setPolygonPoints] = useState<THREE.Vector3[]>([]);
-  const [bezierControlPoints, setBezierControlPoints] = useState<THREE.Vector3[]>([]);
+  const [currentStroke, setCurrentStroke] = useState<THREE.Group | null>(null);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -113,7 +112,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
-      if (!activeTool || !['mask-brush', 'pencil', 'polyline', 'bezier'].includes(activeTool)) return;
+      if (!activeTool || !['mask-brush', 'pencil', 'polygon', 'bezier', 'eraser'].includes(activeTool)) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
@@ -130,12 +129,19 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       if (intersects.length > 0) {
         const point = intersects[0].point;
         
-        if (activeTool === 'mask-brush' || activeTool === 'pencil') {
+        if (activeTool === 'mask-brush' || activeTool === 'pencil' || activeTool === 'eraser') {
           setIsDrawing(true);
-          setDrawingPoints([point]);
-          addDrawingPoint(point, activeTool);
-        } else if (activeTool === 'polyline') {
-          addPolylinePoint(point);
+          const strokeGroup = new THREE.Group();
+          strokeGroup.userData.toolType = activeTool;
+          strokeGroup.userData.color = drawingColor;
+          strokeGroup.userData.size = brushSize;
+          strokeGroup.userData.opacity = brushOpacity;
+          scene.add(strokeGroup);
+          setCurrentStroke(strokeGroup);
+          setAnnotations(prev => [...prev, strokeGroup]);
+          addDrawingPoint(point, activeTool, strokeGroup);
+        } else if (activeTool === 'polygon') {
+          addPolygonPoint(point);
         } else if (activeTool === 'bezier') {
           addBezierPoint(point);
         }
@@ -143,7 +149,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
     
     const handleMouseMove = (event: MouseEvent) => {
-      if (!isDrawing || !activeTool || !['mask-brush', 'pencil'].includes(activeTool)) return;
+      if (!isDrawing || !activeTool || !currentStroke || !['mask-brush', 'pencil', 'eraser'].includes(activeTool)) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
@@ -159,15 +165,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       if (intersects.length > 0) {
         const point = intersects[0].point;
-        setDrawingPoints(prev => [...prev, point]);
-        addDrawingPoint(point, activeTool);
+        addDrawingPoint(point, activeTool, currentStroke);
       }
     };
     
     const handleMouseUp = () => {
       if (isDrawing) {
         setIsDrawing(false);
-        setDrawingPoints([]);
+        setCurrentStroke(null);
       }
     };
     
@@ -310,7 +315,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   }, [activeTool]);
   
   // Drawing helper functions
-  const addDrawingPoint = (point: THREE.Vector3, toolType: string) => {
+  const addDrawingPoint = (point: THREE.Vector3, toolType: string, strokeGroup: THREE.Group) => {
     if (!sceneRef.current) return;
     
     const geometry = new THREE.SphereGeometry(0.2, 8, 8);
@@ -323,16 +328,41 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
     
-    // Create annotation group if it doesn't exist
-    let annotationGroup = annotations.find(group => group.userData.toolType === toolType);
-    if (!annotationGroup) {
-      annotationGroup = new THREE.Group();
-      annotationGroup.userData.toolType = toolType;
-      sceneRef.current.add(annotationGroup);
-      setAnnotations(prev => [...prev, annotationGroup!]);
+    strokeGroup.add(sphere);
+  };
+  
+  const addPolygonPoint = (point: THREE.Vector3) => {
+    if (!sceneRef.current) return;
+    
+    // Add point marker
+    const geometry = new THREE.SphereGeometry(0.3, 8, 8);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.copy(point);
+    
+    let polygonGroup = annotations.find(group => group.userData.toolType === 'polygon');
+    if (!polygonGroup) {
+      polygonGroup = new THREE.Group();
+      polygonGroup.userData.toolType = 'polygon';
+      polygonGroup.userData.points = [];
+      sceneRef.current.add(polygonGroup);
+      setAnnotations(prev => [...prev, polygonGroup!]);
     }
     
-    annotationGroup.add(sphere);
+    polygonGroup.add(sphere);
+    polygonGroup.userData.points.push(point);
+    
+    // Draw line to previous point
+    if (polygonGroup.userData.points.length > 1) {
+      const points = polygonGroup.userData.points;
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+        points[points.length - 2],
+        points[points.length - 1]
+      ]);
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      polygonGroup.add(line);
+    }
   };
   
   const addPolylinePoint = (point: THREE.Vector3) => {
@@ -499,6 +529,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     });
     setAnnotations([]);
   };
+  
   return (
     <div className="flex-1 flex flex-col bg-slate-900">
       {/* Viewport Controls */}
@@ -558,12 +589,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           )}
           {annotations.length > 0 && (
             <span className="ml-4 text-green-400">Annotations: {annotations.length}</span>
-          )}
-          {activeTool === 'polygon' && polygonPoints.length > 0 && (
-            <span className="ml-4 text-yellow-400">Polygon Points: {polygonPoints.length} (Double-click to finish)</span>
-          )}
-          {activeTool === 'bezier' && bezierControlPoints.length > 0 && (
-            <span className="ml-4 text-purple-400">Bezier Points: {bezierControlPoints.length}/4</span>
           )}
         </div>
       </div>
