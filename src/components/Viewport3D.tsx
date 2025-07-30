@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { MeshLine, MeshLineMaterial } from 'meshline';
+import { MeshLine, MeshLineMaterial } from 'three.meshline';
 import { STLModel, ViewportSettings } from '../types';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Grid3X3, Lightbulb, Palette } from 'lucide-react';
