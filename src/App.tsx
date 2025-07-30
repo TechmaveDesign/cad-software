@@ -128,6 +128,7 @@ function App() {
           onModelColorChange={handleModelColorChange}
           activeTool={activeTool}
           onToolSelect={handleToolSelect}
+          onFileUpload={handleFileUpload}
         />
         <Viewport3D
           models={models}
