@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scissors, CircleDot, Wand2, Plus, Minus, PaintBucket, Ruler, Layers, Eye, EyeOff, Upload, ChevronDown, ChevronRight, Move3D, RotateCcw, Maximize, Brush, Pencil, Hexagon as Polygon, Spline } from 'lucide-react';
+import { Scissors, CircleDot, Wand2, Plus, Minus, PaintBucket, Ruler, Layers, Eye, EyeOff, Upload, ChevronDown, ChevronRight, Move3D, RotateCcw, Maximize, Brush, Pencil, Hexagon as Polygon, Spline, Settings } from 'lucide-react';
 import { STLModel } from '../types';
 
 interface SidebarProps {
@@ -8,6 +8,16 @@ interface SidebarProps {
   onModelColorChange: (id: string, color: string) => void;
   activeTool: string | null;
   onToolSelect: (toolId: string) => void;
+}
+
+interface TransformValues {
+  posX: number;
+  posY: number;
+  posZ: number;
+  rotX: number;
+  rotY: number;
+  rotZ: number;
+  scale: number;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -20,6 +30,16 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['models', 'edit', 'draw'])
   );
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
+  const [transformValues, setTransformValues] = useState<TransformValues>({
+    posX: 0,
+    posY: 0,
+    posZ: 0,
+    rotX: 0,
+    rotY: 0,
+    rotZ: 0,
+    scale: 1
+  });
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -43,6 +63,35 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'mask-brush', name: 'Mask Brush', icon: PaintBucket },
     { id: 'bezier', name: 'Bezier Tool', icon: Ruler },
   ];
+
+  const handleTransformChange = (property: keyof TransformValues, value: number) => {
+    const newValues = { ...transformValues, [property]: value };
+    setTransformValues(newValues);
+    
+    // Dispatch transform event to viewport
+    if (selectedModelId) {
+      window.dispatchEvent(new CustomEvent('model-transform', {
+        detail: {
+          modelId: selectedModelId,
+          transform: newValues
+        }
+      }));
+    }
+  };
+
+  const handleModelSelect = (modelId: string) => {
+    setSelectedModelId(modelId);
+    // Reset transform values when selecting a new model
+    setTransformValues({
+      posX: 0,
+      posY: 0,
+      posZ: 0,
+      rotX: 0,
+      rotY: 0,
+      rotZ: 0,
+      scale: 1
+    });
+  };
 
   const SectionHeader = ({ 
     title, 
@@ -96,7 +145,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         {expandedSections.has('models') && (
           <div className="px-4 py-4 space-y-3">
             {models.map((model) => (
-              <div key={model.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+              <div key={model.id} className="space-y-3">
+                <div className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
+                  selectedModelId === model.id ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
+                }`} onClick={() => handleModelSelect(model.id)}>
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => onModelVisibilityToggle(model.id)}
@@ -114,6 +166,121 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => onModelColorChange(model.id, e.target.value)}
                   className="w-6 h-6 rounded border-none cursor-pointer"
                 />
+              </div>
+                
+                {/* Transform Controls for Selected Model */}
+                {selectedModelId === model.id && (
+                  <div className="bg-slate-600 rounded-lg p-4 space-y-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Settings size={16} className="text-blue-400" />
+                      <span className="text-blue-400 font-medium text-sm">Transform Controls</span>
+                    </div>
+                    
+                    {/* Translation Controls */}
+                    <div className="space-y-2">
+                      <h5 className="text-slate-300 text-xs font-medium uppercase tracking-wide">Translate</h5>
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">X Position</label>
+                          <input
+                            type="range"
+                            min="-100"
+                            max="100"
+                            value={transformValues.posX}
+                            onChange={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.posX}</div>
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">Y Position</label>
+                          <input
+                            type="range"
+                            min="-100"
+                            max="100"
+                            value={transformValues.posY}
+                            onChange={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.posY}</div>
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">Z Position</label>
+                          <input
+                            type="range"
+                            min="-100"
+                            max="100"
+                            value={transformValues.posZ}
+                            onChange={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.posZ}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Rotation Controls */}
+                    <div className="space-y-2">
+                      <h5 className="text-slate-300 text-xs font-medium uppercase tracking-wide">Rotate</h5>
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">X Rotation</label>
+                          <input
+                            type="range"
+                            min="-180"
+                            max="180"
+                            value={transformValues.rotX}
+                            onChange={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.rotX}°</div>
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">Y Rotation</label>
+                          <input
+                            type="range"
+                            min="-180"
+                            max="180"
+                            value={transformValues.rotY}
+                            onChange={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.rotY}°</div>
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 text-xs mb-1">Z Rotation</label>
+                          <input
+                            type="range"
+                            min="-180"
+                            max="180"
+                            value={transformValues.rotZ}
+                            onChange={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.rotZ}°</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Scale Control */}
+                    <div className="space-y-2">
+                      <h5 className="text-slate-300 text-xs font-medium uppercase tracking-wide">Scale</h5>
+                      <div>
+                        <label className="block text-slate-400 text-xs mb-1">Uniform Scale</label>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="5"
+                          step="0.1"
+                          value={transformValues.scale}
+                          onChange={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
+                          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                        <div className="text-slate-500 text-xs mt-1">{transformValues.scale}x</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             <button className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-slate-600 rounded-lg text-slate-400 hover:text-white hover:border-slate-500 transition-colors duration-200">
