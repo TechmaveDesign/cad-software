@@ -524,8 +524,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       const mesh = targetModel.mesh;
       
-      console.log('Before transform - Position:', mesh.position.toArray(), 'Rotation:', mesh.rotation.toArray(), 'Scale:', mesh.scale.toArray());
-      
       // Apply transforms
       mesh.position.set(transform.posX, transform.posY, transform.posZ);
       mesh.rotation.set(
@@ -539,12 +537,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       mesh.updateMatrix();
       mesh.updateMatrixWorld(true);
       
-      console.log('After transform - Position:', mesh.position.toArray(), 'Rotation:', mesh.rotation.toArray(), 'Scale:', mesh.scale.toArray());
-      
-      // Force a render update
-      if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-      }
+      console.log('Transform applied - Position:', mesh.position, 'Rotation:', mesh.rotation, 'Scale:', mesh.scale);
     };
 
     window.addEventListener('model-transform', handleModelTransform);
@@ -560,6 +553,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-view-front', handleCameraEvents);
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
+      window.removeEventListener('transform-action', handleTransformAction);
       window.removeEventListener('model-transform', handleModelTransform);
       
       if (renderer.domElement) {
