@@ -56,6 +56,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const [isSelectingOcclusalPoints, setIsSelectingOcclusalPoints] = useState(false);
   const [undoStack, setUndoStack] = useState<Array<{modelId: string, position: THREE.Vector3, rotation: THREE.Euler, scale: THREE.Vector3}>>([]);
 
+  // Model editing state
+  const [editingMode, setEditingMode] = useState<string | null>(null);
+  const [selectionBox, setSelectionBox] = useState<THREE.Box3 | null>(null);
+  const [selectionHelper, setSelectionHelper] = useState<THREE.Box3Helper | null>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStart, setSelectionStart] = useState<THREE.Vector3 | null>(null);
+  const [selectionEnd, setSelectionEnd] = useState<THREE.Vector3 | null>(null);
+
   // Camera control functions
   const resetView = useCallback(() => {
     if (cameraRef.current && controlsRef.current) {
