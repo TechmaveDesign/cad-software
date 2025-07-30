@@ -293,6 +293,143 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
   }, []); // Empty dependency array - initialize only once
   
+  // Handle camera switching
+  useEffect(() => {
+    if (!perspectiveCameraRef.current || !orthoCameraRef.current || !controlsRef.current) return;
+    
+    const newCamera = isOrthographic ? orthoCameraRef.current : perspectiveCameraRef.current;
+    
+    // Copy position and rotation from current camera to new camera
+    if (cameraRef.current) {
+      newCamera.position.copy(cameraRef.current.position);
+      newCamera.rotation.copy(cameraRef.current.rotation);
+    }
+    
+    cameraRef.current = newCamera;
+    controlsRef.current.object = newCamera;
+    
+    // Update transform controls camera
+    if (transformControlsRef.current) {
+      transformControlsRef.current.camera = newCamera;
+    }
+  }, [isOrthographic]);
+  
+  // Camera control functions
+  useEffect(() => {
+    if (!cameraRef.current || !controlsRef.current) return;
+    
+    // Expose camera control functions to parent
+    const resetView = () => {
+      if (cameraRef.current && controlsRef.current) {
+        cameraRef.current.position.set(0, 0, 50);
+        cameraRef.current.lookAt(0, 0, 0);
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
+    };
+    
+    const zoomIn = () => {
+      if (cameraRef.current) {
+        if (isOrthographic && orthoCameraRef.current) {
+          orthoCameraRef.current.zoom *= 1.2;
+          orthoCameraRef.current.updateProjectionMatrix();
+        } else {
+          const direction = new THREE.Vector3();
+          cameraRef.current.getWorldDirection(direction);
+          cameraRef.current.position.add(direction.multiplyScalar(5));
+        }
+      }
+    };
+    
+    const zoomOut = () => {
+      if (cameraRef.current) {
+        if (isOrthographic && orthoCameraRef.current) {
+          orthoCameraRef.current.zoom /= 1.2;
+          orthoCameraRef.current.updateProjectionMatrix();
+        } else {
+          const direction = new THREE.Vector3();
+          cameraRef.current.getWorldDirection(direction);
+          cameraRef.current.position.add(direction.multiplyScalar(-5));
+        }
+      }
+    };
+    
+    const fitToScreen = () => {
+      if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
+      
+      const box = new THREE.Box3();
+      const meshes = models.filter(m => m.mesh).map(m => m.mesh!);
+      
+      if (meshes.length === 0) return;
+      
+      meshes.forEach(mesh => box.expandByObject(mesh));
+      
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      
+      controlsRef.current.target.copy(center);
+      
+      if (isOrthographic && orthoCameraRef.current) {
+        orthoCameraRef.current.zoom = 30 / maxDim;
+        orthoCameraRef.current.updateProjectionMatrix();
+      } else {
+        const distance = maxDim * 2;
+        cameraRef.current.position.copy(center);
+        cameraRef.current.position.z += distance;
+      }
+      
+      controlsRef.current.update();
+    };
+    
+    const viewTop = () => {
+      if (cameraRef.current && controlsRef.current) {
+        cameraRef.current.position.set(0, 50, 0);
+        cameraRef.current.lookAt(0, 0, 0);
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
+    };
+    
+    const viewFront = () => {
+      if (cameraRef.current && controlsRef.current) {
+        cameraRef.current.position.set(0, 0, 50);
+        cameraRef.current.lookAt(0, 0, 0);
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
+    };
+    
+    const viewRight = () => {
+      if (cameraRef.current && controlsRef.current) {
+        cameraRef.current.position.set(50, 0, 0);
+        cameraRef.current.lookAt(0, 0, 0);
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
+    };
+    
+    const viewIsometric = () => {
+      if (cameraRef.current && controlsRef.current) {
+        cameraRef.current.position.set(35, 35, 35);
+        cameraRef.current.lookAt(0, 0, 0);
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
+    };
+    
+    // Override parent handlers
+    onResetView = resetView;
+    onZoomIn = zoomIn;
+    onZoomOut = zoomOut;
+    onFitToScreen = fitToScreen;
+    onViewTop = viewTop;
+    onViewFront = viewFront;
+    onViewRight = viewRight;
+    onViewIsometric = viewIsometric;
+    
+  }, [isOrthographic, models, onResetView, onZoomIn, onZoomOut, onFitToScreen, onViewTop, onViewFront, onViewRight, onViewIsometric]);
+  
   // Update viewport settings
   useEffect(() => {
     if (!sceneRef.current) return;
