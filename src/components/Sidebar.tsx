@@ -1,42 +1,38 @@
 import React, { useState } from 'react';
 import { 
+  Scissors, 
+  CircleDot, 
+  Wand2, 
+  Plus, 
+  Minus, 
+  PaintBucket, 
+  Ruler, 
   Layers,
   Eye,
   EyeOff,
   Upload,
   ChevronDown,
-  ChevronRight,
-  Settings
+  ChevronRight
 } from 'lucide-react';
 import { STLModel } from '../types';
-import EditingTools from './EditingTools';
-import TransformControls, { TransformOperation } from './TransformControls';
 
 interface SidebarProps {
   models: STLModel[];
   onModelVisibilityToggle: (id: string) => void;
   onModelColorChange: (id: string, color: string) => void;
-  onModelSelect: (id: string) => void;
-  selectedModel: string | null;
   activeTool: string | null;
   onToolSelect: (toolId: string) => void;
-  onToolDeselect: () => void;
-  onTransform: (modelId: string, transform: TransformOperation) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   models,
   onModelVisibilityToggle,
   onModelColorChange,
-  onModelSelect,
-  selectedModel,
   activeTool,
-  onToolSelect,
-  onToolDeselect,
-  onTransform
+  onToolSelect
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['models', 'tools'])
+    new Set(['models', 'edit', 'draw'])
   );
 
   const toggleSection = (section: string) => {
@@ -48,6 +44,19 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
     setExpandedSections(newExpanded);
   };
+
+  const editTools = [
+    { id: 'cut', name: 'Cut', icon: Scissors },
+    { id: 'close-holes', name: 'Close Holes', icon: CircleDot },
+    { id: 'smooth', name: 'Smooth', icon: Wand2 },
+    { id: 'add-volume', name: 'Add Volume', icon: Plus },
+    { id: 'subtract-volume', name: 'Subtract Volume', icon: Minus },
+  ];
+
+  const drawTools = [
+    { id: 'mask-brush', name: 'Mask Brush', icon: PaintBucket },
+    { id: 'bezier', name: 'Bezier Tool', icon: Ruler },
+  ];
 
   const SectionHeader = ({ 
     title, 
@@ -73,6 +82,26 @@ const Sidebar: React.FC<SidebarProps> = ({
     </button>
   );
 
+  const ToolButton = ({ 
+    tool, 
+    isActive 
+  }: { 
+    tool: { id: string; name: string; icon: React.ComponentType<any> }; 
+    isActive: boolean 
+  }) => (
+    <button
+      onClick={() => onToolSelect(tool.id)}
+      className={`w-full flex items-center space-x-3 px-4 py-3 text-sm transition-colors duration-200 ${
+        isActive
+          ? 'bg-blue-600 text-white'
+          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+      }`}
+    >
+      <tool.icon size={16} />
+      <span>{tool.name}</span>
+    </button>
+  );
+
   return (
     <div className="w-80 bg-slate-800 border-r border-slate-700 flex flex-col h-full">
       {/* Models Section */}
@@ -81,13 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {expandedSections.has('models') && (
           <div className="px-4 py-4 space-y-3">
             {models.map((model) => (
-              <div 
-                key={model.id} 
-                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedModel === model.id ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
-                }`}
-                onClick={() => onModelSelect(model.id)}
-              >
+              <div key={model.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => onModelVisibilityToggle(model.id)}
@@ -104,7 +127,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                   value={model.color}
                   onChange={(e) => onModelColorChange(model.id, e.target.value)}
                   className="w-6 h-6 rounded border-none cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             ))}
@@ -116,25 +138,80 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* Tools Section */}
+      {/* Edit Tools Section */}
       <div className="border-b border-slate-700">
-        <SectionHeader title="Tools" sectionId="tools" icon={Settings} />
-        {expandedSections.has('tools') && (
-          <EditingTools
-            activeTool={activeTool}
-            onToolSelect={onToolSelect}
-            onToolDeselect={onToolDeselect}
-          />
+        <SectionHeader title="Edit Tools" sectionId="edit" icon={Scissors} />
+        {expandedSections.has('edit') && (
+          <div>
+            {editTools.map((tool) => (
+              <ToolButton
+                key={tool.id}
+                tool={tool}
+                isActive={activeTool === tool.id}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Transform Controls */}
-      {(['move', 'rotate', 'scale'].includes(activeTool || '')) && (
-        <div className="flex-1 bg-slate-750">
-          <TransformControls
-            selectedModel={selectedModel}
-            onTransform={onTransform}
-          />
+      {/* Draw Tools Section */}
+      <div className="border-b border-slate-700">
+        <SectionHeader title="Draw Tools" sectionId="draw" icon={PaintBucket} />
+        {expandedSections.has('draw') && (
+          <div>
+            {drawTools.map((tool) => (
+              <ToolButton
+                key={tool.id}
+                tool={tool}
+                isActive={activeTool === tool.id}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tool Settings */}
+      {activeTool && (
+        <div className="flex-1 p-4">
+          <h3 className="text-slate-300 font-medium mb-4">Tool Settings</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-slate-400 text-sm mb-2">Spacer (mm)</label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                defaultValue="0.05"
+                className="w-full"
+              />
+              <div className="text-slate-500 text-xs mt-1">0.05mm</div>
+            </div>
+            <div>
+              <label className="block text-slate-400 text-sm mb-2">Thickness (mm)</label>
+              <input
+                type="range"
+                min="0.5"
+                max="5"
+                step="0.1"
+                defaultValue="1.75"
+                className="w-full"
+              />
+              <div className="text-slate-500 text-xs mt-1">1.75mm</div>
+            </div>
+            <div>
+              <label className="block text-slate-400 text-sm mb-2">Taper Angle (°)</label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.5"
+                defaultValue="0"
+                className="w-full"
+              />
+              <div className="text-slate-500 text-xs mt-1">0°</div>
+            </div>
+          </div>
         </div>
       )}
     </div>
