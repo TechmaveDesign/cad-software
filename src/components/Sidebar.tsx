@@ -91,20 +91,76 @@ const Sidebar: React.FC<SidebarProps> = ({
     const newValues = { ...transformValues, [property]: value };
     setTransformValues(newValues);
     
+    console.log('Transform change:', property, 'to value:', value, 'for model:', selectedModelId);
+    
     // Dispatch transform event to viewport
     if (selectedModelId) {
+      console.log('Dispatching model-transform event with values:', newValues);
       window.dispatchEvent(new CustomEvent('model-transform', {
         detail: {
           modelId: selectedModelId,
           transform: newValues
         }
       }));
+    } else {
+      console.log('No model selected for transform');
     }
   };
 
   const handleModelSelect = (modelId: string) => {
+    console.log('Selecting model:', modelId);
     setSelectedModelId(modelId);
-    // Reset transform values when selecting a new model
+    
+    // Get current transform values from the model if it exists
+    const model = models.find(m => m.id === modelId);
+    if (model && model.mesh) {
+      const mesh = model.mesh;
+      console.log('Getting current transform from mesh:', mesh.position.toArray(), mesh.rotation.toArray(), mesh.scale.toArray());
+      
+      setTransformValues({
+        posX: Math.round(mesh.position.x * 10) / 10,
+        posY: Math.round(mesh.position.y * 10) / 10,
+        posZ: Math.round(mesh.position.z * 10) / 10,
+        rotX: Math.round((mesh.rotation.x * 180) / Math.PI),
+        rotY: Math.round((mesh.rotation.y * 180) / Math.PI),
+        rotZ: Math.round((mesh.rotation.z * 180) / Math.PI),
+        scale: Math.round(mesh.scale.x * 10) / 10
+      });
+    } else {
+      // Reset transform values when selecting a new model without mesh
+      setTransformValues({
+        posX: 0,
+        posY: 0,
+        posZ: 0,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 0,
+        scale: 1
+      });
+    }
+  };
+
+  // Update transform values when models change (e.g., when mesh is loaded)
+  React.useEffect(() => {
+    if (selectedModelId) {
+      const model = models.find(m => m.id === selectedModelId);
+      if (model && model.mesh && transformValues.posX === 0 && transformValues.posY === 0 && transformValues.posZ === 0) {
+        // Only update if we haven't set values yet
+        const mesh = model.mesh;
+        setTransformValues({
+          posX: Math.round(mesh.position.x * 10) / 10,
+          posY: Math.round(mesh.position.y * 10) / 10,
+          posZ: Math.round(mesh.position.z * 10) / 10,
+          rotX: Math.round((mesh.rotation.x * 180) / Math.PI),
+          rotY: Math.round((mesh.rotation.y * 180) / Math.PI),
+          rotZ: Math.round((mesh.rotation.z * 180) / Math.PI),
+          scale: Math.round(mesh.scale.x * 10) / 10
+        });
+      }
+    }
+  }, [models, selectedModelId]);
+
+  const resetTransformValues = () => {
     setTransformValues({
       posX: 0,
       posY: 0,
@@ -114,6 +170,23 @@ const Sidebar: React.FC<SidebarProps> = ({
       rotZ: 0,
       scale: 1
     });
+    
+    if (selectedModelId) {
+      window.dispatchEvent(new CustomEvent('model-transform', {
+        detail: {
+          modelId: selectedModelId,
+          transform: {
+            posX: 0,
+            posY: 0,
+            posZ: 0,
+            rotX: 0,
+            rotY: 0,
+            rotZ: 0,
+            scale: 1
+          }
+        }
+      }));
+    }
   };
 
   const SectionHeader = ({ 
@@ -197,6 +270,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <div className="flex items-center space-x-2 mb-3">
                       <Settings size={16} className="text-blue-400" />
                       <span className="text-blue-400 font-medium text-sm">Transform Controls</span>
+                      <button
+                        onClick={resetTransformValues}
+                        className="ml-auto px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs transition-colors duration-200"
+                      >
+                        Reset
+                      </button>
                     </div>
                     
                     {/* Translation Controls */}
@@ -209,11 +288,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                             type="range"
                             min="-100"
                             max="100"
+                            step="0.1"
                             value={transformValues.posX}
                             onChange={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.posX}</div>
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.posX.toFixed(1)}</div>
                         </div>
                         <div>
                           <label className="block text-slate-400 text-xs mb-1">Y Position</label>
@@ -221,11 +301,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                             type="range"
                             min="-100"
                             max="100"
+                            step="0.1"
                             value={transformValues.posY}
                             onChange={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.posY}</div>
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.posY.toFixed(1)}</div>
                         </div>
                         <div>
                           <label className="block text-slate-400 text-xs mb-1">Z Position</label>
@@ -233,11 +314,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                             type="range"
                             min="-100"
                             max="100"
+                            step="0.1"
                             value={transformValues.posZ}
                             onChange={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                           />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.posZ}</div>
+                          <div className="text-slate-500 text-xs mt-1">{transformValues.posZ.toFixed(1)}</div>
                         </div>
                       </div>
                     </div>
@@ -252,6 +334,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                             type="range"
                             min="-180"
                             max="180"
+                            step="1"
                             value={transformValues.rotX}
                             onChange={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
@@ -264,6 +347,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                             type="range"
                             min="-180"
                             max="180"
+                            step="1"
                             value={transformValues.rotY}
                             onChange={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
@@ -276,6 +360,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                             type="range"
                             min="-180"
                             max="180"
+                            step="1"
                             value={transformValues.rotZ}
                             onChange={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
@@ -299,7 +384,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           onChange={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
                           className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                         />
-                        <div className="text-slate-500 text-xs mt-1">{transformValues.scale}x</div>
+                        <div className="text-slate-500 text-xs mt-1">{transformValues.scale.toFixed(1)}x</div>
                       </div>
                     </div>
                   </div>
