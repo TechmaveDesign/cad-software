@@ -39,6 +39,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
   const [maskTexture, setMaskTexture] = useState<THREE.Texture | null>(null);
   const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
+  const [polygonPoints, setPolygonPoints] = useState<THREE.Vector3[]>([]);
+  const [bezierControlPoints, setBezierControlPoints] = useState<THREE.Vector3[]>([]);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -556,6 +558,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           )}
           {annotations.length > 0 && (
             <span className="ml-4 text-green-400">Annotations: {annotations.length}</span>
+          )}
+          {activeTool === 'polygon' && polygonPoints.length > 0 && (
+            <span className="ml-4 text-yellow-400">Polygon Points: {polygonPoints.length} (Double-click to finish)</span>
+          )}
+          {activeTool === 'bezier' && bezierControlPoints.length > 0 && (
+            <span className="ml-4 text-purple-400">Bezier Points: {bezierControlPoints.length}/4</span>
           )}
         </div>
       </div>
