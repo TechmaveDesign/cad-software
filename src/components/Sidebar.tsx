@@ -32,9 +32,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const editTools = [
-    { id: 'translate', name: 'Move', icon: Move3D },
-    { id: 'rotate', name: 'Rotate', icon: RotateCcw },
-    { id: 'scale', name: 'Scale', icon: Maximize },
     { id: 'cut', name: 'Cut', icon: Scissors },
     { id: 'close-holes', name: 'Close Holes', icon: CircleDot },
     { id: 'smooth', name: 'Smooth', icon: Wand2 },
@@ -43,11 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const drawTools = [
-    { id: 'pencil', name: 'Pencil', icon: Pencil },
     { id: 'mask-brush', name: 'Mask Brush', icon: PaintBucket },
-    { id: 'polygon', name: 'Polygon', icon: Polygon },
     { id: 'bezier', name: 'Bezier Tool', icon: Ruler },
-    { id: 'eraser', name: 'Eraser', icon: Brush },
   ];
 
   const SectionHeader = ({ 

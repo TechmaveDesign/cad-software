@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { MeshLine, MeshLineMaterial } from 'meshline';
 import { STLModel, ViewportSettings } from '../types';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Grid3X3, Lightbulb, Palette } from 'lucide-react';
@@ -12,19 +11,9 @@ interface Viewport3DProps {
   models: STLModel[];
   onModelsChange: (models: STLModel[]) => void;
   activeTool: string | null;
-  brushSize: number;
-  brushOpacity: number;
-  drawingColor: string;
 }
 
-const Viewport3D: React.FC<Viewport3DProps> = ({
-  models,
-  onModelsChange,
-  activeTool,
-  brushSize,
-  brushOpacity,
-  drawingColor
-}) => {
+const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeTool }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
@@ -34,15 +23,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const selectedModelRef = useRef<THREE.Mesh | null>(null);
   const loaderRef = useRef<STLLoader>();
   const initializedRef = useRef<boolean>(false);
-  const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
-  const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentStroke, setCurrentStroke] = useState<THREE.Vector3[]>([]);
+  const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
+  const [maskTexture, setMaskTexture] = useState<THREE.Texture | null>(null);
   const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
-  const [polygonPoints, setPolygonPoints] = useState<THREE.Vector3[]>([]);
-  const [bezierPoints, setBezierPoints] = useState<THREE.Vector3[]>([]);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -56,7 +42,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     if (!mountRef.current || initializedRef.current) return;
     
     initializedRef.current = true;
-    console.log('Initializing Three.js scene...');
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(viewportSettings.backgroundColor);
@@ -77,14 +62,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
-    // OrbitControls setup
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 10;
-    controls.maxDistance = 200;
-    controls.maxPolarAngle = Math.PI;
     controlsRef.current = controls;
 
     // Transform controls
@@ -119,300 +99,81 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // STL Loader
     loaderRef.current = new STLLoader();
 
-    // Mouse event handlers
+    // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
-      console.log('Mouse down, active tool:', activeTool);
+      if (!activeTool || !['mask-brush', 'pencil', 'polyline', 'bezier'].includes(activeTool)) return;
       
-      if (!activeTool) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
       
-      const drawingTools = ['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'];
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
       
-      if (drawingTools.includes(activeTool)) {
-        event.preventDefault();
-        event.stopPropagation();
+      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+      const intersects = raycaster.intersectObjects(meshes);
+      
+      if (intersects.length > 0) {
+        const point = intersects[0].point;
         
-        const rect = renderer.domElement.getBoundingClientRect();
-        mouseRef.current.set(
-          ((event.clientX - rect.left) / rect.width) * 2 - 1,
-          -((event.clientY - rect.top) / rect.height) * 2 + 1
-        );
-        
-        raycasterRef.current.setFromCamera(mouseRef.current, camera);
-        
-        const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-        const intersects = raycasterRef.current.intersectObjects(meshes);
-        
-        if (intersects.length > 0) {
-          const point = intersects[0].point;
-          console.log('Intersection found at:', point);
-          
-          if (activeTool === 'pencil' || activeTool === 'mask-brush' || activeTool === 'eraser') {
-            setIsDrawing(true);
-            setCurrentStroke([point]);
-            
-            // Create initial point
-            const geometry = new THREE.SphereGeometry(
-              activeTool === 'pencil' ? brushSize * 0.1 : 
-              activeTool === 'mask-brush' ? brushSize * 0.2 : 
-              brushSize * 0.15, 8, 8
-            );
-            
-            const color = activeTool === 'eraser' ? 0xff0000 : parseInt(drawingColor.replace('#', ''), 16);
-            const material = new THREE.MeshBasicMaterial({
-              color: color,
-              transparent: activeTool === 'mask-brush',
-              opacity: activeTool === 'mask-brush' ? brushOpacity : 1.0
-            });
-            
-            const sphere = new THREE.Mesh(geometry, material);
-            sphere.position.copy(point);
-            
-            // Offset slightly to prevent z-fighting
-            const normal = intersects[0].face?.normal.clone();
-            if (normal) {
-              normal.transformDirection(intersects[0].object.matrixWorld);
-              sphere.position.add(normal.multiplyScalar(0.01));
-            }
-            
-            const strokeGroup = new THREE.Group();
-            strokeGroup.userData = {
-              toolType: activeTool,
-              color: drawingColor,
-              brushSize: brushSize,
-              opacity: brushOpacity
-            };
-            strokeGroup.add(sphere);
-            scene.add(strokeGroup);
-            setAnnotations(prev => [...prev, strokeGroup]);
-            
-            console.log('Started drawing stroke');
-          } else if (activeTool === 'polygon') {
-            handlePolygonPoint(point);
-          } else if (activeTool === 'bezier') {
-            handleBezierPoint(point);
-          }
+        if (activeTool === 'mask-brush' || activeTool === 'pencil') {
+          setIsDrawing(true);
+          setDrawingPoints([point]);
+          addDrawingPoint(point, activeTool);
+        } else if (activeTool === 'polyline') {
+          addPolylinePoint(point);
+        } else if (activeTool === 'bezier') {
+          addBezierPoint(point);
         }
       }
     };
     
     const handleMouseMove = (event: MouseEvent) => {
-      if (!isDrawing || !activeTool) return;
-      
-      const drawingTools = ['pencil', 'mask-brush', 'eraser'];
-      if (!drawingTools.includes(activeTool)) return;
+      if (!isDrawing || !activeTool || !['mask-brush', 'pencil'].includes(activeTool)) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
-      mouseRef.current.set(
+      const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1
       );
       
-      raycasterRef.current.setFromCamera(mouseRef.current, camera);
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycasterRef.current.intersectObjects(meshes);
+      const intersects = raycaster.intersectObjects(meshes);
       
       if (intersects.length > 0) {
         const point = intersects[0].point;
-        const lastPoint = currentStroke[currentStroke.length - 1];
-        
-        // Only add point if it's far enough from the last point
-        if (!lastPoint || point.distanceTo(lastPoint) > 0.5) {
-          setCurrentStroke(prev => [...prev, point]);
-          
-          // Add point to current stroke group
-          const currentStrokeGroup = annotations[annotations.length - 1];
-          if (currentStrokeGroup) {
-            const geometry = new THREE.SphereGeometry(
-              activeTool === 'pencil' ? brushSize * 0.1 : 
-              activeTool === 'mask-brush' ? brushSize * 0.2 : 
-              brushSize * 0.15, 8, 8
-            );
-            
-            const color = activeTool === 'eraser' ? 0xff0000 : parseInt(drawingColor.replace('#', ''), 16);
-            const material = new THREE.MeshBasicMaterial({
-              color: color,
-              transparent: activeTool === 'mask-brush',
-              opacity: activeTool === 'mask-brush' ? brushOpacity : 1.0
-            });
-            
-            const sphere = new THREE.Mesh(geometry, material);
-            sphere.position.copy(point);
-            
-            // Offset slightly to prevent z-fighting
-            const normal = intersects[0].face?.normal.clone();
-            if (normal) {
-              normal.transformDirection(intersects[0].object.matrixWorld);
-              sphere.position.add(normal.multiplyScalar(0.01));
-            }
-            
-            currentStrokeGroup.add(sphere);
-            
-            // Create line between points using MeshLine
-            if (currentStrokeGroup.children.length > 1) {
-              const prevSphere = currentStrokeGroup.children[currentStrokeGroup.children.length - 2];
-              if (prevSphere instanceof THREE.Mesh) {
-                const points = [prevSphere.position, sphere.position];
-                const line = new MeshLine();
-                line.setPoints(points);
-                
-                const lineMaterial = new MeshLineMaterial({
-                  color: color,
-                  lineWidth: activeTool === 'pencil' ? brushSize * 0.05 : 
-                           activeTool === 'mask-brush' ? brushSize * 0.1 : 
-                           brushSize * 0.08,
-                  transparent: activeTool === 'mask-brush',
-                  opacity: activeTool === 'mask-brush' ? brushOpacity : 1.0
-                });
-                
-                const lineMesh = new THREE.Mesh(line, lineMaterial);
-                currentStrokeGroup.add(lineMesh);
-              }
-            }
-            
-            console.log('Added point to stroke, total points:', currentStrokeGroup.children.length);
-          }
-        }
+        setDrawingPoints(prev => [...prev, point]);
+        addDrawingPoint(point, activeTool);
       }
     };
     
     const handleMouseUp = () => {
       if (isDrawing) {
         setIsDrawing(false);
-        setCurrentStroke([]);
-        console.log('Finished drawing stroke');
+        setDrawingPoints([]);
       }
     };
     
-    const handlePolygonPoint = (point: THREE.Vector3) => {
-      console.log('Adding polygon point:', point);
-      
-      // Create point marker
-      const geometry = new THREE.SphereGeometry(0.2, 8, 8);
-      const color = parseInt(drawingColor.replace('#', ''), 16);
-      const material = new THREE.MeshBasicMaterial({ color: color });
-      const sphere = new THREE.Mesh(geometry, material);
-      sphere.position.copy(point);
-      
-      // Find or create polygon group
-      let polygonGroup = annotations.find(group => 
-        group.userData.toolType === 'polygon' && !group.userData.completed
-      );
-      
-      if (!polygonGroup) {
-        polygonGroup = new THREE.Group();
-        polygonGroup.userData = {
-          toolType: 'polygon',
-          color: drawingColor,
-          points: [],
-          completed: false
-        };
-        scene.add(polygonGroup);
-        setAnnotations(prev => [...prev, polygonGroup!]);
-      }
-      
-      polygonGroup.add(sphere);
-      polygonGroup.userData.points.push(point);
-      
-      // Draw line to previous point
-      if (polygonGroup.userData.points.length > 1) {
-        const points = polygonGroup.userData.points;
-        const linePoints = [points[points.length - 2], points[points.length - 1]];
-        const line = new MeshLine();
-        line.setPoints(linePoints);
-        
-        const lineMaterial = new MeshLineMaterial({
-          color: color,
-          lineWidth: 0.1
-        });
-        
-        const lineMesh = new THREE.Mesh(line, lineMaterial);
-        polygonGroup.add(lineMesh);
-      }
-      
-      setPolygonPoints(prev => [...prev, point]);
-      console.log('Polygon points:', polygonGroup.userData.points.length);
-    };
-    
-    const handleBezierPoint = (point: THREE.Vector3) => {
-      console.log('Adding bezier point:', point);
-      
-      // Create control point marker
-      const geometry = new THREE.SphereGeometry(0.15, 8, 8);
-      const color = parseInt(drawingColor.replace('#', ''), 16);
-      const material = new THREE.MeshBasicMaterial({ 
-        color: color,
-        transparent: true,
-        opacity: 0.8
-      });
-      const sphere = new THREE.Mesh(geometry, material);
-      sphere.position.copy(point);
-      
-      // Find or create bezier group
-      let bezierGroup = annotations.find(group => 
-        group.userData.toolType === 'bezier' && !group.userData.completed
-      );
-      
-      if (!bezierGroup) {
-        bezierGroup = new THREE.Group();
-        bezierGroup.userData = {
-          toolType: 'bezier',
-          color: drawingColor,
-          controlPoints: [],
-          completed: false
-        };
-        scene.add(bezierGroup);
-        setAnnotations(prev => [...prev, bezierGroup!]);
-      }
-      
-      bezierGroup.add(sphere);
-      bezierGroup.userData.controlPoints.push(point);
-      
-      // Create bezier curve when we have 4 points
-      if (bezierGroup.userData.controlPoints.length === 4) {
-        const points = bezierGroup.userData.controlPoints;
-        const curve = new THREE.CubicBezierCurve3(
-          points[0], points[1], points[2], points[3]
-        );
-        
-        const curvePoints = curve.getPoints(50);
-        const line = new MeshLine();
-        line.setPoints(curvePoints);
-        
-        const lineMaterial = new MeshLineMaterial({
-          color: color,
-          lineWidth: 0.15
-        });
-        
-        const curveMesh = new THREE.Mesh(line, lineMaterial);
-        bezierGroup.add(curveMesh);
-        
-        // Mark as completed
-        bezierGroup.userData.completed = true;
-        setBezierPoints([]);
-        
-        console.log('Bezier curve completed');
-      }
-      
-      setBezierPoints(prev => [...prev, point]);
-      console.log('Bezier control points:', bezierGroup.userData.controlPoints.length);
-    };
-    
-    // Model selection for transform tools
+    // Model selection handler
     const handleModelClick = (event: MouseEvent) => {
-      const transformTools = ['translate', 'rotate', 'scale'];
-      if (!transformTools.includes(activeTool || '')) return;
+      if (!['translate', 'rotate', 'scale'].includes(activeTool || '')) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
-      mouseRef.current.set(
+      const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1
       );
       
-      raycasterRef.current.setFromCamera(mouseRef.current, camera);
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycasterRef.current.intersectObjects(meshes);
+      const intersects = raycaster.intersectObjects(meshes);
       
       if (intersects.length > 0) {
         const selectedMesh = intersects[0].object as THREE.Mesh;
@@ -421,6 +182,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         if (transformControlsRef.current) {
           transformControlsRef.current.attach(selectedMesh);
           
+          // Set transform mode based on active tool
           if (activeTool === 'translate') {
             transformControlsRef.current.setMode('translate');
           } else if (activeTool === 'rotate') {
@@ -429,12 +191,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             transformControlsRef.current.setMode('scale');
           }
         }
-        
-        console.log('Model selected for transform:', activeTool);
       }
     };
     
-    // Add event listeners
     renderer.domElement.addEventListener('mousedown', handleMouseDown);
     renderer.domElement.addEventListener('mousemove', handleMouseMove);
     renderer.domElement.addEventListener('mouseup', handleMouseUp);
@@ -459,24 +218,20 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
     window.addEventListener('resize', handleResize);
 
-    console.log('Three.js scene initialized successfully');
-
     return () => {
       initializedRef.current = false;
       window.removeEventListener('resize', handleResize);
-      
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
         renderer.domElement.removeEventListener('mousemove', handleMouseMove);
         renderer.domElement.removeEventListener('mouseup', handleMouseUp);
         renderer.domElement.removeEventListener('click', handleModelClick);
       }
-      
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
       }
       
-      // Cleanup Three.js resources
+      // Proper cleanup of Three.js resources
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           if (object.geometry) object.geometry.dispose();
@@ -491,68 +246,155 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       });
       
       controls.dispose();
-      if (transformControls.parent) {
-        transformControls.parent.remove(transformControls);
-      }
       transformControls.dispose();
       renderer.dispose();
-      
-      console.log('Three.js scene cleaned up');
     };
-  }, []);
+  }, []); // Empty dependency array - initialize only once
   
-  // Update controls based on active tool
+  // Update viewport settings
   useEffect(() => {
-    if (!controlsRef.current || !transformControlsRef.current) return;
+    if (!sceneRef.current) return;
     
-    const drawingTools = ['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'];
-    const transformTools = ['translate', 'rotate', 'scale'];
+    // Update background color
+    sceneRef.current.background = new THREE.Color(viewportSettings.backgroundColor);
     
-    console.log('Active tool changed:', activeTool);
+    // Update light intensity
+    sceneRef.current.traverse((object) => {
+      if (object instanceof THREE.DirectionalLight && object.intensity !== 0.3) {
+        object.intensity = viewportSettings.lightIntensity;
+      }
+    });
+  }, [viewportSettings]);
+  
+  // Update grid visibility
+  useEffect(() => {
+    if (!sceneRef.current) return;
     
-    if (drawingTools.includes(activeTool || '')) {
-      // For drawing tools, disable orbit controls on left click but allow right-click rotation
-      controlsRef.current.mouseButtons = {
-        LEFT: null, // Disable left click
-        MIDDLE: THREE.MOUSE.DOLLY, // Keep zoom
-        RIGHT: THREE.MOUSE.ROTATE // Keep right-click rotation
-      };
-      controlsRef.current.enabled = true;
-      
-      // Hide transform controls
-      transformControlsRef.current.visible = false;
-      transformControlsRef.current.detach();
-      selectedModelRef.current = null;
-      
-      console.log('Drawing mode: Left-click disabled for orbit, right-click enabled');
-    } else if (transformTools.includes(activeTool || '')) {
-      // For transform tools, enable all controls
-      controlsRef.current.mouseButtons = {
-        LEFT: THREE.MOUSE.ROTATE,
-        MIDDLE: THREE.MOUSE.DOLLY,
-        RIGHT: THREE.MOUSE.PAN
-      };
-      controlsRef.current.enabled = true;
+    // Remove existing grid
+    const existingGrid = sceneRef.current.getObjectByName('gridHelper');
+    if (existingGrid) {
+      sceneRef.current.remove(existingGrid);
+    }
+    
+    // Add new grid if enabled
+    if (viewportSettings.showGrid) {
+      const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x444444);
+      gridHelper.name = 'gridHelper';
+      sceneRef.current.add(gridHelper);
+    }
+  }, [viewportSettings.showGrid]);
+  
+  // Update transform controls when active tool changes
+  useEffect(() => {
+    if (!transformControlsRef.current) return;
+    
+    if (['translate', 'rotate', 'scale'].includes(activeTool || '')) {
       transformControlsRef.current.visible = true;
-      
-      console.log('Transform mode: All controls enabled');
     } else {
-      // No tool selected, enable all orbit controls
-      controlsRef.current.mouseButtons = {
-        LEFT: THREE.MOUSE.ROTATE,
-        MIDDLE: THREE.MOUSE.DOLLY,
-        RIGHT: THREE.MOUSE.PAN
-      };
-      controlsRef.current.enabled = true;
-      
-      // Hide transform controls
       transformControlsRef.current.visible = false;
       transformControlsRef.current.detach();
       selectedModelRef.current = null;
-      
-      console.log('No tool mode: All controls enabled');
     }
   }, [activeTool]);
+  
+  // Drawing helper functions
+  const addDrawingPoint = (point: THREE.Vector3, toolType: string) => {
+    if (!sceneRef.current) return;
+    
+    const geometry = new THREE.SphereGeometry(0.2, 8, 8);
+    const material = new THREE.MeshBasicMaterial({
+      color: toolType === 'mask-brush' ? 0xff0000 : 0x00ff00,
+      transparent: true,
+      opacity: toolType === 'mask-brush' ? 0.8 : 1.0
+    });
+    
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.copy(point);
+    
+    // Create annotation group if it doesn't exist
+    let annotationGroup = annotations.find(group => group.userData.toolType === toolType);
+    if (!annotationGroup) {
+      annotationGroup = new THREE.Group();
+      annotationGroup.userData.toolType = toolType;
+      sceneRef.current.add(annotationGroup);
+      setAnnotations(prev => [...prev, annotationGroup!]);
+    }
+    
+    annotationGroup.add(sphere);
+  };
+  
+  const addPolylinePoint = (point: THREE.Vector3) => {
+    if (!sceneRef.current) return;
+    
+    // Add point marker
+    const geometry = new THREE.SphereGeometry(0.3, 8, 8);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.copy(point);
+    
+    let polylineGroup = annotations.find(group => group.userData.toolType === 'polyline');
+    if (!polylineGroup) {
+      polylineGroup = new THREE.Group();
+      polylineGroup.userData.toolType = 'polyline';
+      polylineGroup.userData.points = [];
+      sceneRef.current.add(polylineGroup);
+      setAnnotations(prev => [...prev, polylineGroup!]);
+    }
+    
+    polylineGroup.add(sphere);
+    polylineGroup.userData.points.push(point);
+    
+    // Draw line to previous point
+    if (polylineGroup.userData.points.length > 1) {
+      const points = polylineGroup.userData.points;
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+        points[points.length - 2],
+        points[points.length - 1]
+      ]);
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      polylineGroup.add(line);
+    }
+  };
+  
+  const addBezierPoint = (point: THREE.Vector3) => {
+    if (!sceneRef.current) return;
+    
+    // Add control point
+    const geometry = new THREE.SphereGeometry(0.4, 8, 8);
+    const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.copy(point);
+    
+    let bezierGroup = annotations.find(group => group.userData.toolType === 'bezier');
+    if (!bezierGroup) {
+      bezierGroup = new THREE.Group();
+      bezierGroup.userData.toolType = 'bezier';
+      bezierGroup.userData.controlPoints = [];
+      sceneRef.current.add(bezierGroup);
+      setAnnotations(prev => [...prev, bezierGroup!]);
+    }
+    
+    bezierGroup.add(sphere);
+    bezierGroup.userData.controlPoints.push(point);
+    
+    // Create bezier curve when we have enough points
+    if (bezierGroup.userData.controlPoints.length >= 4) {
+      const points = bezierGroup.userData.controlPoints;
+      const curve = new THREE.CubicBezierCurve3(
+        points[points.length - 4],
+        points[points.length - 3],
+        points[points.length - 2],
+        points[points.length - 1]
+      );
+      
+      const curvePoints = curve.getPoints(50);
+      const curveGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
+      const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3 });
+      const curveLine = new THREE.Line(curveGeometry, curveMaterial);
+      bezierGroup.add(curveLine);
+    }
+  };
 
   // Update scene when models change
   useEffect(() => {
@@ -596,8 +438,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             m.id === model.id ? { ...m, mesh } : m
           );
           onModelsChange(updatedModels);
-          
-          console.log('STL model loaded:', model.name);
         };
         reader.readAsArrayBuffer(model.file);
       } else if (model.mesh) {
@@ -620,7 +460,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     }));
 
     onModelsChange([...models, ...newModels]);
-    console.log('Files dropped:', acceptedFiles.length);
   }, [models, onModelsChange]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -647,11 +486,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       sceneRef.current!.remove(group);
     });
     setAnnotations([]);
-    setPolygonPoints([]);
-    setBezierPoints([]);
-    console.log('Annotations cleared');
   };
-  
   return (
     <div className="flex-1 flex flex-col bg-slate-900">
       {/* Viewport Controls */}
@@ -706,17 +541,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         
         <div className="text-slate-400 text-sm">
           {activeTool ? `Active Tool: ${activeTool}` : 'No tool selected'}
-          {['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'].includes(activeTool || '') && (
-            <span className="ml-4 text-green-400">Drawing Mode - Right-click to rotate</span>
-          )}
-          {['translate', 'rotate', 'scale'].includes(activeTool || '') && selectedModelRef.current && (
+          {selectedModelRef.current && ['translate', 'rotate', 'scale'].includes(activeTool || '') && (
             <span className="ml-4 text-blue-400">Model Selected</span>
           )}
           {annotations.length > 0 && (
-            <span className="ml-4 text-yellow-400">Annotations: {annotations.length}</span>
-          )}
-          {isDrawing && (
-            <span className="ml-4 text-red-400">Drawing...</span>
+            <span className="ml-4 text-green-400">Annotations: {annotations.length}</span>
           )}
         </div>
       </div>
@@ -751,20 +580,13 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
-          <span>Annotations: {annotations.length}</span>
           {activeTool && (
-            <span className={`${['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'].includes(activeTool) ? 'text-green-400' : 'text-blue-400'}`}>
-              Tool: {activeTool}
-            </span>
+            <span>Tool: {activeTool}</span>
           )}
-          {isDrawing && <span className="text-red-400">Drawing Active</span>}
         </div>
         <div className="flex items-center space-x-4">
           <span>Camera: Perspective</span>
           <span>Renderer: WebGL</span>
-          <span>Controls: {activeTool ? (
-            ['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'].includes(activeTool) ? 'Drawing' : 'Transform'
-          ) : 'Orbit'}</span>
         </div>
       </div>
     </div>
