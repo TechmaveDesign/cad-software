@@ -103,27 +103,10 @@ const CameraControls: React.FC<CameraControlsProps> = ({
           </div>
         </div>
 
-
-
         {/* Camera Info */}
         <div className="text-slate-400 text-sm">
           <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
           <span>Use mouse wheel to zoom, drag to rotate</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default CameraControls;
-        <div className="text-slate-400 text-sm">
-            <span>
-              {activeTransformTool ? 
-                'Select a model to transform, or use buttons above for precise control' :
-                'Use mouse wheel to zoom, drag to rotate'
-              }
-            </span>
-          </div>
         </div>
       </div>
     </div>
