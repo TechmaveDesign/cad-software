@@ -50,6 +50,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     lightIntensity: 1.0
   });
 
+  // Occlusal plane state
+  const [occlusalPoints, setOcclusalPoints] = useState<THREE.Vector3[]>([]);
+  const [occlusalMarkers, setOcclusalMarkers] = useState<THREE.Mesh[]>([]);
+  const [isSelectingOcclusalPoints, setIsSelectingOcclusalPoints] = useState(false);
+  const [undoStack, setUndoStack] = useState<Array<{modelId: string, position: THREE.Vector3, rotation: THREE.Euler, scale: THREE.Vector3}>>([]);
+
   // Camera control functions
   const resetView = useCallback(() => {
     if (cameraRef.current && controlsRef.current) {
@@ -352,6 +358,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     
     // Model selection handler
     const handleModelClick = (event: MouseEvent) => {
+      // Handle occlusal point selection first
+      if (isSelectingOcclusalPoints) {
+        handleOcclusalPointSelection(event);
+        return;
+      }
+      
       if (activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) {
         // Don't handle model selection when drawing tools are active
         return;
@@ -518,6 +530,212 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
   }, [handleModelTranslateEvent]);
   
+  // Occlusal plane helper functions
+  const createOcclusalMarker = (position: THREE.Vector3, index: number) => {
+    const geometry = new THREE.SphereGeometry(1, 16, 16);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: index === 0 ? 0xff0000 : index === 1 ? 0x00ff00 : 0x0000ff,
+      transparent: true,
+      opacity: 0.8
+    });
+    const marker = new THREE.Mesh(geometry, material);
+    marker.position.copy(position);
+    marker.position.add(new THREE.Vector3(0, 0, 0.5)); // Slightly offset from surface
+    return marker;
+  };
+
+  const calculatePlaneFromPoints = (p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3) => {
+    // Calculate two vectors in the plane
+    const v1 = new THREE.Vector3().subVectors(p2, p1);
+    const v2 = new THREE.Vector3().subVectors(p3, p1);
+    
+    // Calculate normal vector (cross product)
+    const normal = new THREE.Vector3().crossVectors(v1, v2).normalize();
+    
+    // Calculate plane center
+    const center = new THREE.Vector3()
+      .addVectors(p1, p2)
+      .add(p3)
+      .divideScalar(3);
+    
+    return { normal, center };
+  };
+
+  const alignModelToOcclusalPlane = (modelMesh: THREE.Mesh, points: THREE.Vector3[]) => {
+    if (points.length !== 3) return;
+
+    console.log('Aligning model to occlusal plane with points:', points);
+
+    // Save current state for undo
+    const currentState = {
+      modelId: modelMesh.uuid,
+      position: modelMesh.position.clone(),
+      rotation: modelMesh.rotation.clone(),
+      scale: modelMesh.scale.clone()
+    };
+    setUndoStack(prev => [...prev, currentState]);
+
+    // Calculate plane from three points
+    const { normal, center } = calculatePlaneFromPoints(points[0], points[1], points[2]);
+    
+    console.log('Calculated plane normal:', normal);
+    console.log('Calculated plane center:', center);
+
+    // Target normal is Z-axis (0, 0, 1) for XY plane
+    const targetNormal = new THREE.Vector3(0, 0, 1);
+    
+    // Calculate rotation quaternion to align normals
+    const quaternion = new THREE.Quaternion().setFromUnitVectors(normal, targetNormal);
+    
+    // Apply rotation to the model
+    modelMesh.applyQuaternion(quaternion);
+    
+    // Translate model so the plane center is at origin Z
+    const rotatedCenter = center.clone().applyQuaternion(quaternion);
+    modelMesh.position.sub(new THREE.Vector3(rotatedCenter.x, rotatedCenter.y, rotatedCenter.z));
+    
+    // Update matrices
+    modelMesh.updateMatrix();
+    modelMesh.updateMatrixWorld(true);
+    
+    console.log('Model aligned successfully');
+    console.log('New position:', modelMesh.position);
+    console.log('New rotation:', modelMesh.rotation);
+
+    // Force re-render
+    if (rendererRef.current && sceneRef.current && cameraRef.current) {
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    }
+  };
+
+  const handleOcclusalPointSelection = (event: MouseEvent) => {
+    if (!isSelectingOcclusalPoints || !sceneRef.current) return;
+    
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const rect = rendererRef.current!.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, cameraRef.current!);
+    
+    const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+    const intersects = raycaster.intersectObjects(meshes);
+    
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      const selectedMesh = intersects[0].object as THREE.Mesh;
+      
+      console.log(`Selected occlusal point ${occlusalPoints.length + 1}:`, point);
+      
+      // Add point to array
+      const newPoints = [...occlusalPoints, point];
+      setOcclusalPoints(newPoints);
+      
+      // Create visual marker
+      const marker = createOcclusalMarker(point, occlusalPoints.length);
+      sceneRef.current.add(marker);
+      setOcclusalMarkers(prev => [...prev, marker]);
+      
+      // If we have 3 points, calculate and apply the occlusal plane
+      if (newPoints.length === 3) {
+        console.log('Three points selected, calculating occlusal plane...');
+        
+        // Apply alignment to the selected mesh
+        alignModelToOcclusalPlane(selectedMesh, newPoints);
+        
+        // Show success message
+        setTimeout(() => {
+          alert('Occlusal Plane Set Successfully!\n\nThe model has been aligned so the selected plane is parallel to the ground.');
+        }, 100);
+        
+        // Reset selection mode
+        resetOcclusalSelection();
+      }
+    }
+  };
+
+  const resetOcclusalSelection = () => {
+    console.log('Resetting occlusal plane selection');
+    
+    // Remove visual markers
+    if (sceneRef.current) {
+      occlusalMarkers.forEach(marker => {
+        sceneRef.current!.remove(marker);
+        marker.geometry.dispose();
+        (marker.material as THREE.Material).dispose();
+      });
+    }
+    
+    // Reset state
+    setOcclusalPoints([]);
+    setOcclusalMarkers([]);
+    setIsSelectingOcclusalPoints(false);
+    
+    // Re-enable orbit controls
+    if (controlsRef.current) {
+      controlsRef.current.enabled = true;
+    }
+  };
+
+  const undoLastTransformation = () => {
+    if (undoStack.length === 0) {
+      alert('No transformations to undo');
+      return;
+    }
+
+    const lastState = undoStack[undoStack.length - 1];
+    const model = models.find(m => m.mesh?.uuid === lastState.modelId);
+    
+    if (model && model.mesh) {
+      console.log('Undoing transformation for model:', lastState.modelId);
+      
+      // Restore previous state
+      model.mesh.position.copy(lastState.position);
+      model.mesh.rotation.copy(lastState.rotation);
+      model.mesh.scale.copy(lastState.scale);
+      
+      // Update matrices
+      model.mesh.updateMatrix();
+      model.mesh.updateMatrixWorld(true);
+      
+      // Remove from undo stack
+      setUndoStack(prev => prev.slice(0, -1));
+      
+      // Force re-render
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
+      
+      console.log('Transformation undone successfully');
+    }
+  };
+
+  // Handle keyboard events for occlusal plane selection
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isSelectingOcclusalPoints) {
+        if (event.key === 'Escape' || event.key === 'Backspace') {
+          event.preventDefault();
+          resetOcclusalSelection();
+        }
+      }
+      
+      // Undo shortcut (Ctrl+Z)
+      if (event.ctrlKey && event.key === 'z') {
+        event.preventDefault();
+        undoLastTransformation();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSelectingOcclusalPoints, undoStack]);
+
   // Handle camera switching
   useEffect(() => {
     if (!perspectiveCameraRef.current || !orthoCameraRef.current || !controlsRef.current || !rendererRef.current) return;
@@ -589,6 +807,26 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   
   // Update transform controls when active tool changes
   useEffect(() => {
+    // Handle occlusal plane tool activation
+    if (activeTool === 'occlusal-plane') {
+      console.log('Activating occlusal plane selection mode');
+      setIsSelectingOcclusalPoints(true);
+      
+      // Disable orbit controls during point selection
+      if (controlsRef.current) {
+        controlsRef.current.enabled = false;
+      }
+      
+      // Clear any existing selection
+      resetOcclusalSelection();
+      setIsSelectingOcclusalPoints(true);
+      
+      return;
+    } else if (isSelectingOcclusalPoints) {
+      // Reset occlusal selection when switching tools
+      resetOcclusalSelection();
+    }
+    
     if (!controlsRef.current || !transformControlsRef.current) return;
     
     // Disable camera controls when drawing tools are active
@@ -613,7 +851,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControlsRef.current.detach();
       selectedModelRef.current = null;
     }
-  }, [activeTool]);
+  }, [activeTool, isSelectingOcclusalPoints]);
   
   // Drawing helper functions
   const startNewStroke = (point: THREE.Vector3, toolType: string) => {
@@ -996,16 +1234,30 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
               Clear Annotations
             </button>
           )}
+          {undoStack.length > 0 && (
+            <button
+              onClick={undoLastTransformation}
+              className="px-3 py-1 rounded text-xs bg-yellow-600 text-white hover:bg-yellow-700 transition-colors duration-200"
+              title="Undo Last Transformation (Ctrl+Z)"
+            >
+              Undo ({undoStack.length})
+            </button>
+          )}
         </div>
         
         <div className="text-slate-400 text-sm">
           {activeTool === 'move' ? 'Camera Control Mode' :
+           activeTool === 'occlusal-plane' ? 
+            `Occlusal Plane: Select ${3 - occlusalPoints.length} more point${3 - occlusalPoints.length !== 1 ? 's' : ''} on the model (ESC to cancel)` :
            activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool) ? 
             `Drawing Tool: ${activeTool}` : 
             activeTool ? `Tool: ${activeTool}` : 'No tool selected'
           }
           {selectedModelRef.current && ['translate', 'rotate', 'scale'].includes(activeTool || '') && (
             <span className="ml-4 text-blue-400">Model Selected</span>
+          )}
+          {occlusalPoints.length > 0 && (
+            <span className="ml-4 text-yellow-400">Points: {occlusalPoints.length}/3</span>
           )}
           {annotations.length > 0 && (
             <span className="ml-4 text-green-400">Drawings: {annotations.length}</span>
@@ -1046,6 +1298,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
+          {occlusalPoints.length > 0 && (
+            <span>Occlusal Points: {occlusalPoints.length}/3</span>
+          )}
+          {undoStack.length > 0 && (
+            <span>Undo Available: {undoStack.length}</span>
+          )}
           {activeTool && (
             <span>Tool: {activeTool}</span>
           )}

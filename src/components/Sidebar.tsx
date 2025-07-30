@@ -37,6 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'smooth', name: 'Smooth', icon: Wand2 },
     { id: 'add-volume', name: 'Add Volume', icon: Plus },
     { id: 'subtract-volume', name: 'Subtract Volume', icon: Minus },
+    { id: 'occlusal-plane', name: 'Set Occlusal Plane', icon: () => <span className="text-sm">🦷</span> },
   ];
 
   const drawTools = [
