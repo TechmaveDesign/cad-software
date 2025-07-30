@@ -22,6 +22,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   const transformControlsRef = useRef<TransformControls>();
   const selectedModelRef = useRef<THREE.Mesh | null>(null);
   const loaderRef = useRef<STLLoader>();
+  const initializedRef = useRef<boolean>(false);
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -38,7 +39,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
 
   // Initialize Three.js scene
   useEffect(() => {
-    if (!mountRef.current) return;
+    if (!mountRef.current || initializedRef.current) return;
+    
+    initializedRef.current = true;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(viewportSettings.backgroundColor);
@@ -216,6 +219,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     window.addEventListener('resize', handleResize);
 
     return () => {
+      initializedRef.current = false;
       window.removeEventListener('resize', handleResize);
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
