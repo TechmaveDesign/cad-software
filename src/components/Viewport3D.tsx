@@ -39,7 +39,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
   const [maskTexture, setMaskTexture] = useState<THREE.Texture | null>(null);
   const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
-  const [currentStroke, setCurrentStroke] = useState<THREE.Group | null>(null);
+  const [polygonPoints, setPolygonPoints] = useState<THREE.Vector3[]>([]);
+  const [bezierControlPoints, setBezierControlPoints] = useState<THREE.Vector3[]>([]);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -112,7 +113,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
-      if (!activeTool || !['mask-brush', 'pencil', 'polygon', 'bezier', 'eraser'].includes(activeTool)) return;
+      if (!activeTool || !['mask-brush', 'pencil', 'polyline', 'bezier'].includes(activeTool)) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
@@ -129,18 +130,16 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       if (intersects.length > 0) {
         const point = intersects[0].point;
         
-        if (activeTool === 'mask-brush' || activeTool === 'pencil' || activeTool === 'eraser') {
+        if (activeTool === 'mask-brush' || activeTool === 'pencil') {
           setIsDrawing(true);
+          setDrawingPoints([point]);
           const strokeGroup = new THREE.Group();
           strokeGroup.userData.toolType = activeTool;
           strokeGroup.userData.color = drawingColor;
-          strokeGroup.userData.size = brushSize;
-          strokeGroup.userData.opacity = brushOpacity;
           scene.add(strokeGroup);
-          setCurrentStroke(strokeGroup);
           setAnnotations(prev => [...prev, strokeGroup]);
           addDrawingPoint(point, activeTool, strokeGroup);
-        } else if (activeTool === 'polygon') {
+        } else if (activeTool === 'polyline') {
           addPolygonPoint(point);
         } else if (activeTool === 'bezier') {
           addBezierPoint(point);
@@ -149,7 +148,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
     
     const handleMouseMove = (event: MouseEvent) => {
-      if (!isDrawing || !activeTool || !currentStroke || !['mask-brush', 'pencil', 'eraser'].includes(activeTool)) return;
+      if (!isDrawing || !activeTool || !['mask-brush', 'pencil'].includes(activeTool)) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
@@ -165,14 +164,18 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       if (intersects.length > 0) {
         const point = intersects[0].point;
-        addDrawingPoint(point, activeTool, currentStroke);
+        setDrawingPoints(prev => [...prev, point]);
+        const currentStroke = annotations[annotations.length - 1];
+        if (currentStroke) {
+          addDrawingPoint(point, activeTool, currentStroke);
+        }
       }
     };
     
     const handleMouseUp = () => {
       if (isDrawing) {
         setIsDrawing(false);
-        setCurrentStroke(null);
+        setDrawingPoints([]);
       }
     };
     
@@ -316,41 +319,73 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   
   // Drawing helper functions
   const addDrawingPoint = (point: THREE.Vector3, toolType: string, strokeGroup: THREE.Group) => {
-    if (!sceneRef.current) return;
+    if (!sceneRef.current || !strokeGroup) return;
     
-    const geometry = new THREE.SphereGeometry(0.2, 8, 8);
+    let geometry: THREE.BufferGeometry;
+    let size = brushSize;
+    
+    if (toolType === 'pencil') {
+      geometry = new THREE.SphereGeometry(size * 0.1, 8, 8);
+    } else if (toolType === 'mask-brush') {
+      geometry = new THREE.SphereGeometry(size * 0.2, 12, 12);
+    } else if (toolType === 'eraser') {
+      geometry = new THREE.SphereGeometry(size * 0.15, 8, 8);
+    } else {
+      geometry = new THREE.SphereGeometry(0.1, 8, 8);
+    }
+    
+    const color = toolType === 'eraser' ? 0xffffff : parseInt(drawingColor.replace('#', ''), 16);
     const material = new THREE.MeshBasicMaterial({
-      color: toolType === 'mask-brush' ? 0xff0000 : 0x00ff00,
+      color: color,
       transparent: true,
-      opacity: toolType === 'mask-brush' ? 0.8 : 1.0
+      opacity: toolType === 'mask-brush' ? brushOpacity : (toolType === 'eraser' ? 0.5 : 1.0)
     });
     
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
+    sphere.userData.toolType = toolType;
     
     strokeGroup.add(sphere);
+    
+    // Connect points with lines for continuous strokes
+    if (strokeGroup.children.length > 1 && (toolType === 'pencil' || toolType === 'mask-brush')) {
+      const prevPoint = strokeGroup.children[strokeGroup.children.length - 2].position;
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([prevPoint, point]);
+      const lineMaterial = new THREE.LineBasicMaterial({ 
+        color: color, 
+        linewidth: toolType === 'pencil' ? 1 : 3,
+        transparent: true,
+        opacity: toolType === 'mask-brush' ? brushOpacity : 1.0
+      });
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      strokeGroup.add(line);
+    }
   };
   
   const addPolygonPoint = (point: THREE.Vector3) => {
     if (!sceneRef.current) return;
     
     // Add point marker
-    const geometry = new THREE.SphereGeometry(0.3, 8, 8);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const geometry = new THREE.SphereGeometry(0.2, 8, 8);
+    const color = parseInt(drawingColor.replace('#', ''), 16);
+    const material = new THREE.MeshBasicMaterial({ color: color });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
     
-    let polygonGroup = annotations.find(group => group.userData.toolType === 'polygon');
+    let polygonGroup = annotations.find(group => group.userData.toolType === 'polygon' && !group.userData.completed);
     if (!polygonGroup) {
       polygonGroup = new THREE.Group();
       polygonGroup.userData.toolType = 'polygon';
       polygonGroup.userData.points = [];
+      polygonGroup.userData.color = drawingColor;
+      polygonGroup.userData.completed = false;
       sceneRef.current.add(polygonGroup);
       setAnnotations(prev => [...prev, polygonGroup!]);
     }
     
     polygonGroup.add(sphere);
     polygonGroup.userData.points.push(point);
+    setPolygonPoints(prev => [...prev, point]);
     
     // Draw line to previous point
     if (polygonGroup.userData.points.length > 1) {
@@ -359,43 +394,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         points[points.length - 2],
         points[points.length - 1]
       ]);
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+      const lineMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
       const line = new THREE.Line(lineGeometry, lineMaterial);
       polygonGroup.add(line);
-    }
-  };
-  
-  const addPolylinePoint = (point: THREE.Vector3) => {
-    if (!sceneRef.current) return;
-    
-    // Add point marker
-    const geometry = new THREE.SphereGeometry(0.3, 8, 8);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.copy(point);
-    
-    let polylineGroup = annotations.find(group => group.userData.toolType === 'polyline');
-    if (!polylineGroup) {
-      polylineGroup = new THREE.Group();
-      polylineGroup.userData.toolType = 'polyline';
-      polylineGroup.userData.points = [];
-      sceneRef.current.add(polylineGroup);
-      setAnnotations(prev => [...prev, polylineGroup!]);
-    }
-    
-    polylineGroup.add(sphere);
-    polylineGroup.userData.points.push(point);
-    
-    // Draw line to previous point
-    if (polylineGroup.userData.points.length > 1) {
-      const points = polylineGroup.userData.points;
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-        points[points.length - 2],
-        points[points.length - 1]
-      ]);
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
-      const line = new THREE.Line(lineGeometry, lineMaterial);
-      polylineGroup.add(line);
     }
   };
   
@@ -403,22 +404,26 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     if (!sceneRef.current) return;
     
     // Add control point
-    const geometry = new THREE.SphereGeometry(0.4, 8, 8);
-    const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    const geometry = new THREE.SphereGeometry(0.3, 8, 8);
+    const color = parseInt(drawingColor.replace('#', ''), 16);
+    const material = new THREE.MeshBasicMaterial({ color: color });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
     
-    let bezierGroup = annotations.find(group => group.userData.toolType === 'bezier');
+    let bezierGroup = annotations.find(group => group.userData.toolType === 'bezier' && !group.userData.completed);
     if (!bezierGroup) {
       bezierGroup = new THREE.Group();
       bezierGroup.userData.toolType = 'bezier';
       bezierGroup.userData.controlPoints = [];
+      bezierGroup.userData.color = drawingColor;
+      bezierGroup.userData.completed = false;
       sceneRef.current.add(bezierGroup);
       setAnnotations(prev => [...prev, bezierGroup!]);
     }
     
     bezierGroup.add(sphere);
     bezierGroup.userData.controlPoints.push(point);
+    setBezierControlPoints(prev => [...prev, point]);
     
     // Create bezier curve when we have enough points
     if (bezierGroup.userData.controlPoints.length >= 4) {
@@ -432,9 +437,13 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       const curvePoints = curve.getPoints(50);
       const curveGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
-      const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3 });
+      const curveMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
       const curveLine = new THREE.Line(curveGeometry, curveMaterial);
       bezierGroup.add(curveLine);
+      
+      // Mark as completed and start new curve
+      bezierGroup.userData.completed = true;
+      setBezierControlPoints([]);
     }
   };
 
