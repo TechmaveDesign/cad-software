@@ -673,8 +673,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           {selectedModelRef.current && ['translate', 'rotate', 'scale'].includes(activeTool || '') && (
             <span className="ml-4 text-blue-400">Model Selected</span>
           )}
+          {['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'].includes(activeTool || '') && (
+            <span className="ml-4 text-green-400">Drawing Mode - Right-click to rotate view</span>
+          )}
           {annotations.length > 0 && (
             <span className="ml-4 text-green-400">Annotations: {annotations.length}</span>
+          )}
+          {isDrawing && (
+            <span className="ml-4 text-yellow-400">Drawing...</span>
           )}
         </div>
       </div>
