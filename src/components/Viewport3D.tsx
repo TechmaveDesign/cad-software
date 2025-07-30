@@ -1387,6 +1387,33 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             }
           </span>
         </div>
+        
+        {/* Mesh validation info */}
+        {selectedModel && (
+          <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-3 rounded-lg text-sm">
+            <div className="font-semibold mb-2">Selected Model Info:</div>
+            {(() => {
+              const validation = MeshOperations.validateMesh(selectedModel);
+              return (
+                <div className="space-y-1">
+                  <div className={validation.isWatertight ? 'text-green-400' : 'text-red-400'}>
+                    {validation.isWatertight ? '✓' : '✗'} Watertight
+                  </div>
+                  <div className={!validation.hasHoles ? 'text-green-400' : 'text-yellow-400'}>
+                    {!validation.hasHoles ? '✓' : '⚠'} No Holes
+                  </div>
+                  <div>Vertices: {validation.vertexCount}</div>
+                  <div>Faces: {validation.faceCount}</div>
+                  {validation.issues.length > 0 && (
+                    <div className="text-yellow-400 text-xs mt-2">
+                      Issues: {validation.issues.join(', ')}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </div>
     </div>
   );
