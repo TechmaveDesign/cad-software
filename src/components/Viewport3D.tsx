@@ -33,6 +33,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const selectedModelRef = useRef<THREE.Mesh | null>(null);
   const loaderRef = useRef<STLLoader>();
   const initializedRef = useRef<boolean>(false);
+  const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
+  const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -113,33 +115,50 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
-      if (!activeTool || !['mask-brush', 'pencil', 'polyline', 'bezier'].includes(activeTool)) return;
+      // Prevent default behavior for drawing tools
+      const drawingTools = ['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'];
+      if (activeTool && drawingTools.includes(activeTool)) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Disable orbit controls when using drawing tools
+        if (controlsRef.current) {
+          controlsRef.current.enabled = false;
+        }
+      }
+      
+      if (!activeTool || !drawingTools.includes(activeTool)) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
+      mouseRef.current.set(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1
       );
       
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
+      raycasterRef.current.setFromCamera(mouseRef.current, camera);
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycaster.intersectObjects(meshes);
+      const intersects = raycasterRef.current.intersectObjects(meshes);
       
       if (intersects.length > 0) {
         const point = intersects[0].point;
+        const normal = intersects[0].face?.normal.clone();
+        if (normal) {
+          normal.transformDirection(intersects[0].object.matrixWorld);
+        }
         
-        if (activeTool === 'mask-brush' || activeTool === 'pencil') {
+        if (activeTool === 'mask-brush' || activeTool === 'pencil' || activeTool === 'eraser') {
           setIsDrawing(true);
           setDrawingPoints([point]);
           const strokeGroup = new THREE.Group();
           strokeGroup.userData.toolType = activeTool;
           strokeGroup.userData.color = drawingColor;
+          strokeGroup.userData.brushSize = brushSize;
+          strokeGroup.userData.opacity = brushOpacity;
           scene.add(strokeGroup);
           setAnnotations(prev => [...prev, strokeGroup]);
-          addDrawingPoint(point, activeTool, strokeGroup);
-        } else if (activeTool === 'polyline') {
+          addDrawingPoint(point, normal || new THREE.Vector3(0, 1, 0), activeTool, strokeGroup);
+        } else if (activeTool === 'polygon') {
           addPolygonPoint(point);
         } else if (activeTool === 'bezier') {
           addBezierPoint(point);
@@ -148,26 +167,30 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
     
     const handleMouseMove = (event: MouseEvent) => {
-      if (!isDrawing || !activeTool || !['mask-brush', 'pencil'].includes(activeTool)) return;
+      if (!isDrawing || !activeTool || !['mask-brush', 'pencil', 'eraser'].includes(activeTool)) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
+      mouseRef.current.set(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1
       );
       
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
+      raycasterRef.current.setFromCamera(mouseRef.current, camera);
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycaster.intersectObjects(meshes);
+      const intersects = raycasterRef.current.intersectObjects(meshes);
       
       if (intersects.length > 0) {
         const point = intersects[0].point;
+        const normal = intersects[0].face?.normal.clone();
+        if (normal) {
+          normal.transformDirection(intersects[0].object.matrixWorld);
+        }
+        
         setDrawingPoints(prev => [...prev, point]);
         const currentStroke = annotations[annotations.length - 1];
         if (currentStroke) {
-          addDrawingPoint(point, activeTool, currentStroke);
+          addDrawingPoint(point, normal || new THREE.Vector3(0, 1, 0), activeTool, currentStroke);
         }
       }
     };
@@ -177,23 +200,34 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         setIsDrawing(false);
         setDrawingPoints([]);
       }
+      
+      // Re-enable orbit controls after drawing
+      const drawingTools = ['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'];
+      if (activeTool && drawingTools.includes(activeTool)) {
+        setTimeout(() => {
+          if (controlsRef.current) {
+            controlsRef.current.enabled = true;
+          }
+        }, 100);
+      }
     };
     
     // Model selection handler
     const handleModelClick = (event: MouseEvent) => {
-      if (!['translate', 'rotate', 'scale'].includes(activeTool || '')) return;
+      // Only handle model selection for transform tools
+      const transformTools = ['translate', 'rotate', 'scale'];
+      if (!transformTools.includes(activeTool || '')) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
+      mouseRef.current.set(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1
       );
       
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
+      raycasterRef.current.setFromCamera(mouseRef.current, camera);
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycaster.intersectObjects(meshes);
+      const intersects = raycasterRef.current.intersectObjects(meshes);
       
       if (intersects.length > 0) {
         const selectedMesh = intersects[0].object as THREE.Mesh;
@@ -308,54 +342,79 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   useEffect(() => {
     if (!transformControlsRef.current) return;
     
-    if (['translate', 'rotate', 'scale'].includes(activeTool || '')) {
+    const transformTools = ['translate', 'rotate', 'scale'];
+    const drawingTools = ['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'];
+    
+    if (transformTools.includes(activeTool || '')) {
       transformControlsRef.current.visible = true;
+      // Enable orbit controls for transform tools
+      if (controlsRef.current) {
+        controlsRef.current.enabled = true;
+      }
+    } else if (drawingTools.includes(activeTool || '')) {
+      // Hide transform controls and disable orbit controls for drawing tools
+      transformControlsRef.current.visible = false;
+      transformControlsRef.current.detach();
+      selectedModelRef.current = null;
+      if (controlsRef.current) {
+        controlsRef.current.enabled = false;
+      }
     } else {
       transformControlsRef.current.visible = false;
       transformControlsRef.current.detach();
       selectedModelRef.current = null;
+      // Re-enable orbit controls when no tool is selected
+      if (controlsRef.current) {
+        controlsRef.current.enabled = true;
+      }
     }
   }, [activeTool]);
   
   // Drawing helper functions
-  const addDrawingPoint = (point: THREE.Vector3, toolType: string, strokeGroup: THREE.Group) => {
+  const addDrawingPoint = (point: THREE.Vector3, normal: THREE.Vector3, toolType: string, strokeGroup: THREE.Group) => {
     if (!sceneRef.current || !strokeGroup) return;
     
     let geometry: THREE.BufferGeometry;
-    let size = brushSize;
+    let size = strokeGroup.userData.brushSize || brushSize;
+    let opacity = strokeGroup.userData.opacity || brushOpacity;
     
     if (toolType === 'pencil') {
-      geometry = new THREE.SphereGeometry(size * 0.1, 8, 8);
+      geometry = new THREE.SphereGeometry(size * 0.05, 8, 8);
     } else if (toolType === 'mask-brush') {
-      geometry = new THREE.SphereGeometry(size * 0.2, 12, 12);
+      geometry = new THREE.SphereGeometry(size * 0.15, 12, 12);
     } else if (toolType === 'eraser') {
-      geometry = new THREE.SphereGeometry(size * 0.15, 8, 8);
+      geometry = new THREE.SphereGeometry(size * 0.1, 8, 8);
     } else {
-      geometry = new THREE.SphereGeometry(0.1, 8, 8);
+      geometry = new THREE.SphereGeometry(0.05, 8, 8);
     }
     
-    const color = toolType === 'eraser' ? 0xffffff : parseInt(drawingColor.replace('#', ''), 16);
+    const color = toolType === 'eraser' ? 0xff0000 : parseInt((strokeGroup.userData.color || drawingColor).replace('#', ''), 16);
     const material = new THREE.MeshBasicMaterial({
       color: color,
       transparent: true,
-      opacity: toolType === 'mask-brush' ? brushOpacity : (toolType === 'eraser' ? 0.5 : 1.0)
+      opacity: toolType === 'mask-brush' ? opacity : (toolType === 'eraser' ? 0.7 : 1.0)
     });
     
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
+    
+    // Offset slightly along normal to prevent z-fighting
+    const offset = normal.clone().multiplyScalar(0.01);
+    sphere.position.add(offset);
+    
     sphere.userData.toolType = toolType;
     
     strokeGroup.add(sphere);
     
     // Connect points with lines for continuous strokes
-    if (strokeGroup.children.length > 1 && (toolType === 'pencil' || toolType === 'mask-brush')) {
+    if (strokeGroup.children.length > 1 && (toolType === 'pencil' || toolType === 'mask-brush' || toolType === 'eraser')) {
       const prevPoint = strokeGroup.children[strokeGroup.children.length - 2].position;
       const lineGeometry = new THREE.BufferGeometry().setFromPoints([prevPoint, point]);
       const lineMaterial = new THREE.LineBasicMaterial({ 
         color: color, 
-        linewidth: toolType === 'pencil' ? 1 : 3,
+        linewidth: toolType === 'pencil' ? 2 : (toolType === 'eraser' ? 4 : 5),
         transparent: true,
-        opacity: toolType === 'mask-brush' ? brushOpacity : 1.0
+        opacity: toolType === 'mask-brush' ? opacity : (toolType === 'eraser' ? 0.7 : 1.0)
       });
       const line = new THREE.Line(lineGeometry, lineMaterial);
       strokeGroup.add(line);
@@ -366,7 +425,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     if (!sceneRef.current) return;
     
     // Add point marker
-    const geometry = new THREE.SphereGeometry(0.2, 8, 8);
+    const geometry = new THREE.SphereGeometry(0.1, 8, 8);
     const color = parseInt(drawingColor.replace('#', ''), 16);
     const material = new THREE.MeshBasicMaterial({ color: color });
     const sphere = new THREE.Mesh(geometry, material);
@@ -394,19 +453,25 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         points[points.length - 2],
         points[points.length - 1]
       ]);
-      const lineMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
+      const lineMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
       const line = new THREE.Line(lineGeometry, lineMaterial);
       polygonGroup.add(line);
     }
+    
+    console.log(`Polygon point added. Total points: ${polygonGroup.userData.points.length}`);
   };
   
   const addBezierPoint = (point: THREE.Vector3) => {
     if (!sceneRef.current) return;
     
     // Add control point
-    const geometry = new THREE.SphereGeometry(0.3, 8, 8);
+    const geometry = new THREE.SphereGeometry(0.15, 8, 8);
     const color = parseInt(drawingColor.replace('#', ''), 16);
-    const material = new THREE.MeshBasicMaterial({ color: color });
+    const material = new THREE.MeshBasicMaterial({ 
+      color: color,
+      transparent: true,
+      opacity: 0.8
+    });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
     
@@ -437,14 +502,23 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       const curvePoints = curve.getPoints(50);
       const curveGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
-      const curveMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
+      const curveMaterial = new THREE.LineBasicMaterial({ 
+        color: color, 
+        linewidth: 4,
+        transparent: true,
+        opacity: 0.9
+      });
       const curveLine = new THREE.Line(curveGeometry, curveMaterial);
       bezierGroup.add(curveLine);
       
       // Mark as completed and start new curve
       bezierGroup.userData.completed = true;
       setBezierControlPoints([]);
+      
+      console.log('Bezier curve completed');
     }
+    
+    console.log(`Bezier control point added. Total points: ${bezierGroup.userData.controlPoints.length}`);
   };
 
   // Update scene when models change
@@ -632,8 +706,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
+          <span>Annotations: {annotations.length}</span>
           {activeTool && (
-            <span>Tool: {activeTool}</span>
+            <span className={`${['pencil', 'mask-brush', 'polygon', 'bezier', 'eraser'].includes(activeTool) ? 'text-green-400' : 'text-blue-400'}`}>
+              Tool: {activeTool}
+            </span>
           )}
         </div>
         <div className="flex items-center space-x-4">
