@@ -483,6 +483,55 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     }
   }, [isOrthographic]);
   
+  // Handle model translation
+  const handleModelTranslate = useCallback((direction: 'left' | 'right' | 'up' | 'down') => {
+    if (!sceneRef.current) return;
+    
+    const translateStep = 5; // Units to move per click
+    
+    // Find all visible models
+    const visibleModels = models.filter(model => model.mesh && model.visible);
+    
+    if (visibleModels.length === 0) {
+      console.log('No visible models to translate');
+      return;
+    }
+    
+    console.log(`Translating ${visibleModels.length} models ${direction} by ${translateStep} units`);
+    
+    visibleModels.forEach(model => {
+      if (!model.mesh) return;
+      
+      const mesh = model.mesh;
+      const currentPosition = mesh.position.clone();
+      
+      switch (direction) {
+        case 'left':
+          mesh.position.x -= translateStep;
+          break;
+        case 'right':
+          mesh.position.x += translateStep;
+          break;
+        case 'up':
+          mesh.position.y += translateStep;
+          break;
+        case 'down':
+          mesh.position.y -= translateStep;
+          break;
+      }
+      
+      console.log(`Model ${model.name} moved from (${currentPosition.x.toFixed(2)}, ${currentPosition.y.toFixed(2)}, ${currentPosition.z.toFixed(2)}) to (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+      
+      // Update world matrix
+      mesh.updateMatrixWorld(true);
+    });
+    
+    // Force re-render
+    if (rendererRef.current && cameraRef.current && sceneRef.current) {
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    }
+  }, [models]);
+  
   // Update viewport settings
   useEffect(() => {
     if (!sceneRef.current) return;
