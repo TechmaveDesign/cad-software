@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
 export class MeshDrawingSystem {
   private scene: THREE.Scene;
@@ -141,12 +142,12 @@ export class MeshDrawingSystem {
 
 export class TextOnMesh {
   private scene: THREE.Scene;
-  private loader: THREE.FontLoader;
+  private loader: FontLoader;
   private font: THREE.Font | null = null;
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
-    this.loader = new THREE.FontLoader();
+    this.loader = new FontLoader();
     this.loadFont();
   }
 
