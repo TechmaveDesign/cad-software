@@ -42,7 +42,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
   ];
 
   const handleTransformAction = (action: string) => {
-    console.log('Dispatching transform action:', action);
+    console.log('CameraControls: Dispatching transform action:', action);
     window.dispatchEvent(new CustomEvent('transform-action', { detail: { action } }));
   };
 

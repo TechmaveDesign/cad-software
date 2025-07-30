@@ -303,6 +303,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         return;
       }
       
+      event.preventDefault();
+      event.stopPropagation();
+      
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -318,6 +321,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       if (intersects.length > 0) {
         const selectedMesh = intersects[0].object as THREE.Mesh;
         selectedModelRef.current = selectedMesh;
+        console.log('Model selected:', selectedMesh.uuid, 'for tool:', activeTool);
         
         if (transformControlsRef.current) {
           transformControlsRef.current.attach(selectedMesh);
@@ -331,13 +335,15 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             transformControlsRef.current.setMode('scale');
           }
         }
+      } else {
+        console.log('No model clicked');
       }
     };
     
     renderer.domElement.addEventListener('mousedown', handleMouseDown);
     renderer.domElement.addEventListener('mousemove', handleMouseMove);
     renderer.domElement.addEventListener('mouseup', handleMouseUp);
-    renderer.domElement.addEventListener('click', handleModelClick);
+    renderer.domElement.addEventListener('click', handleModelClick, true);
 
     mountRef.current.appendChild(renderer.domElement);
 
@@ -403,109 +409,92 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       const customEvent = event as CustomEvent;
       const { action } = customEvent.detail;
       
-      console.log('Transform action received:', action);
+      console.log('Transform action received:', action, 'Selected model:', selectedModelRef.current?.uuid);
       
       if (!selectedModelRef.current) {
-        console.log('No model selected for transform action');
+        console.log('No model selected! Please click on a model first.');
         return;
       }
       
       const model = selectedModelRef.current;
-      const step = 2; // Movement/rotation step size
+      const step = 5; // Movement/rotation step size (increased for visibility)
       const scaleStep = 0.1; // Scale step size
-      const rotationStep = Math.PI / 12; // 15 degrees in radians
+      const rotationStep = Math.PI / 6; // 30 degrees in radians (increased for visibility)
       
-      console.log('Applying transform to model:', model.uuid, 'Action:', action);
+      console.log('Before transform - Position:', model.position, 'Rotation:', model.rotation, 'Scale:', model.scale);
       
       switch (action) {
         // Translation
         case 'translate-x-pos':
           model.position.x += step;
-          console.log('Moved X+:', model.position.x);
           break;
         case 'translate-x-neg':
           model.position.x -= step;
-          console.log('Moved X-:', model.position.x);
           break;
         case 'translate-y-pos':
           model.position.y += step;
-          console.log('Moved Y+:', model.position.y);
           break;
         case 'translate-y-neg':
           model.position.y -= step;
-          console.log('Moved Y-:', model.position.y);
           break;
         case 'translate-z-pos':
           model.position.z += step;
-          console.log('Moved Z+:', model.position.z);
           break;
         case 'translate-z-neg':
           model.position.z -= step;
-          console.log('Moved Z-:', model.position.z);
           break;
           
         // Rotation
         case 'rotate-x-pos':
           model.rotation.x += rotationStep;
-          console.log('Rotated X+:', model.rotation.x * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-x-neg':
           model.rotation.x -= rotationStep;
-          console.log('Rotated X-:', model.rotation.x * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-y-pos':
           model.rotation.y += rotationStep;
-          console.log('Rotated Y+:', model.rotation.y * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-y-neg':
           model.rotation.y -= rotationStep;
-          console.log('Rotated Y-:', model.rotation.y * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-z-pos':
           model.rotation.z += rotationStep;
-          console.log('Rotated Z+:', model.rotation.z * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-z-neg':
           model.rotation.z -= rotationStep;
-          console.log('Rotated Z-:', model.rotation.z * 180 / Math.PI, 'degrees');
           break;
           
         // Scaling
         case 'scale-up':
           model.scale.multiplyScalar(1 + scaleStep);
-          console.log('Scaled up:', model.scale.x);
           break;
         case 'scale-down':
           model.scale.multiplyScalar(1 - scaleStep);
-          console.log('Scaled down:', model.scale.x);
           break;
         case 'scale-x-up':
           model.scale.x *= (1 + scaleStep);
-          console.log('Scaled X up:', model.scale.x);
           break;
         case 'scale-x-down':
           model.scale.x *= (1 - scaleStep);
-          console.log('Scaled X down:', model.scale.x);
           break;
         case 'scale-y-up':
           model.scale.y *= (1 + scaleStep);
-          console.log('Scaled Y up:', model.scale.y);
           break;
         case 'scale-y-down':
           model.scale.y *= (1 - scaleStep);
-          console.log('Scaled Y down:', model.scale.y);
           break;
         case 'scale-z-up':
           model.scale.z *= (1 + scaleStep);
-          console.log('Scaled Z up:', model.scale.z);
           break;
         case 'scale-z-down':
           model.scale.z *= (1 - scaleStep);
-          console.log('Scaled Z down:', model.scale.z);
           break;
         default:
           console.log('Unknown transform action:', action);
+          return;
       }
+      
+      console.log('After transform - Position:', model.position, 'Rotation:', model.rotation, 'Scale:', model.scale);
       
       // Force matrix update
       model.updateMatrix();
@@ -514,11 +503,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       // Update transform controls if attached
       if (transformControlsRef.current && transformControlsRef.current.object === model) {
         transformControlsRef.current.updateMatrixWorld();
-      }
-      
-      // Force re-render
-      if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
       }
     };
 
@@ -541,7 +525,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
         renderer.domElement.removeEventListener('mousemove', handleMouseMove);
         renderer.domElement.removeEventListener('mouseup', handleMouseUp);
-        renderer.domElement.removeEventListener('click', handleModelClick);
+        renderer.domElement.removeEventListener('click', handleModelClick, true);
       }
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
@@ -1098,7 +1082,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           </span>
           <span>
             {['scale', 'rotate', 'translate'].includes(activeTool || '') ? 
-              (selectedModelRef.current ? 'Model selected - use toolbar buttons or drag gizmo handles' : 'Click on a model to select it for transformation') :
+              (selectedModelRef.current ? `Model selected (${selectedModelRef.current.uuid.slice(0,8)}) - use toolbar buttons or drag gizmo handles` : 'Click on a model to select it for transformation') :
               'Use mouse wheel to zoom, drag to rotate'
             }
           </span>
