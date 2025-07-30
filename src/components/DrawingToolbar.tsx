@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brush, Pencil, Polygon, Spline, Eraser, Palette, Settings } from 'lucide-react';
+import { Brush, Pencil, Hexagon as Polygon, Spline, Eraser, Palette, Settings } from 'lucide-react';
 
 interface DrawingToolbarProps {
   activeTool: string | null;
