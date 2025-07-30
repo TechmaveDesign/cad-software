@@ -16,6 +16,14 @@ interface Viewport3DProps {
   drawingColor: string;
 }
 
+const Viewport3D: React.FC<Viewport3DProps> = ({
+  models,
+  onModelsChange,
+  activeTool,
+  brushSize,
+  brushOpacity,
+  drawingColor
+}) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
@@ -548,12 +556,6 @@ interface Viewport3DProps {
           )}
           {annotations.length > 0 && (
             <span className="ml-4 text-green-400">Annotations: {annotations.length}</span>
-          )}
-          {activeTool === 'polygon' && polygonPoints.length > 0 && (
-            <span className="ml-4 text-yellow-400">Polygon Points: {polygonPoints.length} (Double-click to finish)</span>
-          )}
-          {activeTool === 'bezier' && bezierControlPoints.length > 0 && (
-            <span className="ml-4 text-purple-400">Bezier Points: {bezierControlPoints.length}/4</span>
           )}
         </div>
       </div>
