@@ -95,6 +95,11 @@ function App() {
     setIsOrthographic(!isOrthographic);
   };
 
+  const handleModelTranslate = (direction: 'left' | 'right' | 'up' | 'down') => {
+    // This will be handled by the Viewport3D component
+    window.dispatchEvent(new CustomEvent('model-translate', { detail: { direction } }));
+  };
+
   return (
     <div className="h-screen flex flex-col bg-slate-900">
       <Navbar />
@@ -114,6 +119,7 @@ function App() {
         onViewIsometric={() => {}}
         onToggleOrthographic={handleToggleOrthographic}
         isOrthographic={isOrthographic}
+        onModelTranslate={handleModelTranslate}
       />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar

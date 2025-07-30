@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2 } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface CameraControlsProps {
   onResetView?: () => void;
@@ -12,6 +12,7 @@ interface CameraControlsProps {
   onViewIsometric?: () => void;
   onToggleOrthographic: () => void;
   isOrthographic: boolean;
+  onModelTranslate?: (direction: 'left' | 'right' | 'up' | 'down') => void;
 }
 
 const CameraControls: React.FC<CameraControlsProps> = ({
@@ -25,12 +26,20 @@ const CameraControls: React.FC<CameraControlsProps> = ({
   onViewIsometric,
   onToggleOrthographic,
   isOrthographic,
+  onModelTranslate,
 }) => {
   const viewButtons = [
     { id: 'top', name: 'Top', onClick: onViewTop, icon: '⬆️' },
     { id: 'front', name: 'Front', onClick: onViewFront, icon: '⬅️' },
     { id: 'right', name: 'Right', onClick: onViewRight, icon: '➡️' },
     { id: 'iso', name: 'Isometric', onClick: onViewIsometric, icon: '📐' }
+  ];
+
+  const translateButtons = [
+    { id: 'left', name: 'Left', direction: 'left' as const, icon: ArrowLeft },
+    { id: 'right', name: 'Right', direction: 'right' as const, icon: ArrowRight },
+    { id: 'up', name: 'Top', direction: 'up' as const, icon: ArrowUp },
+    { id: 'down', name: 'Bottom', direction: 'down' as const, icon: ArrowDown }
   ];
 
   return (
@@ -100,6 +109,23 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             >
               <Eye size={16} />
             </button>
+          </div>
+        </div>
+
+        {/* Model Translation Controls */}
+        <div className="flex items-center space-x-2">
+          <span className="text-slate-400 text-sm font-medium mr-3">Model:</span>
+          <div className="flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
+            {translateButtons.map(button => (
+              <button
+                key={button.id}
+                onClick={() => onModelTranslate?.(button.direction)}
+                className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
+                title={`Move Model ${button.name}`}
+              >
+                <button.icon size={16} />
+              </button>
+            ))}
           </div>
         </div>
 
