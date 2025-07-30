@@ -431,7 +431,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControls.dispose();
       renderer.dispose();
     };
-  }, [resetView, zoomIn, zoomOut, fitToScreen, viewTop, viewFront, viewRight, viewIsometric]); // Include camera functions
+  }, []);
   
   // Handle camera switching
   useEffect(() => {
