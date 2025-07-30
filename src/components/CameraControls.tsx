@@ -2,14 +2,14 @@ import React from 'react';
 import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, RotateCw, Move3D } from 'lucide-react';
 
 interface CameraControlsProps {
-  onResetView: () => void;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  onFitToScreen: () => void;
-  onViewTop: () => void;
-  onViewFront: () => void;
-  onViewRight: () => void;
-  onViewIsometric: () => void;
+  onResetView?: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onFitToScreen?: () => void;
+  onViewTop?: () => void;
+  onViewFront?: () => void;
+  onViewRight?: () => void;
+  onViewIsometric?: () => void;
   onToggleOrthographic: () => void;
   isOrthographic: boolean;
 }
@@ -43,21 +43,21 @@ const CameraControls: React.FC<CameraControlsProps> = ({
           {/* Zoom Controls */}
           <div className="flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
             <button
-              onClick={onZoomIn}
+              onClick={() => window.dispatchEvent(new CustomEvent('camera-zoom-in'))}
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
               title="Zoom In"
             >
               <ZoomIn size={16} />
             </button>
             <button
-              onClick={onZoomOut}
+              onClick={() => window.dispatchEvent(new CustomEvent('camera-zoom-out'))}
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
               title="Zoom Out"
             >
               <ZoomOut size={16} />
             </button>
             <button
-              onClick={onFitToScreen}
+              onClick={() => window.dispatchEvent(new CustomEvent('camera-fit-screen'))}
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
               title="Fit to Screen"
             >
@@ -70,7 +70,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             {viewButtons.map(view => (
               <button
                 key={view.id}
-                onClick={view.onClick}
+                onClick={() => window.dispatchEvent(new CustomEvent(`camera-view-${view.id}`))}
                 className="px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200 text-xs font-medium"
                 title={`${view.name} View`}
               >
@@ -83,7 +83,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
           {/* Reset and Projection */}
           <div className="flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
             <button
-              onClick={onResetView}
+              onClick={() => window.dispatchEvent(new CustomEvent('camera-reset'))}
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
               title="Reset View"
             >

@@ -14,14 +14,6 @@ interface Viewport3DProps {
   activeTool: string | null;
   drawingSettings: DrawingSettings;
   isOrthographic: boolean;
-  onResetView: () => void;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  onFitToScreen: () => void;
-  onViewTop: () => void;
-  onViewFront: () => void;
-  onViewRight: () => void;
-  onViewIsometric: () => void;
 }
 
 const Viewport3D: React.FC<Viewport3DProps> = ({ 
@@ -29,15 +21,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   onModelsChange, 
   activeTool, 
   drawingSettings,
-  isOrthographic,
-  onResetView,
-  onZoomIn,
-  onZoomOut,
-  onFitToScreen,
-  onViewTop,
-  onViewFront,
-  onViewRight,
-  onViewIsometric
+  isOrthographic
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
@@ -66,6 +50,105 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     lightIntensity: 1.0
   });
 
+  // Camera control functions
+  const resetView = useCallback(() => {
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(0, 0, 50);
+      cameraRef.current.lookAt(0, 0, 0);
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
+  }, []);
+
+  const zoomIn = useCallback(() => {
+    if (cameraRef.current) {
+      if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+        cameraRef.current.zoom *= 1.2;
+        cameraRef.current.updateProjectionMatrix();
+      } else {
+        const direction = new THREE.Vector3();
+        cameraRef.current.getWorldDirection(direction);
+        cameraRef.current.position.add(direction.multiplyScalar(5));
+      }
+    }
+  }, [isOrthographic]);
+
+  const zoomOut = useCallback(() => {
+    if (cameraRef.current) {
+      if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+        cameraRef.current.zoom /= 1.2;
+        cameraRef.current.updateProjectionMatrix();
+      } else {
+        const direction = new THREE.Vector3();
+        cameraRef.current.getWorldDirection(direction);
+        cameraRef.current.position.add(direction.multiplyScalar(-5));
+      }
+    }
+  }, [isOrthographic]);
+
+  const fitToScreen = useCallback(() => {
+    if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
+    
+    const box = new THREE.Box3();
+    const meshes = models.filter(m => m.mesh).map(m => m.mesh!);
+    
+    if (meshes.length === 0) return;
+    
+    meshes.forEach(mesh => box.expandByObject(mesh));
+    
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    
+    controlsRef.current.target.copy(center);
+    
+    if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+      cameraRef.current.zoom = 30 / maxDim;
+      cameraRef.current.updateProjectionMatrix();
+    } else {
+      const distance = maxDim * 2;
+      cameraRef.current.position.copy(center);
+      cameraRef.current.position.z += distance;
+    }
+    
+    controlsRef.current.update();
+  }, [models, isOrthographic]);
+
+  const viewTop = useCallback(() => {
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(0, 50, 0);
+      cameraRef.current.lookAt(0, 0, 0);
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
+  }, []);
+
+  const viewFront = useCallback(() => {
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(0, 0, 50);
+      cameraRef.current.lookAt(0, 0, 0);
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
+  }, []);
+
+  const viewRight = useCallback(() => {
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(50, 0, 0);
+      cameraRef.current.lookAt(0, 0, 0);
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
+  }, []);
+
+  const viewIsometric = useCallback(() => {
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(35, 35, 35);
+      cameraRef.current.lookAt(0, 0, 0);
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
+  }, []);
   // Initialize Three.js scene
   useEffect(() => {
     if (!mountRef.current || initializedRef.current) return;
@@ -84,6 +167,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     );
     camera.position.set(0, 0, 50);
     cameraRef.current = camera;
+    perspectiveCameraRef.current = camera;
+
+    // Create orthographic camera
+    const orthoCamera = new THREE.OrthographicCamera(
+      -50, 50, 50, -50, 0.1, 1000
+    );
+    orthoCamera.position.set(0, 0, 50);
+    orthoCameraRef.current = orthoCamera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
@@ -260,9 +351,58 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
     window.addEventListener('resize', handleResize);
 
+    // Camera control event listeners
+    const handleCameraEvents = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      switch (customEvent.type) {
+        case 'camera-reset':
+          resetView();
+          break;
+        case 'camera-zoom-in':
+          zoomIn();
+          break;
+        case 'camera-zoom-out':
+          zoomOut();
+          break;
+        case 'camera-fit-screen':
+          fitToScreen();
+          break;
+        case 'camera-view-top':
+          viewTop();
+          break;
+        case 'camera-view-front':
+          viewFront();
+          break;
+        case 'camera-view-right':
+          viewRight();
+          break;
+        case 'camera-view-iso':
+          viewIsometric();
+          break;
+      }
+    };
+
+    window.addEventListener('camera-reset', handleCameraEvents);
+    window.addEventListener('camera-zoom-in', handleCameraEvents);
+    window.addEventListener('camera-zoom-out', handleCameraEvents);
+    window.addEventListener('camera-fit-screen', handleCameraEvents);
+    window.addEventListener('camera-view-top', handleCameraEvents);
+    window.addEventListener('camera-view-front', handleCameraEvents);
+    window.addEventListener('camera-view-right', handleCameraEvents);
+    window.addEventListener('camera-view-iso', handleCameraEvents);
+
     return () => {
       initializedRef.current = false;
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('camera-reset', handleCameraEvents);
+      window.removeEventListener('camera-zoom-in', handleCameraEvents);
+      window.removeEventListener('camera-zoom-out', handleCameraEvents);
+      window.removeEventListener('camera-fit-screen', handleCameraEvents);
+      window.removeEventListener('camera-view-top', handleCameraEvents);
+      window.removeEventListener('camera-view-front', handleCameraEvents);
+      window.removeEventListener('camera-view-right', handleCameraEvents);
+      window.removeEventListener('camera-view-iso', handleCameraEvents);
+      
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
         renderer.domElement.removeEventListener('mousemove', handleMouseMove);
@@ -291,11 +431,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControls.dispose();
       renderer.dispose();
     };
-  }, []); // Empty dependency array - initialize only once
+  }, [resetView, zoomIn, zoomOut, fitToScreen, viewTop, viewFront, viewRight, viewIsometric]); // Include camera functions
   
   // Handle camera switching
   useEffect(() => {
-    if (!perspectiveCameraRef.current || !orthoCameraRef.current || !controlsRef.current) return;
+    if (!perspectiveCameraRef.current || !orthoCameraRef.current || !controlsRef.current || !rendererRef.current) return;
     
     const newCamera = isOrthographic ? orthoCameraRef.current : perspectiveCameraRef.current;
     
@@ -303,6 +443,21 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     if (cameraRef.current) {
       newCamera.position.copy(cameraRef.current.position);
       newCamera.rotation.copy(cameraRef.current.rotation);
+      
+      // Update aspect ratio for new camera
+      if (rendererRef.current) {
+        const aspect = rendererRef.current.domElement.clientWidth / rendererRef.current.domElement.clientHeight;
+        if (newCamera instanceof THREE.PerspectiveCamera) {
+          newCamera.aspect = aspect;
+        } else if (newCamera instanceof THREE.OrthographicCamera) {
+          const frustumSize = 100;
+          newCamera.left = -frustumSize * aspect / 2;
+          newCamera.right = frustumSize * aspect / 2;
+          newCamera.top = frustumSize / 2;
+          newCamera.bottom = -frustumSize / 2;
+        }
+        newCamera.updateProjectionMatrix();
+      }
     }
     
     cameraRef.current = newCamera;
@@ -313,122 +468,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControlsRef.current.camera = newCamera;
     }
   }, [isOrthographic]);
-  
-  // Camera control functions
-  useEffect(() => {
-    if (!cameraRef.current || !controlsRef.current) return;
-    
-    // Expose camera control functions to parent
-    const resetView = () => {
-      if (cameraRef.current && controlsRef.current) {
-        cameraRef.current.position.set(0, 0, 50);
-        cameraRef.current.lookAt(0, 0, 0);
-        controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.update();
-      }
-    };
-    
-    const zoomIn = () => {
-      if (cameraRef.current) {
-        if (isOrthographic && orthoCameraRef.current) {
-          orthoCameraRef.current.zoom *= 1.2;
-          orthoCameraRef.current.updateProjectionMatrix();
-        } else {
-          const direction = new THREE.Vector3();
-          cameraRef.current.getWorldDirection(direction);
-          cameraRef.current.position.add(direction.multiplyScalar(5));
-        }
-      }
-    };
-    
-    const zoomOut = () => {
-      if (cameraRef.current) {
-        if (isOrthographic && orthoCameraRef.current) {
-          orthoCameraRef.current.zoom /= 1.2;
-          orthoCameraRef.current.updateProjectionMatrix();
-        } else {
-          const direction = new THREE.Vector3();
-          cameraRef.current.getWorldDirection(direction);
-          cameraRef.current.position.add(direction.multiplyScalar(-5));
-        }
-      }
-    };
-    
-    const fitToScreen = () => {
-      if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
-      
-      const box = new THREE.Box3();
-      const meshes = models.filter(m => m.mesh).map(m => m.mesh!);
-      
-      if (meshes.length === 0) return;
-      
-      meshes.forEach(mesh => box.expandByObject(mesh));
-      
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      
-      controlsRef.current.target.copy(center);
-      
-      if (isOrthographic && orthoCameraRef.current) {
-        orthoCameraRef.current.zoom = 30 / maxDim;
-        orthoCameraRef.current.updateProjectionMatrix();
-      } else {
-        const distance = maxDim * 2;
-        cameraRef.current.position.copy(center);
-        cameraRef.current.position.z += distance;
-      }
-      
-      controlsRef.current.update();
-    };
-    
-    const viewTop = () => {
-      if (cameraRef.current && controlsRef.current) {
-        cameraRef.current.position.set(0, 50, 0);
-        cameraRef.current.lookAt(0, 0, 0);
-        controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.update();
-      }
-    };
-    
-    const viewFront = () => {
-      if (cameraRef.current && controlsRef.current) {
-        cameraRef.current.position.set(0, 0, 50);
-        cameraRef.current.lookAt(0, 0, 0);
-        controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.update();
-      }
-    };
-    
-    const viewRight = () => {
-      if (cameraRef.current && controlsRef.current) {
-        cameraRef.current.position.set(50, 0, 0);
-        cameraRef.current.lookAt(0, 0, 0);
-        controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.update();
-      }
-    };
-    
-    const viewIsometric = () => {
-      if (cameraRef.current && controlsRef.current) {
-        cameraRef.current.position.set(35, 35, 35);
-        cameraRef.current.lookAt(0, 0, 0);
-        controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.update();
-      }
-    };
-    
-    // Override parent handlers
-    onResetView = resetView;
-    onZoomIn = zoomIn;
-    onZoomOut = zoomOut;
-    onFitToScreen = fitToScreen;
-    onViewTop = viewTop;
-    onViewFront = viewFront;
-    onViewRight = viewRight;
-    onViewIsometric = viewIsometric;
-    
-  }, [isOrthographic, models, onResetView, onZoomIn, onZoomOut, onFitToScreen, onViewTop, onViewFront, onViewRight, onViewIsometric]);
   
   // Update viewport settings
   useEffect(() => {

@@ -104,14 +104,14 @@ function App() {
         onSettingsChange={handleDrawingSettingsChange}
       />
       <CameraControls
-        onResetView={handleResetView}
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onFitToScreen={handleFitToScreen}
-        onViewTop={handleViewTop}
-        onViewFront={handleViewFront}
-        onViewRight={handleViewRight}
-        onViewIsometric={handleViewIsometric}
+        onResetView={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onFitToScreen={() => {}}
+        onViewTop={() => {}}
+        onViewFront={() => {}}
+        onViewRight={() => {}}
+        onViewIsometric={() => {}}
         onToggleOrthographic={handleToggleOrthographic}
         isOrthographic={isOrthographic}
       />
@@ -129,14 +129,6 @@ function App() {
           activeTool={activeTool}
           drawingSettings={drawingSettings}
           isOrthographic={isOrthographic}
-          onResetView={handleResetView}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onFitToScreen={handleFitToScreen}
-          onViewTop={handleViewTop}
-          onViewFront={handleViewFront}
-          onViewRight={handleViewRight}
-          onViewIsometric={handleViewIsometric}
         />
       </div>
       
