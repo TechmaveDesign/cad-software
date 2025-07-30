@@ -8,7 +8,6 @@ interface SidebarProps {
   onModelColorChange: (id: string, color: string) => void;
   activeTool: string | null;
   onToolSelect: (toolId: string) => void;
-  onFileUpload?: (files: File[]) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -16,8 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onModelVisibilityToggle,
   onModelColorChange,
   activeTool,
-  onToolSelect,
-  onFileUpload
+  onToolSelect
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['models', 'edit', 'draw'])
@@ -33,23 +31,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     setExpandedSections(newExpanded);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0 && onFileUpload) {
-      const fileArray = Array.from(files);
-      console.log('Files selected from sidebar:', fileArray.length);
-      onFileUpload(fileArray);
-    }
-    // Reset the input so the same file can be selected again
-    event.target.value = '';
-  };
-
-  const triggerFileUpload = () => {
-    const fileInput = document.getElementById('stl-file-input') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
-  };
   const editTools = [
     { id: 'cut', name: 'Cut', icon: Scissors },
     { id: 'close-holes', name: 'Close Holes', icon: CircleDot },
@@ -135,23 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 />
               </div>
             ))}
-            <div>
-              <input
-                id="stl-file-input"
-                type="file"
-                accept=".stl,application/octet-stream,model/stl"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <button 
-                onClick={triggerFileUpload}
-                className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-slate-600 rounded-lg text-slate-400 hover:text-white hover:border-slate-500 transition-colors duration-200"
-              >
-                <Upload size={16} />
-                <span className="text-sm">Add STL Model</span>
-              </button>
-            </div>
+            <button className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-slate-600 rounded-lg text-slate-400 hover:text-white hover:border-slate-500 transition-colors duration-200">
               <Upload size={16} />
               <span className="text-sm">Add STL Model</span>
             </button>
