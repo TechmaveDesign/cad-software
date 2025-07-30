@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, RotateCw, Move3D, Scale, RotateCw as RotateClockwise, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, MoveHorizontal, MoveVertical, RotateX, RotateY, RotateZ, Minus, Plus } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, RotateCw, Move3D, Scale, RotateCw as RotateClockwise, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, MoveHorizontal, MoveVertical, Rotate3D as RotateX, Rotate3D as RotateY, Rotate3D as RotateZ, Minus, Plus } from 'lucide-react';
 
 interface CameraControlsProps {
   onResetView?: () => void;
