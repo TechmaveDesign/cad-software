@@ -226,9 +226,59 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
       }
+      
+      // Proper cleanup of Three.js resources
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          if (object.geometry) object.geometry.dispose();
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach(material => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        }
+      });
+      
+      controls.dispose();
+      transformControls.dispose();
       renderer.dispose();
     };
-  }, [activeTool, isDrawing, models]);
+  }, []); // Empty dependency array - initialize only once
+  
+  // Update viewport settings
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    
+    // Update background color
+    sceneRef.current.background = new THREE.Color(viewportSettings.backgroundColor);
+    
+    // Update light intensity
+    sceneRef.current.traverse((object) => {
+      if (object instanceof THREE.DirectionalLight && object.intensity !== 0.3) {
+        object.intensity = viewportSettings.lightIntensity;
+      }
+    });
+  }, [viewportSettings]);
+  
+  // Update grid visibility
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    
+    // Remove existing grid
+    const existingGrid = sceneRef.current.getObjectByName('gridHelper');
+    if (existingGrid) {
+      sceneRef.current.remove(existingGrid);
+    }
+    
+    // Add new grid if enabled
+    if (viewportSettings.showGrid) {
+      const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x444444);
+      gridHelper.name = 'gridHelper';
+      sceneRef.current.add(gridHelper);
+    }
+  }, [viewportSettings.showGrid]);
   
   // Update transform controls when active tool changes
   useEffect(() => {
@@ -423,8 +473,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
 
   const toggleGrid = () => {
     setViewportSettings(prev => ({ ...prev, showGrid: !prev.showGrid }));
-    // Recreate scene to toggle grid
-    window.location.reload();
   };
 
   const clearAnnotations = () => {
