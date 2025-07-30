@@ -149,6 +149,69 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       controlsRef.current.update();
     }
   }, []);
+
+  // Model translation event handlers
+  const handleModelTranslateEvent = useCallback((event: Event) => {
+    const customEvent = event as CustomEvent;
+    const direction = customEvent.detail?.direction;
+    
+    console.log('Model translate event received:', direction);
+    
+    if (!direction) {
+      console.log('No direction specified');
+      return;
+    }
+    
+    const visibleModels = models.filter(m => m.mesh && m.visible);
+    console.log('Visible models to translate:', visibleModels.length);
+    
+    if (visibleModels.length === 0) {
+      console.log('No visible models to translate');
+      return;
+    }
+    
+    const translateAmount = 5; // Units to move
+    
+    visibleModels.forEach((model, index) => {
+      if (!model.mesh) return;
+      
+      const oldPosition = model.mesh.position.clone();
+      console.log(`Model ${index} old position:`, oldPosition);
+      
+      switch (direction) {
+        case 'left':
+          model.mesh.position.x -= translateAmount;
+          break;
+        case 'right':
+          model.mesh.position.x += translateAmount;
+          break;
+        case 'up':
+          model.mesh.position.y += translateAmount;
+          break;
+        case 'down':
+          model.mesh.position.y -= translateAmount;
+          break;
+        default:
+          console.log('Unknown direction:', direction);
+          return;
+      }
+      
+      // Force matrix update
+      model.mesh.updateMatrix();
+      model.mesh.updateMatrixWorld(true);
+      
+      console.log(`Model ${index} new position:`, model.mesh.position);
+      console.log(`Model ${index} moved ${direction} by ${translateAmount} units`);
+    });
+    
+    // Force re-render
+    if (rendererRef.current && sceneRef.current && cameraRef.current) {
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    }
+    
+    console.log('Model translation completed');
+  }, [models]);
+
   // Initialize Three.js scene
   useEffect(() => {
     if (!mountRef.current || initializedRef.current) return;
@@ -218,6 +281,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
     // STL Loader
     loaderRef.current = new STLLoader();
+
+    // Model translation event listener
+    window.addEventListener('model-translate', handleModelTranslateEvent);
 
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
@@ -404,7 +470,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     window.addEventListener('camera-view-right', handleCameraEvents);
     window.addEventListener('camera-view-iso', handleCameraEvents);
 
-
     return () => {
       initializedRef.current = false;
       window.removeEventListener('resize', handleResize);
@@ -416,6 +481,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-view-front', handleCameraEvents);
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
+      window.removeEventListener('model-translate', handleModelTranslateEvent);
       
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
@@ -445,7 +511,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControls.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [handleModelTranslateEvent]);
   
   // Handle camera switching
   useEffect(() => {
@@ -482,55 +548,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControlsRef.current.camera = newCamera;
     }
   }, [isOrthographic]);
-  
-  // Handle model translation
-  const handleModelTranslate = useCallback((direction: 'left' | 'right' | 'up' | 'down') => {
-    if (!sceneRef.current) return;
-    
-    const translateStep = 5; // Units to move per click
-    
-    // Find all visible models
-    const visibleModels = models.filter(model => model.mesh && model.visible);
-    
-    if (visibleModels.length === 0) {
-      console.log('No visible models to translate');
-      return;
-    }
-    
-    console.log(`Translating ${visibleModels.length} models ${direction} by ${translateStep} units`);
-    
-    visibleModels.forEach(model => {
-      if (!model.mesh) return;
-      
-      const mesh = model.mesh;
-      const currentPosition = mesh.position.clone();
-      
-      switch (direction) {
-        case 'left':
-          mesh.position.x -= translateStep;
-          break;
-        case 'right':
-          mesh.position.x += translateStep;
-          break;
-        case 'up':
-          mesh.position.y += translateStep;
-          break;
-        case 'down':
-          mesh.position.y -= translateStep;
-          break;
-      }
-      
-      console.log(`Model ${model.name} moved from (${currentPosition.x.toFixed(2)}, ${currentPosition.y.toFixed(2)}, ${currentPosition.z.toFixed(2)}) to (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
-      
-      // Update world matrix
-      mesh.updateMatrixWorld(true);
-    });
-    
-    // Force re-render
-    if (rendererRef.current && cameraRef.current && sceneRef.current) {
-      rendererRef.current.render(sceneRef.current, cameraRef.current);
-    }
-  }, [models]);
   
   // Update viewport settings
   useEffect(() => {
@@ -786,6 +803,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       bezierGroup.add(curveLine);
     }
   };
+
   const eraseAtPoint = (point: THREE.Vector3) => {
     if (!sceneRef.current) return;
     
@@ -914,6 +932,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     });
     setAnnotations([]);
   };
+
   return (
     <div className="flex-1 flex flex-col bg-slate-900">
       {/* Viewport Controls */}
