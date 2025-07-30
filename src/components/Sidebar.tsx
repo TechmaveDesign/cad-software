@@ -241,146 +241,155 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="px-4 py-4 space-y-3 max-h-96 overflow-y-auto">
             {models.map((model) => (
               <div key={model.id} className="space-y-3">
-                <div className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
+                <div>
+                  <div className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
                   selectedModelId === model.id ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
-                }`} onClick={() => handleModelSelect(model.id)}>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => onModelVisibilityToggle(model.id)}
-                    className="text-slate-400 hover:text-white transition-colors duration-200"
-                  >
-                    {model.visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                  </button>
-                  <span className="text-slate-300 text-sm font-medium">
-                    {model.name}
-                  </span>
-                </div>
-                <input
-                  type="color"
-                  value={model.color}
-                  onChange={(e) => onModelColorChange(model.id, e.target.value)}
-                  className="w-6 h-6 rounded border-none cursor-pointer"
-                />
-              </div>
-                
-                {/* Transform Controls for Selected Model */}
-                {selectedModelId === model.id && (
-                  <div id="uiPanel" className="bg-slate-600 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-blue-400 font-medium text-sm">Model Controls</span>
+                  }`} onClick={() => handleModelSelect(model.id)}>
+                    <div className="flex items-center space-x-3">
                       <button
-                        onClick={resetTransformValues}
-                        className="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs transition-colors duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onModelVisibilityToggle(model.id);
+                        }}
+                        className="text-slate-400 hover:text-white transition-colors duration-200"
                       >
-                        Reset
+                        {model.visible ? <Eye size={16} /> : <EyeOff size={16} />}
                       </button>
+                      <span className="text-slate-300 text-sm font-medium">
+                        {model.name}
+                      </span>
                     </div>
-                    
-                    <label className="block text-slate-300 text-sm">
-                      Translate X: 
-                      <input 
-                        type="range" 
-                        id={`posX-${model.id}`}
-                        min="-100" 
-                        max="100" 
-                        value={transformValues.posX}
-                        onChange={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
-                        onInput={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
-                        className="w-full mt-1 slider"
-                      />
-                      <span className="text-slate-400 text-xs">{transformValues.posX}</span>
-                    </label>
-                    
-                    <label className="block text-slate-300 text-sm">
-                      Translate Y: 
-                      <input 
-                        type="range" 
-                        id={`posY-${model.id}`}
-                        min="-100" 
-                        max="100" 
-                        value={transformValues.posY}
-                        onChange={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
-                        onInput={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
-                        className="w-full mt-1 slider"
-                      />
-                      <span className="text-slate-400 text-xs">{transformValues.posY}</span>
-                    </label>
-                    
-                    <label className="block text-slate-300 text-sm">
-                      Translate Z: 
-                      <input 
-                        type="range" 
-                        id={`posZ-${model.id}`}
-                        min="-100" 
-                        max="100" 
-                        value={transformValues.posZ}
-                        onChange={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
-                        onInput={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
-                        className="w-full mt-1 slider"
-                      />
-                      <span className="text-slate-400 text-xs">{transformValues.posZ}</span>
-                    </label>
-                    
-                    <label className="block text-slate-300 text-sm">
-                      Rotate X: 
-                      <input 
-                        type="range" 
-                        id={`rotX-${model.id}`}
-                        min="-180" 
-                        max="180" 
-                        value={transformValues.rotX}
-                        onChange={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
-                        onInput={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
-                        className="w-full mt-1 slider"
-                      />
-                      <span className="text-slate-400 text-xs">{transformValues.rotX}°</span>
-                    </label>
-                    
-                    <label className="block text-slate-300 text-sm">
-                      Rotate Y: 
-                      <input 
-                        type="range" 
-                        id={`rotY-${model.id}`}
-                        min="-180" 
-                        max="180" 
-                        value={transformValues.rotY}
-                        onChange={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
-                        onInput={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
-                        className="w-full mt-1 slider"
-                      />
-                      <span className="text-slate-400 text-xs">{transformValues.rotY}°</span>
-                    </label>
-                    
-                    <label className="block text-slate-300 text-sm">
-                      Rotate Z: 
-                      <input 
-                        type="range" 
-                        id={`rotZ-${model.id}`}
-                        min="-180" 
-                        max="180" 
-                        value={transformValues.rotZ}
-                        onChange={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
-                        onInput={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
-                        className="w-full mt-1 slider"
-                      />
-                      <span className="text-slate-400 text-xs">{transformValues.rotZ}°</span>
-                    </label>
-                    
-                    <label className="block text-slate-300 text-sm">
-                      Scale: 
-                      <input 
-                        type="range" 
-                        id={`scale-${model.id}`}
-                        min="0.1" 
-                        max="5" 
-                        step="0.1" 
-                        value={transformValues.scale}
-                        onChange={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
-                        onInput={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
-                        className="w-full mt-1 slider"
-                      />
-                      <span className="text-slate-400 text-xs">{transformValues.scale}</span>
-                    </label>
+                    <input
+                      type="color"
+                      value={model.color}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onModelColorChange(model.id, e.target.value);
+                      }}
+                      className="w-6 h-6 rounded border-none cursor-pointer"
+                    />
+                  </div>
+                
+                  {/* Transform Controls for Selected Model */}
+                  {selectedModelId === model.id && (
+                    <div id="uiPanel" className="bg-slate-600 rounded-lg p-4 space-y-3 mt-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-blue-400 font-medium text-sm">Model Controls</span>
+                        <button
+                          onClick={resetTransformValues}
+                          className="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs transition-colors duration-200"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                      
+                      <label className="block text-slate-300 text-sm">
+                        Translate X: 
+                        <input 
+                          type="range" 
+                          id={`posX-${model.id}`}
+                          min="-100" 
+                          max="100" 
+                          value={transformValues.posX}
+                          onChange={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
+                          onInput={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
+                          className="w-full mt-1 slider"
+                        />
+                        <span className="text-slate-400 text-xs">{transformValues.posX}</span>
+                      </label>
+                      
+                      <label className="block text-slate-300 text-sm">
+                        Translate Y: 
+                        <input 
+                          type="range" 
+                          id={`posY-${model.id}`}
+                          min="-100" 
+                          max="100" 
+                          value={transformValues.posY}
+                          onChange={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
+                          onInput={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
+                          className="w-full mt-1 slider"
+                        />
+                        <span className="text-slate-400 text-xs">{transformValues.posY}</span>
+                      </label>
+                      
+                      <label className="block text-slate-300 text-sm">
+                        Translate Z: 
+                        <input 
+                          type="range" 
+                          id={`posZ-${model.id}`}
+                          min="-100" 
+                          max="100" 
+                          value={transformValues.posZ}
+                          onChange={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
+                          onInput={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
+                          className="w-full mt-1 slider"
+                        />
+                        <span className="text-slate-400 text-xs">{transformValues.posZ}</span>
+                      </label>
+                      
+                      <label className="block text-slate-300 text-sm">
+                        Rotate X: 
+                        <input 
+                          type="range" 
+                          id={`rotX-${model.id}`}
+                          min="-180" 
+                          max="180" 
+                          value={transformValues.rotX}
+                          onChange={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
+                          onInput={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
+                          className="w-full mt-1 slider"
+                        />
+                        <span className="text-slate-400 text-xs">{transformValues.rotX}°</span>
+                      </label>
+                      
+                      <label className="block text-slate-300 text-sm">
+                        Rotate Y: 
+                        <input 
+                          type="range" 
+                          id={`rotY-${model.id}`}
+                          min="-180" 
+                          max="180" 
+                          value={transformValues.rotY}
+                          onChange={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
+                          onInput={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
+                          className="w-full mt-1 slider"
+                        />
+                        <span className="text-slate-400 text-xs">{transformValues.rotY}°</span>
+                      </label>
+                      
+                      <label className="block text-slate-300 text-sm">
+                        Rotate Z: 
+                        <input 
+                          type="range" 
+                          id={`rotZ-${model.id}`}
+                          min="-180" 
+                          max="180" 
+                          value={transformValues.rotZ}
+                          onChange={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
+                          onInput={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
+                          className="w-full mt-1 slider"
+                        />
+                        <span className="text-slate-400 text-xs">{transformValues.rotZ}°</span>
+                      </label>
+                      
+                      <label className="block text-slate-300 text-sm">
+                        Scale: 
+                        <input 
+                          type="range" 
+                          id={`scale-${model.id}`}
+                          min="0.1" 
+                          max="5" 
+                          step="0.1" 
+                          value={transformValues.scale}
+                          onChange={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
+                          onInput={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
+                          className="w-full mt-1 slider"
+                        />
+                        <span className="text-slate-400 text-xs">{transformValues.scale}</span>
+                      </label>
+                    </div>
+                  )}
                   </div>
                 )}
               </div>
