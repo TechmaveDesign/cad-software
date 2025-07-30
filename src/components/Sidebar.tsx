@@ -342,6 +342,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         />
                         <span className="text-slate-400 text-xs">{transformValues.rotX}°</span>
                       </label>
+                      </label>
                       
                       <label className="block text-slate-300 text-sm">
                         Rotate Y: 
@@ -356,6 +357,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           className="w-full mt-1 slider"
                         />
                         <span className="text-slate-400 text-xs">{transformValues.rotY}°</span>
+                      </label>
                       </label>
                       
                       <label className="block text-slate-300 text-sm">
@@ -372,6 +374,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         />
                         <span className="text-slate-400 text-xs">{transformValues.rotZ}°</span>
                       </label>
+                      </label>
                       
                       <label className="block text-slate-300 text-sm">
                         Scale: 
@@ -387,6 +390,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           className="w-full mt-1 slider"
                         />
                         <span className="text-slate-400 text-xs">{transformValues.scale}</span>
+                      </label>
                       </label>
                     </div>
                   )}
