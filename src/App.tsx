@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import DrawingToolbar from './components/DrawingToolbar';
 import CameraControls from './components/CameraControls';
 import Viewport3D from './components/Viewport3D';
 import ToothLibrary from './components/ToothLibrary';

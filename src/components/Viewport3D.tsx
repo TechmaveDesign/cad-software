@@ -254,12 +254,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       event.stopPropagation();
       
       const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new Vector2(
+      const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1
       );
       
-      const raycaster = new Raycaster();
+      const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, camera);
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
@@ -644,7 +644,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       // Proper cleanup of Three.js resources
       scene.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
+        if (object instanceof Mesh) {
           if (object.geometry) object.geometry.dispose();
           if (object.material) {
             if (Array.isArray(object.material)) {

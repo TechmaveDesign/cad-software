@@ -1,8 +1,10 @@
+import { Mesh } from 'three';
+
 export interface STLModel {
   id: string;
   name: string;
   type: 'upper' | 'lower';
-  mesh?: THREE.Mesh;
+  mesh?: Mesh;
   visible: boolean;
   color: string;
   file?: File;
