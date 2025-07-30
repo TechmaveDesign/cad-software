@@ -7,6 +7,7 @@ import { STLModel, ViewportSettings } from '../types';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Grid3X3, Lightbulb, Palette } from 'lucide-react';
 import { DrawingSettings } from './DrawingToolbar';
+import { MeshOperations } from '../utils/meshOperations';
 
 interface Viewport3DProps {
   models: STLModel[];
@@ -225,6 +226,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     
     console.log('Model translation completed');
   }, [models]);
+  const [cuttingShape, setCuttingShape] = useState<THREE.Mesh | null>(null);
+  const [isDefiningCutArea, setIsDefiningCutArea] = useState(false);
+  const [cutPoints, setCutPoints] = useState<THREE.Vector3[]>([]);
 
   // Initialize Three.js scene
   useEffect(() => {
