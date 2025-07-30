@@ -11,9 +11,11 @@ interface Viewport3DProps {
   models: STLModel[];
   onModelsChange: (models: STLModel[]) => void;
   activeTool: string | null;
+  brushSize: number;
+  brushOpacity: number;
+  drawingColor: string;
 }
 
-const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeTool }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
