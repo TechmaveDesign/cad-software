@@ -524,6 +524,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       const mesh = targetModel.mesh;
       
+      console.log('Before transform - Position:', mesh.position, 'Rotation:', mesh.rotation, 'Scale:', mesh.scale);
+      
       // Apply transforms
       mesh.position.set(transform.posX, transform.posY, transform.posZ);
       mesh.rotation.set(
@@ -537,7 +539,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       mesh.updateMatrix();
       mesh.updateMatrixWorld(true);
       
-      console.log('Transform applied - Position:', mesh.position, 'Rotation:', mesh.rotation, 'Scale:', mesh.scale);
+      console.log('After transform - Position:', mesh.position, 'Rotation:', mesh.rotation, 'Scale:', mesh.scale);
+      
+      // Update transform controls if this model is selected
+      if (transformControlsRef.current && transformControlsRef.current.object === mesh) {
+        transformControlsRef.current.updateMatrixWorld();
+      }
+      
+      // Force a render update
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
     };
 
     window.addEventListener('model-transform', handleModelTransform);
@@ -584,7 +596,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControls.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [models, onModelsChange]); // Add dependencies to ensure proper updates
   
   // Handle camera switching
   useEffect(() => {
