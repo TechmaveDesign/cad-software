@@ -5,20 +5,33 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { STLModel, ViewportSettings } from '../types';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Grid3X3, Lightbulb, Palette } from 'lucide-react';
+import { MeshDrawingSystem, TextOnMesh } from './MeshDrawing';
+import { TransformOperation } from './TransformControls';
 
 interface Viewport3DProps {
   models: STLModel[];
   onModelsChange: (models: STLModel[]) => void;
+  selectedModel: string | null;
   activeTool: string | null;
+  onTransform: (modelId: string, transform: TransformOperation) => void;
 }
 
-const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeTool }) => {
+const Viewport3D: React.FC<Viewport3DProps> = ({ 
+  models, 
+  onModelsChange, 
+  selectedModel,
+  activeTool,
+  onTransform
+}) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
   const cameraRef = useRef<THREE.PerspectiveCamera>();
   const controlsRef = useRef<OrbitControls>();
   const loaderRef = useRef<STLLoader>();
+  const drawingSystemRef = useRef<MeshDrawingSystem>();
+  const textSystemRef = useRef<TextOnMesh>();
+  const isDrawingModeRef = useRef<boolean>(false);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -26,6 +39,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     backgroundColor: '#1e293b',
     lightIntensity: 1.0
   });
+
+  // Check if current tool should lock the model
+  const shouldLockModel = activeTool && [
+    'cut', 'add-volume', 'subtract-volume', 'mask-brush', 'pencil', 
+    'polyline', 'bezier', 'eraser', 'text-emboss', 'text-deboss'
+  ].includes(activeTool);
 
   // Initialize Three.js scene
   useEffect(() => {
@@ -79,12 +98,47 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     // STL Loader
     loaderRef.current = new STLLoader();
 
+    // Initialize drawing system
+    drawingSystemRef.current = new MeshDrawingSystem(scene, camera, renderer);
+    textSystemRef.current = new TextOnMesh(scene);
+
     mountRef.current.appendChild(renderer.domElement);
+
+    // Mouse event handlers for drawing
+    const handleMouseDown = (event: MouseEvent) => {
+      if (!shouldLockModel || !drawingSystemRef.current) return;
+      
+      const meshes = models.map(m => m.mesh).filter(Boolean) as THREE.Mesh[];
+      if (activeTool === 'pencil' || activeTool === 'mask-brush') {
+        drawingSystemRef.current.startDrawing(event, meshes);
+        isDrawingModeRef.current = true;
+      }
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!shouldLockModel || !drawingSystemRef.current || !isDrawingModeRef.current) return;
+      
+      const meshes = models.map(m => m.mesh).filter(Boolean) as THREE.Mesh[];
+      drawingSystemRef.current.continueDrawing(event, meshes);
+    };
+
+    const handleMouseUp = () => {
+      if (!shouldLockModel || !drawingSystemRef.current) return;
+      
+      drawingSystemRef.current.stopDrawing();
+      isDrawingModeRef.current = false;
+    };
+
+    renderer.domElement.addEventListener('mousedown', handleMouseDown);
+    renderer.domElement.addEventListener('mousemove', handleMouseMove);
+    renderer.domElement.addEventListener('mouseup', handleMouseUp);
 
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-      controls.update();
+      if (!shouldLockModel) {
+        controls.update();
+      }
       renderer.render(scene, camera);
     };
     animate();
@@ -100,12 +154,35 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (renderer.domElement) {
+        renderer.domElement.removeEventListener('mousedown', handleMouseDown);
+        renderer.domElement.removeEventListener('mousemove', handleMouseMove);
+        renderer.domElement.removeEventListener('mouseup', handleMouseUp);
+      }
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
-  }, []);
+  }, [shouldLockModel, activeTool, models]);
+
+  // Update controls based on tool selection
+  useEffect(() => {
+    if (!controlsRef.current) return;
+    
+    controlsRef.current.enabled = !shouldLockModel;
+    
+    if (shouldLockModel) {
+      // Change cursor to indicate drawing mode
+      if (mountRef.current) {
+        mountRef.current.style.cursor = activeTool === 'pencil' ? 'crosshair' : 'pointer';
+      }
+    } else {
+      if (mountRef.current) {
+        mountRef.current.style.cursor = 'default';
+      }
+    }
+  }, [shouldLockModel, activeTool]);
 
   // Update scene when models change
   useEffect(() => {
@@ -140,7 +217,25 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
           mesh.castShadow = true;
           mesh.receiveShadow = true;
           mesh.visible = model.visible;
-          mesh.position.x = model.type === 'upper' ? 0 : 20;
+          
+          // Position models side by side
+          const modelIndex = models.findIndex(m => m.id === model.id);
+          mesh.position.x = (modelIndex % 2) * 25 - 12.5;
+          mesh.position.z = Math.floor(modelIndex / 2) * 25;
+          
+          // Add selection outline for selected model
+          if (selectedModel === model.id) {
+            const outlineGeometry = geometry.clone();
+            const outlineMaterial = new THREE.MeshBasicMaterial({
+              color: 0x00ff00,
+              side: THREE.BackSide,
+              transparent: true,
+              opacity: 0.3
+            });
+            const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+            outline.scale.multiplyScalar(1.02);
+            mesh.add(outline);
+          }
 
           sceneRef.current!.add(mesh);
 
@@ -156,9 +251,37 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
         (model.mesh.material as THREE.MeshStandardMaterial).color.setHex(
           parseInt(model.color.replace('#', ''), 16)
         );
+        
+        // Update selection outline
+        const outline = model.mesh.children.find(child => 
+          child instanceof THREE.Mesh && 
+          (child.material as THREE.MeshBasicMaterial).color.getHex() === 0x00ff00
+        );
+        
+        if (selectedModel === model.id && !outline) {
+          // Add outline
+          const outlineGeometry = model.mesh.geometry.clone();
+          const outlineMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            side: THREE.BackSide,
+            transparent: true,
+            opacity: 0.3
+          });
+          const newOutline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+          newOutline.scale.multiplyScalar(1.02);
+          model.mesh.add(newOutline);
+        } else if (selectedModel !== model.id && outline) {
+          // Remove outline
+          model.mesh.remove(outline);
+        }
       }
     });
-  }, [models, viewportSettings.wireframe]);
+  }, [models, viewportSettings.wireframe, selectedModel]);
+
+  // Handle transform operations
+  useEffect(() => {
+    // This effect will be triggered by the onTransform prop
+  }, [onTransform]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newModels: STLModel[] = acceptedFiles.map((file, index) => ({
@@ -179,7 +302,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
       'application/octet-stream': ['.stl'],
       'model/stl': ['.stl']
     },
-    noClick: true
+    noClick: shouldLockModel
   });
 
   const toggleWireframe = () => {
@@ -237,12 +360,18 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
         </div>
         
         <div className="text-slate-400 text-sm">
-          {activeTool ? `Active Tool: ${activeTool}` : 'No tool selected'}
+          {activeTool ? (
+            <span className={shouldLockModel ? 'text-orange-400' : 'text-blue-400'}>
+              Active Tool: {activeTool} {shouldLockModel && '(Model Locked)'}
+            </span>
+          ) : (
+            'No tool selected'
+          )}
         </div>
       </div>
 
       {/* 3D Viewport */}
-      <div {...getRootProps()} className="flex-1 relative">
+      <div {...(shouldLockModel ? {} : getRootProps())} className="flex-1 relative">
         <input {...getInputProps()} />
         <div ref={mountRef} className="w-full h-full" />
         
@@ -256,12 +385,18 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
           </div>
         )}
 
-        {isDragActive && (
+        {isDragActive && !shouldLockModel && (
           <div className="absolute inset-0 bg-blue-600 bg-opacity-20 border-2 border-dashed border-blue-400 flex items-center justify-center">
             <div className="text-center">
               <Upload size={48} className="text-blue-400 mx-auto mb-4" />
               <p className="text-blue-400 text-lg">Drop STL files here</p>
             </div>
+          </div>
+        )}
+        
+        {shouldLockModel && (
+          <div className="absolute top-4 left-4 bg-orange-600 text-white px-3 py-1 rounded-md text-sm">
+            🔒 Model Locked - Drawing Mode Active
           </div>
         )}
       </div>
@@ -271,10 +406,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
+          {selectedModel && <span>Selected: {models.find(m => m.id === selectedModel)?.name}</span>}
         </div>
         <div className="flex items-center space-x-4">
           <span>Camera: Perspective</span>
           <span>Renderer: WebGL</span>
+          <span className={shouldLockModel ? 'text-orange-400' : 'text-slate-400'}>
+            Controls: {shouldLockModel ? 'Locked' : 'Free'}
+          </span>
         </div>
       </div>
     </div>
