@@ -98,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     // Dispatch transform slider event to viewport
     if (selectedModelId) {
       console.log('Dispatching transform-sliders event with values:', newValues);
-      window.dispatchEvent(new CustomEvent('transform-sliders', {
+      window.dispatchEvent(new CustomEvent('model-transform', {
         detail: {
           modelId: selectedModelId,
           transform: newValues
@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     
     if (selectedModelId) {
       console.log('Resetting transform values for model:', selectedModelId);
-      window.dispatchEvent(new CustomEvent('transform-sliders', {
+      window.dispatchEvent(new CustomEvent('model-transform', {
         detail: {
           modelId: selectedModelId,
           transform: resetValues
@@ -265,134 +265,122 @@ const Sidebar: React.FC<SidebarProps> = ({
                 
                 {/* Transform Controls for Selected Model */}
                 {selectedModelId === model.id && (
-                  <div className="bg-slate-600 rounded-lg p-4 space-y-4">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <Settings size={16} className="text-blue-400" />
-                      <span className="text-blue-400 font-medium text-sm">Transform Controls</span>
+                  <div id="uiPanel" className="bg-slate-600 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-blue-400 font-medium text-sm">Model Controls</span>
                       <button
                         onClick={resetTransformValues}
-                        className="ml-auto px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs transition-colors duration-200"
+                        className="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs transition-colors duration-200"
                       >
                         Reset
                       </button>
                     </div>
                     
-                    {/* Translation Controls */}
-                    <div className="space-y-2">
-                      <h5 className="text-slate-300 text-xs font-medium uppercase tracking-wide">Translate</h5>
-                      <div className="space-y-2">
-                        <div>
-                          <label className="block text-slate-400 text-xs mb-1">X Position</label>
-                          <input
-                            type="range"
-                            min="-100"
-                            max="100"
-                            step="0.1"
-                            value={transformValues.posX}
-                            onChange={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.posX.toFixed(1)}</div>
-                        </div>
-                        <div>
-                          <label className="block text-slate-400 text-xs mb-1">Y Position</label>
-                          <input
-                            type="range"
-                            min="-100"
-                            max="100"
-                            step="0.1"
-                            value={transformValues.posY}
-                            onChange={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.posY.toFixed(1)}</div>
-                        </div>
-                        <div>
-                          <label className="block text-slate-400 text-xs mb-1">Z Position</label>
-                          <input
-                            type="range"
-                            min="-100"
-                            max="100"
-                            step="0.1"
-                            value={transformValues.posZ}
-                            onChange={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.posZ.toFixed(1)}</div>
-                        </div>
-                      </div>
-                    </div>
+                    <label className="block text-slate-300 text-sm">
+                      Translate X: 
+                      <input 
+                        type="range" 
+                        id={`posX-${model.id}`}
+                        min="-100" 
+                        max="100" 
+                        value={transformValues.posX}
+                        onChange={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
+                        onInput={(e) => handleTransformChange('posX', parseFloat(e.target.value))}
+                        className="w-full mt-1 slider"
+                      />
+                      <span className="text-slate-400 text-xs">{transformValues.posX}</span>
+                    </label>
                     
-                    {/* Rotation Controls */}
-                    <div className="space-y-2">
-                      <h5 className="text-slate-300 text-xs font-medium uppercase tracking-wide">Rotate</h5>
-                      <div className="space-y-2">
-                        <div>
-                          <label className="block text-slate-400 text-xs mb-1">X Rotation</label>
-                          <input
-                            type="range"
-                            min="-180"
-                            max="180"
-                            step="1"
-                            value={transformValues.rotX}
-                            onChange={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.rotX}°</div>
-                        </div>
-                        <div>
-                          <label className="block text-slate-400 text-xs mb-1">Y Rotation</label>
-                          <input
-                            type="range"
-                            min="-180"
-                            max="180"
-                            step="1"
-                            value={transformValues.rotY}
-                            onChange={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.rotY}°</div>
-                        </div>
-                        <div>
-                          <label className="block text-slate-400 text-xs mb-1">Z Rotation</label>
-                          <input
-                            type="range"
-                            min="-180"
-                            max="180"
-                            step="1"
-                            value={transformValues.rotZ}
-                            onChange={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
-                            onInput={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="text-slate-500 text-xs mt-1">{transformValues.rotZ}°</div>
-                        </div>
-                      </div>
-                    </div>
+                    <label className="block text-slate-300 text-sm">
+                      Translate Y: 
+                      <input 
+                        type="range" 
+                        id={`posY-${model.id}`}
+                        min="-100" 
+                        max="100" 
+                        value={transformValues.posY}
+                        onChange={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
+                        onInput={(e) => handleTransformChange('posY', parseFloat(e.target.value))}
+                        className="w-full mt-1 slider"
+                      />
+                      <span className="text-slate-400 text-xs">{transformValues.posY}</span>
+                    </label>
                     
-                    {/* Scale Control */}
-                    <div className="space-y-2">
-                      <h5 className="text-slate-300 text-xs font-medium uppercase tracking-wide">Scale</h5>
-                      <div>
-                        <label className="block text-slate-400 text-xs mb-1">Uniform Scale</label>
-                        <input
-                          type="range"
-                          min="0.1"
-                          max="5"
-                          step="0.1"
-                          value={transformValues.scale}
-                          onChange={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
-                          onInput={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
-                          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                        />
-                        <div className="text-slate-500 text-xs mt-1">{transformValues.scale.toFixed(1)}x</div>
-                      </div>
-                    </div>
+                    <label className="block text-slate-300 text-sm">
+                      Translate Z: 
+                      <input 
+                        type="range" 
+                        id={`posZ-${model.id}`}
+                        min="-100" 
+                        max="100" 
+                        value={transformValues.posZ}
+                        onChange={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
+                        onInput={(e) => handleTransformChange('posZ', parseFloat(e.target.value))}
+                        className="w-full mt-1 slider"
+                      />
+                      <span className="text-slate-400 text-xs">{transformValues.posZ}</span>
+                    </label>
+                    
+                    <label className="block text-slate-300 text-sm">
+                      Rotate X: 
+                      <input 
+                        type="range" 
+                        id={`rotX-${model.id}`}
+                        min="-180" 
+                        max="180" 
+                        value={transformValues.rotX}
+                        onChange={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
+                        onInput={(e) => handleTransformChange('rotX', parseFloat(e.target.value))}
+                        className="w-full mt-1 slider"
+                      />
+                      <span className="text-slate-400 text-xs">{transformValues.rotX}°</span>
+                    </label>
+                    
+                    <label className="block text-slate-300 text-sm">
+                      Rotate Y: 
+                      <input 
+                        type="range" 
+                        id={`rotY-${model.id}`}
+                        min="-180" 
+                        max="180" 
+                        value={transformValues.rotY}
+                        onChange={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
+                        onInput={(e) => handleTransformChange('rotY', parseFloat(e.target.value))}
+                        className="w-full mt-1 slider"
+                      />
+                      <span className="text-slate-400 text-xs">{transformValues.rotY}°</span>
+                    </label>
+                    
+                    <label className="block text-slate-300 text-sm">
+                      Rotate Z: 
+                      <input 
+                        type="range" 
+                        id={`rotZ-${model.id}`}
+                        min="-180" 
+                        max="180" 
+                        value={transformValues.rotZ}
+                        onChange={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
+                        onInput={(e) => handleTransformChange('rotZ', parseFloat(e.target.value))}
+                        className="w-full mt-1 slider"
+                      />
+                      <span className="text-slate-400 text-xs">{transformValues.rotZ}°</span>
+                    </label>
+                    
+                    <label className="block text-slate-300 text-sm">
+                      Scale: 
+                      <input 
+                        type="range" 
+                        id={`scale-${model.id}`}
+                        min="0.1" 
+                        max="5" 
+                        step="0.1" 
+                        value={transformValues.scale}
+                        onChange={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
+                        onInput={(e) => handleTransformChange('scale', parseFloat(e.target.value))}
+                        className="w-full mt-1 slider"
+                      />
+                      <span className="text-slate-400 text-xs">{transformValues.scale}</span>
+                    </label>
                   </div>
                 )}
               </div>

@@ -552,48 +552,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
     window.addEventListener('model-transform', handleModelTransform);
 
-    // Transform slider event listener
-    const handleTransformSliders = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const { modelId, transform } = customEvent.detail;
-      
-      console.log('Transform slider event received:', modelId, transform);
-      
-      // Find the model by ID
-      const targetModel = models.find(m => m.id === modelId);
-      if (!targetModel || !targetModel.mesh) {
-        console.log('Model not found or no mesh:', modelId);
-        return;
-      }
-      
-      const mesh = targetModel.mesh;
-      currentMeshRef.current = mesh;
-      
-      console.log('Before transform - Position:', mesh.position.toArray(), 'Rotation:', mesh.rotation.toArray(), 'Scale:', mesh.scale.toArray());
-      
-      // Apply transforms directly to mesh
-      mesh.position.set(transform.posX, transform.posY, transform.posZ);
-      mesh.rotation.set(
-        (transform.rotX * Math.PI) / 180,
-        (transform.rotY * Math.PI) / 180,
-        (transform.rotZ * Math.PI) / 180
-      );
-      mesh.scale.set(transform.scale, transform.scale, transform.scale);
-      
-      // Force matrix updates
-      mesh.updateMatrix();
-      mesh.updateMatrixWorld(true);
-      
-      console.log('After transform - Position:', mesh.position.toArray(), 'Rotation:', mesh.rotation.toArray(), 'Scale:', mesh.scale.toArray());
-      
-      // Force render update
-      if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-      }
-    };
-
-    window.addEventListener('transform-sliders', handleTransformSliders);
-
     return () => {
       initializedRef.current = false;
       window.removeEventListener('resize', handleResize);
@@ -606,7 +564,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
       window.removeEventListener('model-transform', handleModelTransform);
-      window.removeEventListener('transform-sliders', handleTransformSliders);
       
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
