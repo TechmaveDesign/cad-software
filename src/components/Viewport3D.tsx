@@ -404,109 +404,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     window.addEventListener('camera-view-right', handleCameraEvents);
     window.addEventListener('camera-view-iso', handleCameraEvents);
 
-    // Transform action event listener
-    const handleTransformAction = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const { action } = customEvent.detail;
-      
-      console.log('Transform action received:', action, 'Selected model:', selectedModelRef.current?.uuid);
-      
-      if (!selectedModelRef.current) {
-        console.log('No model selected! Please click on a model first.');
-        return;
-      }
-      
-      const model = selectedModelRef.current;
-      const step = 5; // Movement/rotation step size (increased for visibility)
-      const scaleStep = 0.1; // Scale step size
-      const rotationStep = Math.PI / 6; // 30 degrees in radians (increased for visibility)
-      
-      console.log('Before transform - Position:', model.position, 'Rotation:', model.rotation, 'Scale:', model.scale);
-      
-      switch (action) {
-        // Translation
-        case 'translate-x-pos':
-          model.position.x += step;
-          break;
-        case 'translate-x-neg':
-          model.position.x -= step;
-          break;
-        case 'translate-y-pos':
-          model.position.y += step;
-          break;
-        case 'translate-y-neg':
-          model.position.y -= step;
-          break;
-        case 'translate-z-pos':
-          model.position.z += step;
-          break;
-        case 'translate-z-neg':
-          model.position.z -= step;
-          break;
-          
-        // Rotation
-        case 'rotate-x-pos':
-          model.rotation.x += rotationStep;
-          break;
-        case 'rotate-x-neg':
-          model.rotation.x -= rotationStep;
-          break;
-        case 'rotate-y-pos':
-          model.rotation.y += rotationStep;
-          break;
-        case 'rotate-y-neg':
-          model.rotation.y -= rotationStep;
-          break;
-        case 'rotate-z-pos':
-          model.rotation.z += rotationStep;
-          break;
-        case 'rotate-z-neg':
-          model.rotation.z -= rotationStep;
-          break;
-          
-        // Scaling
-        case 'scale-up':
-          model.scale.multiplyScalar(1 + scaleStep);
-          break;
-        case 'scale-down':
-          model.scale.multiplyScalar(1 - scaleStep);
-          break;
-        case 'scale-x-up':
-          model.scale.x *= (1 + scaleStep);
-          break;
-        case 'scale-x-down':
-          model.scale.x *= (1 - scaleStep);
-          break;
-        case 'scale-y-up':
-          model.scale.y *= (1 + scaleStep);
-          break;
-        case 'scale-y-down':
-          model.scale.y *= (1 - scaleStep);
-          break;
-        case 'scale-z-up':
-          model.scale.z *= (1 + scaleStep);
-          break;
-        case 'scale-z-down':
-          model.scale.z *= (1 - scaleStep);
-          break;
-        default:
-          console.log('Unknown transform action:', action);
-          return;
-      }
-      
-      console.log('After transform - Position:', model.position, 'Rotation:', model.rotation, 'Scale:', model.scale);
-      
-      // Force matrix update
-      model.updateMatrix();
-      model.updateMatrixWorld(true);
-      
-      // Update transform controls if attached
-      if (transformControlsRef.current && transformControlsRef.current.object === model) {
-        transformControlsRef.current.updateMatrixWorld();
-      }
-    };
-
-    window.addEventListener('transform-action', handleTransformAction);
 
     return () => {
       initializedRef.current = false;
@@ -519,7 +416,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-view-front', handleCameraEvents);
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
-      window.removeEventListener('transform-action', handleTransformAction);
       
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
@@ -1074,18 +970,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           )}
         </div>
         <div className="text-slate-400 text-sm">
-          <span className="mr-4">
-            {activeTool === 'scale' ? 'Scale Mode: Click model then use buttons or gizmo' :
-             activeTool === 'rotate' ? 'Rotate Mode: Click model then use buttons or gizmo' :
-             activeTool === 'translate' ? 'Translate Mode: Click model then use buttons or gizmo' :
-             `Projection: ${isOrthographic ? 'Orthographic' : 'Perspective'}`}
-          </span>
-          <span>
-            {['scale', 'rotate', 'translate'].includes(activeTool || '') ? 
-              (selectedModelRef.current ? `Model selected (${selectedModelRef.current.uuid.slice(0,8)}) - use toolbar buttons or drag gizmo handles` : 'Click on a model to select it for transformation') :
-              'Use mouse wheel to zoom, drag to rotate'
-            }
-          </span>
+          <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
+          <span>Use mouse wheel to zoom, drag to rotate</span>
         </div>
       </div>
     </div>
