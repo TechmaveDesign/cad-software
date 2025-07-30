@@ -5,6 +5,7 @@ import DrawingToolbar from './components/DrawingToolbar';
 import CameraControls from './components/CameraControls';
 import Viewport3D from './components/Viewport3D';
 import ToothLibrary from './components/ToothLibrary';
+import TransformPanel from './components/TransformPanel';
 import { STLModel, ToothModel } from './types';
 import { DrawingSettings } from './components/DrawingToolbar';
 
@@ -13,6 +14,8 @@ function App() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
   const [isOrthographic, setIsOrthographic] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<THREE.Mesh | null>(null);
+  const [showTransformPanel, setShowTransformPanel] = useState(false);
   const [drawingSettings, setDrawingSettings] = useState<DrawingSettings>({
     brushSize: 2.0,
     brushOpacity: 0.8,
@@ -41,6 +44,14 @@ function App() {
 
   const handleToolSelect = (toolId: string) => {
     setActiveTool(activeTool === toolId ? null : toolId);
+    
+    // Show transform panel for transform tools
+    if (['translate', 'rotate', 'scale'].includes(toolId)) {
+      setShowTransformPanel(true);
+    } else {
+      setShowTransformPanel(false);
+      setSelectedModel(null);
+    }
     
     // Open tooth library for specific tools
     if (toolId === 'add-volume') {
@@ -99,6 +110,10 @@ function App() {
     handleToolSelect('translate');
   };
 
+  const handleModelSelect = (mesh: THREE.Mesh | null) => {
+    setSelectedModel(mesh);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-slate-900">
       <Navbar />
@@ -137,6 +152,7 @@ function App() {
           activeTool={activeTool}
           drawingSettings={drawingSettings}
           isOrthographic={isOrthographic}
+          onModelSelect={handleModelSelect}
         />
       </div>
       
@@ -144,6 +160,15 @@ function App() {
         isOpen={isToothLibraryOpen}
         onClose={() => setIsToothLibraryOpen(false)}
         onToothSelect={handleToothSelect}
+      />
+      
+      <TransformPanel
+        selectedModel={selectedModel}
+        isVisible={showTransformPanel}
+        onClose={() => {
+          setShowTransformPanel(false);
+          setSelectedModel(null);
+        }}
       />
     </div>
   );

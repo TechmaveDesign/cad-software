@@ -14,6 +14,7 @@ interface Viewport3DProps {
   activeTool: string | null;
   drawingSettings: DrawingSettings;
   isOrthographic: boolean;
+  onModelSelect: (mesh: THREE.Mesh | null) => void;
 }
 
 const Viewport3D: React.FC<Viewport3DProps> = ({ 
@@ -22,6 +23,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   activeTool, 
   drawingSettings,
   isOrthographic
+  onModelSelect
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
@@ -318,6 +320,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       if (intersects.length > 0) {
         const selectedMesh = intersects[0].object as THREE.Mesh;
         selectedModelRef.current = selectedMesh;
+        onModelSelect(selectedMesh);
         
         if (transformControlsRef.current) {
           transformControlsRef.current.attach(selectedMesh);
@@ -331,6 +334,13 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             transformControlsRef.current.setMode('scale');
           }
         }
+      }
+    } else {
+      // Clear selection when clicking empty space
+      selectedModelRef.current = null;
+      onModelSelect(null);
+      if (transformControlsRef.current) {
+        transformControlsRef.current.detach();
       }
     };
     
