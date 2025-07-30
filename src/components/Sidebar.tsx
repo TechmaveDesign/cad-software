@@ -68,21 +68,27 @@ const Sidebar: React.FC<SidebarProps> = ({
     const newValues = { ...transformValues, [property]: value };
     setTransformValues(newValues);
     
+    console.log('Transform change:', property, value, 'for model:', selectedModelId);
+    
     // Dispatch transform event to viewport
     if (selectedModelId) {
+      console.log('Dispatching model-transform event with values:', newValues);
       window.dispatchEvent(new CustomEvent('model-transform', {
         detail: {
           modelId: selectedModelId,
           transform: newValues
         }
       }));
+    } else {
+      console.log('No model selected for transform');
     }
   };
 
   const handleModelSelect = (modelId: string) => {
+    console.log('Model selected:', modelId);
     setSelectedModelId(modelId);
     // Reset transform values when selecting a new model
-    setTransformValues({
+    const resetValues = {
       posX: 0,
       posY: 0,
       posZ: 0,
@@ -90,7 +96,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       rotY: 0,
       rotZ: 0,
       scale: 1
-    });
+    };
+    setTransformValues(resetValues);
+    console.log('Transform values reset for model:', modelId);
   };
 
   const SectionHeader = ({ 

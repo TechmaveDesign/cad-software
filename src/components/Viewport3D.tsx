@@ -524,6 +524,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       const mesh = targetModel.mesh;
       
+      console.log('Before transform - Position:', mesh.position.toArray(), 'Rotation:', mesh.rotation.toArray(), 'Scale:', mesh.scale.toArray());
+      
       // Apply transforms
       mesh.position.set(transform.posX, transform.posY, transform.posZ);
       mesh.rotation.set(
@@ -537,7 +539,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       mesh.updateMatrix();
       mesh.updateMatrixWorld(true);
       
-      console.log('Transform applied - Position:', mesh.position, 'Rotation:', mesh.rotation, 'Scale:', mesh.scale);
+      console.log('After transform - Position:', mesh.position.toArray(), 'Rotation:', mesh.rotation.toArray(), 'Scale:', mesh.scale.toArray());
+      
+      // Force a render update
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
     };
 
     window.addEventListener('model-transform', handleModelTransform);
@@ -584,7 +591,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControls.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [models]); // Add models dependency to ensure proper updates
   
   // Handle camera switching
   useEffect(() => {
@@ -947,6 +954,10 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           mesh.receiveShadow = true;
           mesh.visible = model.visible;
           mesh.position.x = model.type === 'upper' ? 0 : 20;
+          
+          // Store reference to model ID in mesh userData
+          mesh.userData.modelId = model.id;
+          console.log('Created mesh for model:', model.id, 'at position:', mesh.position.toArray());
 
           sceneRef.current!.add(mesh);
 
