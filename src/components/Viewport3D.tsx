@@ -953,9 +953,19 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             <span>Tool: {activeTool}</span>
           )}
         </div>
-        <div className="flex items-center space-x-4">
-          <span>Camera: Perspective</span>
-          <span>Renderer: WebGL</span>
+        <div className="text-slate-400 text-sm">
+          <span className="mr-4">
+            {activeTool === 'scale' ? 'Scale Mode: Click model to scale' :
+             activeTool === 'rotate' ? 'Rotate Mode: Click model to rotate' :
+             activeTool === 'translate' ? 'Translate Mode: Click model to move' :
+             `Projection: ${isOrthographic ? 'Orthographic' : 'Perspective'}`}
+          </span>
+          <span>
+            {['scale', 'rotate', 'translate'].includes(activeTool || '') ? 
+              'Click on a model to select it for transformation' :
+              'Use mouse wheel to zoom, drag to rotate'
+            }
+          </span>
         </div>
       </div>
     </div>
