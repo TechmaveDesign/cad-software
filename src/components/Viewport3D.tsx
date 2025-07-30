@@ -294,7 +294,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         return;
       }
       
-      if (!['translate', 'rotate', 'scale'].includes(activeTool || '')) return;
+      if (!['translate', 'rotate', 'scale'].includes(activeTool || '')) {
+        // Clear transform controls if no transform tool is active
+        if (transformControlsRef.current) {
+          transformControlsRef.current.detach();
+          selectedModelRef.current = null;
+        }
+        return;
+      }
       
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(

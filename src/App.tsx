@@ -114,6 +114,9 @@ function App() {
         onViewIsometric={() => {}}
         onToggleOrthographic={handleToggleOrthographic}
         isOrthographic={isOrthographic}
+        onScaleTool={() => handleToolSelect('scale')}
+        onRotateTool={() => handleToolSelect('rotate')}
+        activeTransformTool={activeTool}
       />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar

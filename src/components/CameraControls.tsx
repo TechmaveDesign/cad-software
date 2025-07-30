@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, RotateCw, Move3D } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, RotateCw, Move3D, Scale, RotateClockwise } from 'lucide-react';
 
 interface CameraControlsProps {
   onResetView?: () => void;
@@ -12,6 +12,9 @@ interface CameraControlsProps {
   onViewIsometric?: () => void;
   onToggleOrthographic: () => void;
   isOrthographic: boolean;
+  onScaleTool?: () => void;
+  onRotateTool?: () => void;
+  activeTransformTool?: string | null;
 }
 
 const CameraControls: React.FC<CameraControlsProps> = ({
@@ -24,7 +27,10 @@ const CameraControls: React.FC<CameraControlsProps> = ({
   onViewRight,
   onViewIsometric,
   onToggleOrthographic,
-  isOrthographic
+  isOrthographic,
+  onScaleTool,
+  onRotateTool,
+  activeTransformTool
 }) => {
   const viewButtons = [
     { id: 'top', name: 'Top', onClick: onViewTop, icon: '⬆️' },
@@ -82,6 +88,28 @@ const CameraControls: React.FC<CameraControlsProps> = ({
 
           {/* Reset and Projection */}
           <div className="flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
+            <button
+              onClick={onScaleTool}
+              className={`p-2 rounded transition-colors duration-200 ${
+                activeTransformTool === 'scale'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-600'
+              }`}
+              title="Scale Tool"
+            >
+              <Scale size={16} />
+            </button>
+            <button
+              onClick={onRotateTool}
+              className={`p-2 rounded transition-colors duration-200 ${
+                activeTransformTool === 'rotate'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-600'
+              }`}
+              title="Rotate Tool"
+            >
+              <RotateClockwise size={16} />
+            </button>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('camera-reset'))}
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
