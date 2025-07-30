@@ -42,6 +42,13 @@ const CameraControls: React.FC<CameraControlsProps> = ({
     { id: 'down', name: 'Bottom', direction: 'down' as const, icon: ArrowDown }
   ];
 
+  const handleModelTranslate = (direction: 'left' | 'right' | 'up' | 'down') => {
+    console.log('CameraControls: Dispatching model-translate event with direction:', direction);
+    window.dispatchEvent(new CustomEvent('model-translate', { 
+      detail: { direction } 
+    }));
+  };
+
   return (
     <div className="bg-slate-800 border-b border-slate-700 p-3">
       <div className="flex items-center justify-between">
@@ -119,7 +126,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             {translateButtons.map(button => (
               <button
                 key={button.id}
-                onClick={() => onModelTranslate?.(button.direction)}
+                onClick={() => handleModelTranslate(button.direction)}
                 className="p-2 text-slate-300 hover:text-white hover:bg-slate-600 rounded transition-colors duration-200"
                 title={`Move Model ${button.name}`}
               >
