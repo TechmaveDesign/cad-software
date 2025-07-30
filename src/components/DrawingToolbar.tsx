@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Brush, Pencil, Spline, Hexagon as Polygon, Eraser, Palette, Settings } from 'lucide-react';
+import { Brush, Pencil, Spline, Hexagon as Polygon, Eraser, Palette, Settings, Move3D } from 'lucide-react';
 
 interface DrawingToolbarProps {
   activeTool: string | null;
@@ -35,6 +35,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   const [showSettings, setShowSettings] = useState(false);
 
   const drawingTools = [
+    { id: 'move', name: 'Move', icon: Move3D, description: 'Move and rotate camera' },
     { id: 'brush', name: 'Brush', icon: Brush, description: 'Paint on model surface' },
     { id: 'pencil', name: 'Pencil', icon: Pencil, description: 'Draw thin lines' },
     { id: 'polyline', name: 'Polyline', icon: Polygon, description: 'Connected line segments' },

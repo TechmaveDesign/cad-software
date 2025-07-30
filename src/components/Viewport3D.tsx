@@ -105,6 +105,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     const handleMouseDown = (event: MouseEvent) => {
       if (!activeTool || !['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) return;
       
+      event.preventDefault();
+      event.stopPropagation();
+      
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -137,6 +140,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     const handleMouseMove = (event: MouseEvent) => {
       if (!isDrawing || !activeTool || !['brush', 'pencil'].includes(activeTool)) return;
       
+      event.preventDefault();
+      event.stopPropagation();
+      
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -159,13 +165,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     const handleMouseUp = () => {
       if (isDrawing) {
         setIsDrawing(false);
-        setDrawingPoints([]);
         finishStroke();
       }
     };
     
     // Model selection handler
     const handleModelClick = (event: MouseEvent) => {
+      if (activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) {
+        // Don't handle model selection when drawing tools are active
+        return;
+      }
+      
       if (!['translate', 'rotate', 'scale'].includes(activeTool || '')) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
@@ -291,6 +301,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   
   // Update transform controls when active tool changes
   useEffect(() => {
+    if (!controlsRef.current || !transformControlsRef.current) return;
+    
+    // Disable camera controls when drawing tools are active
+    const isDrawingTool = activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool);
+    controlsRef.current.enabled = !isDrawingTool;
+    
     if (!transformControlsRef.current) return;
     
     if (['translate', 'rotate', 'scale'].includes(activeTool || '')) {
@@ -306,12 +322,15 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   const startNewStroke = (point: THREE.Vector3, toolType: string) => {
     if (!sceneRef.current) return;
     
+    console.log('Starting new stroke at:', point, 'with tool:', toolType);
+    
     // Create new stroke group
     const strokeGroup = new THREE.Group();
     strokeGroup.userData.toolType = toolType;
     strokeGroup.userData.points = [point];
     strokeGroup.userData.settings = { ...drawingSettings };
     
+    // Add to scene immediately
     sceneRef.current.add(strokeGroup);
     setAnnotations(prev => [...prev, strokeGroup]);
     setCurrentStroke(strokeGroup);
@@ -322,6 +341,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   
   const continueStroke = (point: THREE.Vector3, toolType: string) => {
     if (!currentStroke) return;
+    
+    console.log('Continuing stroke at:', point);
     
     currentStroke.userData.points.push(point);
     addPointToStroke(currentStroke, point, toolType);
@@ -335,6 +356,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   };
   
   const finishStroke = () => {
+    console.log('Finishing stroke');
     setCurrentStroke(null);
   };
   
@@ -343,32 +365,38 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     const color = toolType === 'brush' ? drawingSettings.brushColor : drawingSettings.pencilColor;
     const opacity = toolType === 'brush' ? drawingSettings.brushOpacity : 1.0;
     
-    const geometry = new THREE.SphereGeometry(size * 0.1, 8, 8);
+    console.log('Adding point to stroke:', point, 'size:', size, 'color:', color);
+    
+    const geometry = new THREE.SphereGeometry(size * 0.05, 8, 8);
     const material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(color),
       transparent: true,
-      opacity: opacity
+      opacity: opacity,
+      depthTest: false
     });
     
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
+    sphere.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
     strokeGroup.add(sphere);
   };
   
   const connectPoints = (strokeGroup: THREE.Group, point1: THREE.Vector3, point2: THREE.Vector3, toolType: string) => {
     const color = toolType === 'brush' ? drawingSettings.brushColor : drawingSettings.pencilColor;
-    const width = toolType === 'brush' ? drawingSettings.brushSize * 0.1 : drawingSettings.pencilSize * 0.1;
+    const width = toolType === 'brush' ? drawingSettings.brushSize * 0.05 : drawingSettings.pencilSize * 0.05;
+    const opacity = toolType === 'brush' ? drawingSettings.brushOpacity : 1.0;
     
     // Create cylinder between points for smooth lines
     const direction = new THREE.Vector3().subVectors(point2, point1);
     const length = direction.length();
     
     if (length > 0) {
-      const geometry = new THREE.CylinderGeometry(width, width, length, 8);
+      const geometry = new THREE.CylinderGeometry(width, width, length, 6);
       const material = new THREE.MeshBasicMaterial({
         color: new THREE.Color(color),
         transparent: true,
-        opacity: toolType === 'brush' ? drawingSettings.brushOpacity : 1.0
+        opacity: opacity,
+        depthTest: false
       });
       
       const cylinder = new THREE.Mesh(geometry, material);
@@ -376,6 +404,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
       // Position and orient cylinder
       const midpoint = new THREE.Vector3().addVectors(point1, point2).multiplyScalar(0.5);
       cylinder.position.copy(midpoint);
+      cylinder.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
       
       // Orient cylinder along the line
       const up = new THREE.Vector3(0, 1, 0);
@@ -393,13 +422,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   const addPolylinePoint = (point: THREE.Vector3) => {
     if (!sceneRef.current) return;
     
+    console.log('Adding polyline point:', point);
+    
     // Add point marker
-    const geometry = new THREE.SphereGeometry(drawingSettings.lineWidth * 0.2, 8, 8);
+    const geometry = new THREE.SphereGeometry(drawingSettings.lineWidth * 0.1, 8, 8);
     const material = new THREE.MeshBasicMaterial({ 
-      color: new THREE.Color(drawingSettings.lineColor) 
+      color: new THREE.Color(drawingSettings.lineColor),
+      depthTest: false
     });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
+    sphere.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
     
     let polylineGroup = annotations.find(group => group.userData.toolType === 'polyline');
     if (!polylineGroup) {
@@ -416,12 +449,13 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
     // Draw line to previous point
     if (polylineGroup.userData.points.length > 1) {
       const points = polylineGroup.userData.points;
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-        points[points.length - 2],
-        points[points.length - 1]
-      ]);
+      const point1 = points[points.length - 2].clone().add(new THREE.Vector3(0, 0, 0.01));
+      const point2 = points[points.length - 1].clone().add(new THREE.Vector3(0, 0, 0.01));
+      
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([point1, point2]);
       const lineMaterial = new THREE.LineBasicMaterial({ 
-        color: new THREE.Color(drawingSettings.lineColor)
+        color: new THREE.Color(drawingSettings.lineColor),
+        depthTest: false
       });
       const line = new THREE.Line(lineGeometry, lineMaterial);
       polylineGroup.add(line);
@@ -431,13 +465,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   const addBezierPoint = (point: THREE.Vector3) => {
     if (!sceneRef.current) return;
     
+    console.log('Adding bezier point:', point);
+    
     // Add control point
-    const geometry = new THREE.SphereGeometry(drawingSettings.lineWidth * 0.3, 8, 8);
+    const geometry = new THREE.SphereGeometry(drawingSettings.lineWidth * 0.15, 8, 8);
     const material = new THREE.MeshBasicMaterial({ 
-      color: new THREE.Color(drawingSettings.lineColor) 
+      color: new THREE.Color(drawingSettings.lineColor),
+      depthTest: false
     });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(point);
+    sphere.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
     
     let bezierGroup = annotations.find(group => group.userData.toolType === 'bezier');
     if (!bezierGroup) {
@@ -462,9 +500,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
       );
       
       const curvePoints = curve.getPoints(50);
+      // Offset curve points slightly above surface
+      const offsetCurvePoints = curvePoints.map(p => p.clone().add(new THREE.Vector3(0, 0, 0.01)));
       const curveGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
       const curveMaterial = new THREE.LineBasicMaterial({ 
-        color: new THREE.Color(drawingSettings.lineColor)
+        color: new THREE.Color(drawingSettings.lineColor),
+        depthTest: false
       });
       const curveLine = new THREE.Line(curveGeometry, curveMaterial);
       bezierGroup.add(curveLine);
@@ -473,10 +514,13 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
   const eraseAtPoint = (point: THREE.Vector3) => {
     if (!sceneRef.current) return;
     
+    console.log('Erasing at point:', point);
+    
     const eraseRadius = drawingSettings.brushSize;
     
     // Find annotations to erase
-    annotations.forEach(group => {
+    const groupsToCheck = [...annotations];
+    groupsToCheck.forEach(group => {
       const objectsToRemove: THREE.Object3D[] = [];
       
       group.traverse((child) => {
@@ -648,7 +692,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({ models, onModelsChange, activeT
         </div>
         
         <div className="text-slate-400 text-sm">
-          {activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool) ? 
+          {activeTool === 'move' ? 'Camera Control Mode' :
+           activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool) ? 
             `Drawing Tool: ${activeTool}` : 
             activeTool ? `Tool: ${activeTool}` : 'No tool selected'
           }
