@@ -1,26 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Scissors, 
-  CircleDot, 
-  Wand2, 
-  Plus, 
-  Minus, 
-  PaintBucket, 
-  Ruler, 
-  Layers,
-  Eye,
-  EyeOff,
-  Upload,
-  ChevronDown,
-  ChevronRight,
-  Move3D,
-  RotateCcw,
-  Maximize,
-  Brush,
-  Pencil,
-  Polygon,
-  Spline
-} from 'lucide-react';
+import { Scissors, CircleDot, Wand2, Plus, Minus, PaintBucket, Ruler, Layers, Eye, EyeOff, Upload, ChevronDown, ChevronRight, Move3D, RotateCcw, Maximize, Brush, Pencil, Hexagon as Polygon, Spline } from 'lucide-react';
 import { STLModel } from '../types';
 
 interface SidebarProps {
@@ -39,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToolSelect
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['models', 'transform', 'edit', 'draw'])
+    new Set(['models', 'edit', 'draw'])
   );
 
   const toggleSection = (section: string) => {
@@ -52,12 +31,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     setExpandedSections(newExpanded);
   };
 
-  const transformTools = [
-    { id: 'translate', name: 'Translate', icon: Move3D },
-    { id: 'rotate', name: 'Rotate', icon: RotateCcw },
-    { id: 'scale', name: 'Scale', icon: Maximize },
-  ];
-
   const editTools = [
     { id: 'cut', name: 'Cut', icon: Scissors },
     { id: 'close-holes', name: 'Close Holes', icon: CircleDot },
@@ -67,10 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const drawTools = [
-    { id: 'mask-brush', name: 'Mask Brush', icon: Brush },
-    { id: 'pencil', name: 'Pencil Tool', icon: Pencil },
-    { id: 'polyline', name: 'Polyline/Polygon', icon: Polygon },
-    { id: 'bezier', name: 'Bezier Curve', icon: Spline },
+    { id: 'mask-brush', name: 'Mask Brush', icon: PaintBucket },
+    { id: 'bezier', name: 'Bezier Tool', icon: Ruler },
   ];
 
   const SectionHeader = ({ 
@@ -153,22 +124,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* Transform Tools Section */}
-      <div className="border-b border-slate-700">
-        <SectionHeader title="Transform Tools" sectionId="transform" icon={Move3D} />
-        {expandedSections.has('transform') && (
-          <div>
-            {transformTools.map((tool) => (
-              <ToolButton
-                key={tool.id}
-                tool={tool}
-                isActive={activeTool === tool.id}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Edit Tools Section */}
       <div className="border-b border-slate-700">
         <SectionHeader title="Edit Tools" sectionId="edit" icon={Scissors} />
@@ -206,161 +161,42 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex-1 p-4">
           <h3 className="text-slate-300 font-medium mb-4">Tool Settings</h3>
           <div className="space-y-4">
-            {/* Transform Tool Settings */}
-            {(activeTool === 'translate' || activeTool === 'rotate' || activeTool === 'scale') && (
-              <>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Snap to Grid</label>
-                  <input type="checkbox" className="rounded" />
-                </div>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Step Size</label>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="5"
-                    step="0.1"
-                    defaultValue="1"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">1.0 units</div>
-                </div>
-              </>
-            )}
-            
-            {/* Drawing Tool Settings */}
-            {(activeTool === 'mask-brush' || activeTool === 'pencil') && (
-              <>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Brush Size</label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="50"
-                    step="1"
-                    defaultValue="10"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">10px</div>
-                </div>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Opacity</label>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.1"
-                    defaultValue="0.8"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">80%</div>
-                </div>
-                {activeTool === 'mask-brush' && (
-                  <div>
-                    <label className="block text-slate-400 text-sm mb-2">Mask Color</label>
-                    <input
-                      type="color"
-                      defaultValue="#ff0000"
-                      className="w-full h-8 rounded border-none cursor-pointer"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-            
-            {/* Polyline/Polygon Settings */}
-            {activeTool === 'polyline' && (
-              <>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Line Width</label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    step="1"
-                    defaultValue="2"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">2px</div>
-                </div>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Auto Close Polygon</label>
-                  <input type="checkbox" className="rounded" />
-                </div>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Line Color</label>
-                  <input
-                    type="color"
-                    defaultValue="#00ff00"
-                    className="w-full h-8 rounded border-none cursor-pointer"
-                  />
-                </div>
-              </>
-            )}
-            
-            {/* Bezier Settings */}
-            {activeTool === 'bezier' && (
-              <>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Curve Smoothness</label>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="2"
-                    step="0.1"
-                    defaultValue="1"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">1.0</div>
-                </div>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Show Control Points</label>
-                  <input type="checkbox" defaultChecked className="rounded" />
-                </div>
-              </>
-            )}
-            
-            {/* General Edit Tool Settings */}
-            {(activeTool === 'cut' || activeTool === 'smooth' || activeTool === 'add-volume' || activeTool === 'subtract-volume') && (
-              <>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Spacer (mm)</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    defaultValue="0.05"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">0.05mm</div>
-                </div>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Thickness (mm)</label>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="5"
-                    step="0.1"
-                    defaultValue="1.75"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">1.75mm</div>
-                </div>
-                <div>
-                  <label className="block text-slate-400 text-sm mb-2">Taper Angle (°)</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    step="0.5"
-                    defaultValue="0"
-                    className="w-full"
-                  />
-                  <div className="text-slate-500 text-xs mt-1">0°</div>
-                </div>
-              </>
-            )}
+            <div>
+              <label className="block text-slate-400 text-sm mb-2">Spacer (mm)</label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                defaultValue="0.05"
+                className="w-full"
+              />
+              <div className="text-slate-500 text-xs mt-1">0.05mm</div>
+            </div>
+            <div>
+              <label className="block text-slate-400 text-sm mb-2">Thickness (mm)</label>
+              <input
+                type="range"
+                min="0.5"
+                max="5"
+                step="0.1"
+                defaultValue="1.75"
+                className="w-full"
+              />
+              <div className="text-slate-500 text-xs mt-1">1.75mm</div>
+            </div>
+            <div>
+              <label className="block text-slate-400 text-sm mb-2">Taper Angle (°)</label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.5"
+                defaultValue="0"
+                className="w-full"
+              />
+              <div className="text-slate-500 text-xs mt-1">0°</div>
+            </div>
           </div>
         </div>
       )}
