@@ -303,6 +303,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         return;
       }
       
+      event.preventDefault();
+      event.stopPropagation();
+      
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -319,6 +322,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         const selectedMesh = intersects[0].object as THREE.Mesh;
         selectedModelRef.current = selectedMesh;
         
+        console.log('Model selected:', selectedMesh.uuid, 'for tool:', activeTool);
+        
         if (transformControlsRef.current) {
           transformControlsRef.current.attach(selectedMesh);
           
@@ -330,7 +335,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           } else if (activeTool === 'scale') {
             transformControlsRef.current.setMode('scale');
           }
+          
+          console.log('Transform controls attached in mode:', activeTool);
         }
+      } else {
+        console.log('No model intersected');
       }
     };
     
@@ -411,8 +420,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       }
       
       const model = selectedModelRef.current;
-      const step = 2; // Movement/rotation step size
-      const scaleStep = 0.1; // Scale step size
+      const translateStep = 2; // Movement step size
+      const scaleStep = 0.1; // Scale step size (10%)
       const rotationStep = Math.PI / 12; // 15 degrees in radians
       
       console.log('Applying transform to model:', model.uuid, 'Action:', action);
@@ -420,27 +429,27 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       switch (action) {
         // Translation
         case 'translate-x-pos':
-          model.position.x += step;
+          model.position.x += translateStep;
           console.log('Moved X+:', model.position.x);
           break;
         case 'translate-x-neg':
-          model.position.x -= step;
+          model.position.x -= translateStep;
           console.log('Moved X-:', model.position.x);
           break;
         case 'translate-y-pos':
-          model.position.y += step;
+          model.position.y += translateStep;
           console.log('Moved Y+:', model.position.y);
           break;
         case 'translate-y-neg':
-          model.position.y -= step;
+          model.position.y -= translateStep;
           console.log('Moved Y-:', model.position.y);
           break;
         case 'translate-z-pos':
-          model.position.z += step;
+          model.position.z += translateStep;
           console.log('Moved Z+:', model.position.z);
           break;
         case 'translate-z-neg':
-          model.position.z -= step;
+          model.position.z -= translateStep;
           console.log('Moved Z-:', model.position.z);
           break;
           
@@ -476,7 +485,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           console.log('Scaled up:', model.scale.x);
           break;
         case 'scale-down':
-          model.scale.multiplyScalar(1 - scaleStep);
+          model.scale.multiplyScalar(Math.max(0.1, 1 - scaleStep)); // Prevent negative scaling
           console.log('Scaled down:', model.scale.x);
           break;
         case 'scale-x-up':
@@ -484,7 +493,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           console.log('Scaled X up:', model.scale.x);
           break;
         case 'scale-x-down':
-          model.scale.x *= (1 - scaleStep);
+          model.scale.x = Math.max(0.1, model.scale.x * (1 - scaleStep)); // Prevent negative scaling
           console.log('Scaled X down:', model.scale.x);
           break;
         case 'scale-y-up':
@@ -492,7 +501,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           console.log('Scaled Y up:', model.scale.y);
           break;
         case 'scale-y-down':
-          model.scale.y *= (1 - scaleStep);
+          model.scale.y = Math.max(0.1, model.scale.y * (1 - scaleStep)); // Prevent negative scaling
           console.log('Scaled Y down:', model.scale.y);
           break;
         case 'scale-z-up':
@@ -500,7 +509,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           console.log('Scaled Z up:', model.scale.z);
           break;
         case 'scale-z-down':
-          model.scale.z *= (1 - scaleStep);
+          model.scale.z = Math.max(0.1, model.scale.z * (1 - scaleStep)); // Prevent negative scaling
           console.log('Scaled Z down:', model.scale.z);
           break;
         default:
@@ -565,7 +574,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControls.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [models, isOrthographic, resetView, zoomIn, zoomOut, fitToScreen, viewTop, viewFront, viewRight, viewIsometric]);
   
   // Handle camera switching
   useEffect(() => {
@@ -1098,7 +1107,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           </span>
           <span>
             {['scale', 'rotate', 'translate'].includes(activeTool || '') ? 
-              (selectedModelRef.current ? 'Model selected - use toolbar buttons or drag gizmo handles' : 'Click on a model to select it for transformation') :
+              (selectedModelRef.current ? `Model selected (${selectedModelRef.current.uuid.slice(0, 8)}) - use toolbar buttons or drag gizmo handles` : 'Click on a model to select it for transformation') :
               'Use mouse wheel to zoom, drag to rotate'
             }
           </span>
