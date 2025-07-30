@@ -6,7 +6,7 @@ import CameraControls from './components/CameraControls';
 import Viewport3D from './components/Viewport3D';
 import ToothLibrary from './components/ToothLibrary';
 import { STLModel, ToothModel } from './types';
-import { DrawingSettings } from './components/DrawingToolbar';
+import { DrawingSettings } from './components/Sidebar';
 
 function App() {
   const [models, setModels] = useState<STLModel[]>([]);
@@ -102,11 +102,6 @@ function App() {
   return (
     <div className="h-screen flex flex-col bg-slate-900">
       <Navbar />
-      <DrawingToolbar
-        activeTool={activeTool}
-        onToolSelect={handleToolSelect}
-        onSettingsChange={handleDrawingSettingsChange}
-      />
       <CameraControls
         onResetView={() => {}}
         onZoomIn={() => {}}
@@ -130,6 +125,8 @@ function App() {
           onModelColorChange={handleModelColorChange}
           activeTool={activeTool}
           onToolSelect={handleToolSelect}
+          drawingSettings={drawingSettings}
+          onDrawingSettingsChange={handleDrawingSettingsChange}
         />
         <Viewport3D
           models={models}

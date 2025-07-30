@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
-import { Scissors, CircleDot, Wand2, Plus, Minus, PaintBucket, Ruler, Layers, Eye, EyeOff, Upload, ChevronDown, ChevronRight, Move3D, RotateCcw, Maximize, Brush, Pencil, Hexagon as Polygon, Spline, Settings } from 'lucide-react';
+import { Scissors, CircleDot, Wand2, Plus, Minus, PaintBucket, Ruler, Layers, Eye, EyeOff, Upload, ChevronDown, ChevronRight, Move3D, RotateCcw, Maximize, Brush, Pencil, Hexagon as Polygon, Spline, Settings, Eraser } from 'lucide-react';
 import { STLModel } from '../types';
+
+export interface DrawingSettings {
+  brushSize: number;
+  brushOpacity: number;
+  brushColor: string;
+  pencilSize: number;
+  pencilColor: string;
+  lineWidth: number;
+  lineColor: string;
+}
 
 interface SidebarProps {
   models: STLModel[];
@@ -8,6 +18,8 @@ interface SidebarProps {
   onModelColorChange: (id: string, color: string) => void;
   activeTool: string | null;
   onToolSelect: (toolId: string) => void;
+  drawingSettings: DrawingSettings;
+  onDrawingSettingsChange: (settings: DrawingSettings) => void;
 }
 
 interface TransformValues {
@@ -25,7 +37,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onModelVisibilityToggle,
   onModelColorChange,
   activeTool,
-  onToolSelect
+  onToolSelect,
+  drawingSettings,
+  onDrawingSettingsChange
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['models', 'edit', 'draw'])
@@ -60,9 +74,18 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const drawTools = [
-    { id: 'mask-brush', name: 'Mask Brush', icon: PaintBucket },
-    { id: 'bezier', name: 'Bezier Tool', icon: Ruler },
+    { id: 'move', name: 'Move', icon: Move3D, description: 'Move and rotate camera' },
+    { id: 'brush', name: 'Brush', icon: Brush, description: 'Paint on model surface' },
+    { id: 'pencil', name: 'Pencil', icon: Pencil, description: 'Draw thin lines' },
+    { id: 'polyline', name: 'Polyline', icon: Polygon, description: 'Connected line segments' },
+    { id: 'bezier', name: 'Bezier', icon: Spline, description: 'Smooth curves' },
+    { id: 'eraser', name: 'Eraser', icon: Eraser, description: 'Remove drawings' }
   ];
+
+  const handleDrawingSettingChange = (key: keyof DrawingSettings, value: number | string) => {
+    const newSettings = { ...drawingSettings, [key]: value };
+    onDrawingSettingsChange(newSettings);
+  };
 
   const handleTransformChange = (property: keyof TransformValues, value: number) => {
     const newValues = { ...transformValues, [property]: value };
@@ -138,12 +161,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 
   return (
-    <div className="w-80 bg-slate-800 border-r border-slate-700 flex flex-col h-full">
+    <div className="w-80 bg-slate-800 border-r border-slate-700 flex flex-col h-full overflow-hidden">
       {/* Models Section */}
       <div className="border-b border-slate-700">
         <SectionHeader title="Models" sectionId="models" icon={Layers} />
         {expandedSections.has('models') && (
-          <div className="px-4 py-4 space-y-3">
+          <div className="px-4 py-4 space-y-3 max-h-96 overflow-y-auto">
             {models.map((model) => (
               <div key={model.id} className="space-y-3">
                 <div className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
@@ -311,7 +334,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="border-b border-slate-700">
         <SectionHeader title="Draw Tools" sectionId="draw" icon={PaintBucket} />
         {expandedSections.has('draw') && (
-          <div>
+          <div className="max-h-96 overflow-y-auto">
             {drawTools.map((tool) => (
               <ToolButton
                 key={tool.id}
@@ -319,13 +342,151 @@ const Sidebar: React.FC<SidebarProps> = ({
                 isActive={activeTool === tool.id}
               />
             ))}
+            
+            {/* Drawing Settings */}
+            {activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool) && (
+              <div className="p-4 bg-slate-700 border-t border-slate-600">
+                <h4 className="text-white font-medium mb-4 flex items-center space-x-2">
+                  <Settings size={16} />
+                  <span>Drawing Settings</span>
+                </h4>
+                
+                {/* Brush Settings */}
+                {(activeTool === 'brush' || activeTool === 'eraser') && (
+                  <div className="space-y-3 mb-4">
+                    <h5 className="text-slate-300 text-sm font-medium flex items-center space-x-1">
+                      <Brush size={14} />
+                      <span>Brush</span>
+                    </h5>
+                    <div>
+                      <label className="block text-slate-300 text-xs mb-1">Size (mm)</label>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="10"
+                        step="0.1"
+                        value={drawingSettings.brushSize}
+                        onChange={(e) => handleDrawingSettingChange('brushSize', parseFloat(e.target.value))}
+                        className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="text-slate-400 text-xs mt-1">{drawingSettings.brushSize}mm</div>
+                    </div>
+                    {activeTool === 'brush' && (
+                      <>
+                        <div>
+                          <label className="block text-slate-300 text-xs mb-1">Opacity</label>
+                          <input
+                            type="range"
+                            min="0.1"
+                            max="1"
+                            step="0.1"
+                            value={drawingSettings.brushOpacity}
+                            onChange={(e) => handleDrawingSettingChange('brushOpacity', parseFloat(e.target.value))}
+                            className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="text-slate-400 text-xs mt-1">{Math.round(drawingSettings.brushOpacity * 100)}%</div>
+                        </div>
+                        <div>
+                          <label className="block text-slate-300 text-xs mb-1">Color</label>
+                          <input
+                            type="color"
+                            value={drawingSettings.brushColor}
+                            onChange={(e) => handleDrawingSettingChange('brushColor', e.target.value)}
+                            className="w-full h-8 rounded border-none cursor-pointer"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                
+                {/* Pencil Settings */}
+                {activeTool === 'pencil' && (
+                  <div className="space-y-3 mb-4">
+                    <h5 className="text-slate-300 text-sm font-medium flex items-center space-x-1">
+                      <Pencil size={14} />
+                      <span>Pencil</span>
+                    </h5>
+                    <div>
+                      <label className="block text-slate-300 text-xs mb-1">Size (mm)</label>
+                      <input
+                        type="range"
+                        min="0.1"
+                        max="3"
+                        step="0.1"
+                        value={drawingSettings.pencilSize}
+                        onChange={(e) => handleDrawingSettingChange('pencilSize', parseFloat(e.target.value))}
+                        className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="text-slate-400 text-xs mt-1">{drawingSettings.pencilSize}mm</div>
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 text-xs mb-1">Color</label>
+                      <input
+                        type="color"
+                        value={drawingSettings.pencilColor}
+                        onChange={(e) => handleDrawingSettingChange('pencilColor', e.target.value)}
+                        className="w-full h-8 rounded border-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* Line Settings */}
+                {(activeTool === 'polyline' || activeTool === 'bezier') && (
+                  <div className="space-y-3 mb-4">
+                    <h5 className="text-slate-300 text-sm font-medium flex items-center space-x-1">
+                      <Spline size={14} />
+                      <span>Lines</span>
+                    </h5>
+                    <div>
+                      <label className="block text-slate-300 text-xs mb-1">Width (mm)</label>
+                      <input
+                        type="range"
+                        min="0.2"
+                        max="5"
+                        step="0.1"
+                        value={drawingSettings.lineWidth}
+                        onChange={(e) => handleDrawingSettingChange('lineWidth', parseFloat(e.target.value))}
+                        className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="text-slate-400 text-xs mt-1">{drawingSettings.lineWidth}mm</div>
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 text-xs mb-1">Color</label>
+                      <input
+                        type="color"
+                        value={drawingSettings.lineColor}
+                        onChange={(e) => handleDrawingSettingChange('lineColor', e.target.value)}
+                        className="w-full h-8 rounded border-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* Quick Actions */}
+                <div className="pt-3 border-t border-slate-600 flex items-center justify-between">
+                  <div className="text-slate-400 text-xs">
+                    Tool: {drawTools.find(t => t.id === activeTool)?.name || 'None'}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button className="px-2 py-1 bg-slate-600 hover:bg-slate-500 text-slate-300 rounded text-xs transition-colors duration-200">
+                      Clear
+                    </button>
+                    <button className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors duration-200">
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Tool Settings */}
       {activeTool && (
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-4 overflow-y-auto">
           <h3 className="text-slate-300 font-medium mb-4">Tool Settings</h3>
           <div className="space-y-4">
             <div>
