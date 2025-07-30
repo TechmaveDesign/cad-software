@@ -152,9 +152,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-sm">Add STL Model</span>
               </button>
             </div>
-              <Upload size={16} />
-              <span className="text-sm">Add STL Model</span>
-            </button>
           </div>
         )}
       </div>
