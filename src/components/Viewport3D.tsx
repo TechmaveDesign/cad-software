@@ -1355,7 +1355,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
-          <span>Interactive: {models.filter(m => m.mesh?.userData.interactive).length}</span>
+          <span>Editable: {models.filter(m => m.mesh?.userData.interactive).length}</span>
           {occlusalPoints.length > 0 && (
             <span>Occlusal Points: {occlusalPoints.length}/3</span>
           )}
@@ -1365,6 +1365,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           {activeTool && (
             <span>Tool: {activeTool}</span>
           )}
+          {editingMode && (
+            <span className="text-orange-400">Editing Mode: {editingMode}</span>
+          )}
           {selectedModelRef.current && (
             <span className="text-blue-400">Model Selected</span>
           )}
@@ -1372,7 +1375,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="text-slate-400 text-sm">
           <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
           <span>
-            {isSelectingOcclusalPoints 
+            {editingMode === 'cut' || editingMode === 'subtract-volume'
+              ? 'Click two points on the model to define the area to cut/remove (ESC to cancel)'
+              : isSelectingOcclusalPoints 
               ? 'Click 3 points on the model to set occlusal plane (ESC to cancel)'
               : 'Use mouse wheel to zoom, drag to rotate, click models to select'
             }
