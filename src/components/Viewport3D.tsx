@@ -398,6 +398,97 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     window.addEventListener('camera-view-right', handleCameraEvents);
     window.addEventListener('camera-view-iso', handleCameraEvents);
 
+    // Transform action event listener
+    const handleTransformAction = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { action } = customEvent.detail;
+      
+      if (!selectedModelRef.current) {
+        console.log('No model selected for transform action');
+        return;
+      }
+      
+      const model = selectedModelRef.current;
+      const step = 2; // Movement/rotation step size
+      const scaleStep = 0.1; // Scale step size
+      const rotationStep = Math.PI / 12; // 15 degrees in radians
+      
+      switch (action) {
+        // Translation
+        case 'translate-x-pos':
+          model.position.x += step;
+          break;
+        case 'translate-x-neg':
+          model.position.x -= step;
+          break;
+        case 'translate-y-pos':
+          model.position.y += step;
+          break;
+        case 'translate-y-neg':
+          model.position.y -= step;
+          break;
+        case 'translate-z-pos':
+          model.position.z += step;
+          break;
+        case 'translate-z-neg':
+          model.position.z -= step;
+          break;
+          
+        // Rotation
+        case 'rotate-x-pos':
+          model.rotation.x += rotationStep;
+          break;
+        case 'rotate-x-neg':
+          model.rotation.x -= rotationStep;
+          break;
+        case 'rotate-y-pos':
+          model.rotation.y += rotationStep;
+          break;
+        case 'rotate-y-neg':
+          model.rotation.y -= rotationStep;
+          break;
+        case 'rotate-z-pos':
+          model.rotation.z += rotationStep;
+          break;
+        case 'rotate-z-neg':
+          model.rotation.z -= rotationStep;
+          break;
+          
+        // Scaling
+        case 'scale-up':
+          model.scale.multiplyScalar(1 + scaleStep);
+          break;
+        case 'scale-down':
+          model.scale.multiplyScalar(1 - scaleStep);
+          break;
+        case 'scale-x-up':
+          model.scale.x *= (1 + scaleStep);
+          break;
+        case 'scale-x-down':
+          model.scale.x *= (1 - scaleStep);
+          break;
+        case 'scale-y-up':
+          model.scale.y *= (1 + scaleStep);
+          break;
+        case 'scale-y-down':
+          model.scale.y *= (1 - scaleStep);
+          break;
+        case 'scale-z-up':
+          model.scale.z *= (1 + scaleStep);
+          break;
+        case 'scale-z-down':
+          model.scale.z *= (1 - scaleStep);
+          break;
+      }
+      
+      // Update transform controls if attached
+      if (transformControlsRef.current && transformControlsRef.current.object === model) {
+        transformControlsRef.current.updateMatrixWorld();
+      }
+    };
+
+    window.addEventListener('transform-action', handleTransformAction);
+
     return () => {
       initializedRef.current = false;
       window.removeEventListener('resize', handleResize);
@@ -409,6 +500,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-view-front', handleCameraEvents);
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
+      window.removeEventListener('transform-action', handleTransformAction);
       
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
@@ -521,6 +613,15 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     
     if (['translate', 'rotate', 'scale'].includes(activeTool || '')) {
       transformControlsRef.current.visible = true;
+      
+      // Set transform mode based on active tool
+      if (activeTool === 'translate') {
+        transformControlsRef.current.setMode('translate');
+      } else if (activeTool === 'rotate') {
+        transformControlsRef.current.setMode('rotate');
+      } else if (activeTool === 'scale') {
+        transformControlsRef.current.setMode('scale');
+      }
     } else {
       transformControlsRef.current.visible = false;
       transformControlsRef.current.detach();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, RotateCw, Move3D, Scale, RotateCw as RotateClockwise } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Home, Eye, Maximize2, RotateCw, Move3D, Scale, RotateCw as RotateClockwise, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, MoveHorizontal, MoveVertical, RotateX, RotateY, RotateZ, Minus, Plus } from 'lucide-react';
 
 interface CameraControlsProps {
   onResetView?: () => void;
@@ -15,6 +15,7 @@ interface CameraControlsProps {
   onScaleTool?: () => void;
   onRotateTool?: () => void;
   activeTransformTool?: string | null;
+  onTranslateTool?: () => void;
 }
 
 const CameraControls: React.FC<CameraControlsProps> = ({
@@ -30,7 +31,8 @@ const CameraControls: React.FC<CameraControlsProps> = ({
   isOrthographic,
   onScaleTool,
   onRotateTool,
-  activeTransformTool
+  activeTransformTool,
+  onTranslateTool
 }) => {
   const viewButtons = [
     { id: 'top', name: 'Top', onClick: onViewTop, icon: '⬆️' },
@@ -39,9 +41,15 @@ const CameraControls: React.FC<CameraControlsProps> = ({
     { id: 'iso', name: 'Isometric', onClick: onViewIsometric, icon: '📐' }
   ];
 
+  const handleTransformAction = (action: string) => {
+    window.dispatchEvent(new CustomEvent('transform-action', { detail: { action } }));
+  };
+
   return (
     <div className="bg-slate-800 border-b border-slate-700 p-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-3">
+        {/* First Row - Camera Controls */}
+        <div className="flex items-center justify-between">
         {/* Camera Controls */}
         <div className="flex items-center space-x-2">
           <span className="text-slate-400 text-sm font-medium mr-3">Camera:</span>
@@ -89,6 +97,17 @@ const CameraControls: React.FC<CameraControlsProps> = ({
           {/* Reset and Projection */}
           <div className="flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
             <button
+              onClick={onTranslateTool}
+              className={`p-2 rounded transition-colors duration-200 ${
+                activeTransformTool === 'translate'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-600'
+              }`}
+              title="Translate Tool"
+            >
+              <Move3D size={16} />
+            </button>
+            <button
               onClick={onScaleTool}
               className={`p-2 rounded transition-colors duration-200 ${
                 activeTransformTool === 'scale'
@@ -130,11 +149,216 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             </button>
           </div>
         </div>
+        </div>
 
+        {/* Second Row - Transform Controls (only show when transform tool is active) */}
+        {['translate', 'rotate', 'scale'].includes(activeTransformTool || '') && (
+          <div className="flex items-center justify-center space-x-4 bg-slate-700 rounded-lg p-3">
+            {activeTransformTool === 'translate' && (
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-300 text-sm font-medium mr-2">Translate:</span>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('translate-x-pos')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Move +X"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('translate-x-neg')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Move -X"
+                  >
+                    <ArrowLeft size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">X</span>
+                </div>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('translate-y-pos')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Move +Y"
+                  >
+                    <ArrowUp size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('translate-y-neg')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Move -Y"
+                  >
+                    <ArrowDown size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">Y</span>
+                </div>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('translate-z-pos')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Move +Z"
+                  >
+                    <MoveVertical size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('translate-z-neg')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Move -Z"
+                  >
+                    <MoveHorizontal size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">Z</span>
+                </div>
+              </div>
+            )}
+
+            {activeTransformTool === 'rotate' && (
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-300 text-sm font-medium mr-2">Rotate:</span>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('rotate-x-pos')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Rotate +X (15°)"
+                  >
+                    <RotateClockwise size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('rotate-x-neg')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Rotate -X (15°)"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">X</span>
+                </div>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('rotate-y-pos')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Rotate +Y (15°)"
+                  >
+                    <RotateClockwise size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('rotate-y-neg')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Rotate -Y (15°)"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">Y</span>
+                </div>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('rotate-z-pos')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Rotate +Z (15°)"
+                  >
+                    <RotateClockwise size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('rotate-z-neg')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Rotate -Z (15°)"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">Z</span>
+                </div>
+              </div>
+            )}
+
+            {activeTransformTool === 'scale' && (
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-300 text-sm font-medium mr-2">Scale:</span>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('scale-up')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale Up (110%)"
+                  >
+                    <Plus size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('scale-down')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale Down (90%)"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">Uniform</span>
+                </div>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('scale-x-up')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale X Up"
+                  >
+                    <Plus size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('scale-x-down')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale X Down"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">X</span>
+                </div>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('scale-y-up')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale Y Up"
+                  >
+                    <Plus size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('scale-y-down')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale Y Down"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">Y</span>
+                </div>
+                <div className="flex items-center space-x-1 bg-slate-600 rounded p-1">
+                  <button
+                    onClick={() => handleTransformAction('scale-z-up')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale Z Up"
+                  >
+                    <Plus size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleTransformAction('scale-z-down')}
+                    className="p-1 text-slate-300 hover:text-white hover:bg-slate-500 rounded transition-colors duration-200"
+                    title="Scale Z Down"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="text-xs text-slate-400 px-1">Z</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {/* Camera Info */}
+        <div className="flex items-center justify-between">
+          <div className="text-slate-400 text-sm">
+            <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
+            {activeTransformTool && (
+              <span className="mr-4 text-blue-400">Transform Mode: {activeTransformTool}</span>
+            )}
+          </div>
         <div className="text-slate-400 text-sm">
-          <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
-          <span>Use mouse wheel to zoom, drag to rotate</span>
+            <span>
+              {activeTransformTool ? 
+                'Select a model to transform, or use buttons above for precise control' :
+                'Use mouse wheel to zoom, drag to rotate'
+              }
+            </span>
+          </div>
         </div>
       </div>
     </div>

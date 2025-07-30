@@ -95,6 +95,10 @@ function App() {
     setIsOrthographic(!isOrthographic);
   };
 
+  const handleTranslateTool = () => {
+    handleToolSelect('translate');
+  };
+
   return (
     <div className="h-screen flex flex-col bg-slate-900">
       <Navbar />
@@ -116,6 +120,7 @@ function App() {
         isOrthographic={isOrthographic}
         onScaleTool={() => handleToolSelect('scale')}
         onRotateTool={() => handleToolSelect('rotate')}
+        onTranslateTool={handleTranslateTool}
         activeTransformTool={activeTool}
       />
       <div className="flex-1 flex overflow-hidden">
