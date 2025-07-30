@@ -403,6 +403,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       const customEvent = event as CustomEvent;
       const { action } = customEvent.detail;
       
+      console.log('Transform action received:', action);
+      
       if (!selectedModelRef.current) {
         console.log('No model selected for transform action');
         return;
@@ -413,77 +415,110 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       const scaleStep = 0.1; // Scale step size
       const rotationStep = Math.PI / 12; // 15 degrees in radians
       
+      console.log('Applying transform to model:', model.uuid, 'Action:', action);
+      
       switch (action) {
         // Translation
         case 'translate-x-pos':
           model.position.x += step;
+          console.log('Moved X+:', model.position.x);
           break;
         case 'translate-x-neg':
           model.position.x -= step;
+          console.log('Moved X-:', model.position.x);
           break;
         case 'translate-y-pos':
           model.position.y += step;
+          console.log('Moved Y+:', model.position.y);
           break;
         case 'translate-y-neg':
           model.position.y -= step;
+          console.log('Moved Y-:', model.position.y);
           break;
         case 'translate-z-pos':
           model.position.z += step;
+          console.log('Moved Z+:', model.position.z);
           break;
         case 'translate-z-neg':
           model.position.z -= step;
+          console.log('Moved Z-:', model.position.z);
           break;
           
         // Rotation
         case 'rotate-x-pos':
           model.rotation.x += rotationStep;
+          console.log('Rotated X+:', model.rotation.x * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-x-neg':
           model.rotation.x -= rotationStep;
+          console.log('Rotated X-:', model.rotation.x * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-y-pos':
           model.rotation.y += rotationStep;
+          console.log('Rotated Y+:', model.rotation.y * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-y-neg':
           model.rotation.y -= rotationStep;
+          console.log('Rotated Y-:', model.rotation.y * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-z-pos':
           model.rotation.z += rotationStep;
+          console.log('Rotated Z+:', model.rotation.z * 180 / Math.PI, 'degrees');
           break;
         case 'rotate-z-neg':
           model.rotation.z -= rotationStep;
+          console.log('Rotated Z-:', model.rotation.z * 180 / Math.PI, 'degrees');
           break;
           
         // Scaling
         case 'scale-up':
           model.scale.multiplyScalar(1 + scaleStep);
+          console.log('Scaled up:', model.scale.x);
           break;
         case 'scale-down':
           model.scale.multiplyScalar(1 - scaleStep);
+          console.log('Scaled down:', model.scale.x);
           break;
         case 'scale-x-up':
           model.scale.x *= (1 + scaleStep);
+          console.log('Scaled X up:', model.scale.x);
           break;
         case 'scale-x-down':
           model.scale.x *= (1 - scaleStep);
+          console.log('Scaled X down:', model.scale.x);
           break;
         case 'scale-y-up':
           model.scale.y *= (1 + scaleStep);
+          console.log('Scaled Y up:', model.scale.y);
           break;
         case 'scale-y-down':
           model.scale.y *= (1 - scaleStep);
+          console.log('Scaled Y down:', model.scale.y);
           break;
         case 'scale-z-up':
           model.scale.z *= (1 + scaleStep);
+          console.log('Scaled Z up:', model.scale.z);
           break;
         case 'scale-z-down':
           model.scale.z *= (1 - scaleStep);
+          console.log('Scaled Z down:', model.scale.z);
           break;
+        default:
+          console.log('Unknown transform action:', action);
       }
+      
+      // Force matrix update
+      model.updateMatrix();
+      model.updateMatrixWorld(true);
       
       // Update transform controls if attached
       if (transformControlsRef.current && transformControlsRef.current.object === model) {
         transformControlsRef.current.updateMatrixWorld();
+      }
+      
+      // Force re-render
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
       }
     };
 
@@ -1056,14 +1091,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         </div>
         <div className="text-slate-400 text-sm">
           <span className="mr-4">
-            {activeTool === 'scale' ? 'Scale Mode: Click model to scale' :
-             activeTool === 'rotate' ? 'Rotate Mode: Click model to rotate' :
-             activeTool === 'translate' ? 'Translate Mode: Click model to move' :
+            {activeTool === 'scale' ? 'Scale Mode: Click model then use buttons or gizmo' :
+             activeTool === 'rotate' ? 'Rotate Mode: Click model then use buttons or gizmo' :
+             activeTool === 'translate' ? 'Translate Mode: Click model then use buttons or gizmo' :
              `Projection: ${isOrthographic ? 'Orthographic' : 'Perspective'}`}
           </span>
           <span>
             {['scale', 'rotate', 'translate'].includes(activeTool || '') ? 
-              'Click on a model to select it for transformation' :
+              (selectedModelRef.current ? 'Model selected - use toolbar buttons or drag gizmo handles' : 'Click on a model to select it for transformation') :
               'Use mouse wheel to zoom, drag to rotate'
             }
           </span>
