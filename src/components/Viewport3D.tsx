@@ -508,40 +508,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
     window.addEventListener('transform-action', handleTransformAction);
 
-    // Model transform event listener for range sliders
-    const handleModelTransform = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const { modelId, transform } = customEvent.detail;
-      
-      console.log('Model transform received:', modelId, transform);
-      
-      // Find the model by ID
-      const targetModel = models.find(m => m.id === modelId);
-      if (!targetModel || !targetModel.mesh) {
-        console.log('Model not found or no mesh:', modelId);
-        return;
-      }
-      
-      const mesh = targetModel.mesh;
-      
-      // Apply transforms
-      mesh.position.set(transform.posX, transform.posY, transform.posZ);
-      mesh.rotation.set(
-        (transform.rotX * Math.PI) / 180,
-        (transform.rotY * Math.PI) / 180,
-        (transform.rotZ * Math.PI) / 180
-      );
-      mesh.scale.setScalar(transform.scale);
-      
-      // Force matrix update
-      mesh.updateMatrix();
-      mesh.updateMatrixWorld(true);
-      
-      console.log('Transform applied - Position:', mesh.position, 'Rotation:', mesh.rotation, 'Scale:', mesh.scale);
-    };
-
-    window.addEventListener('model-transform', handleModelTransform);
-
     return () => {
       initializedRef.current = false;
       window.removeEventListener('resize', handleResize);
@@ -554,7 +520,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
       window.removeEventListener('transform-action', handleTransformAction);
-      window.removeEventListener('model-transform', handleModelTransform);
       
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
