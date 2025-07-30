@@ -1,8 +1,32 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import * as THREE from 'three';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+import {
+  Scene,
+  WebGLRenderer,
+  PerspectiveCamera,
+  OrthographicCamera,
+  AmbientLight,
+  DirectionalLight,
+  GridHelper,
+  MeshStandardMaterial,
+  Mesh,
+  Color,
+  Vector3,
+  Vector2,
+  Raycaster,
+  Group,
+  SphereGeometry,
+  MeshBasicMaterial,
+  CylinderGeometry,
+  BufferGeometry,
+  LineBasicMaterial,
+  Line,
+  CubicBezierCurve3,
+  Box3,
+  PCFSoftShadowMap
+} from 'three';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { STLModel, ViewportSettings } from '../types';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Grid3X3, Lightbulb, Palette } from 'lucide-react';
@@ -26,25 +50,25 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   selectedModelId
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene>();
-  const rendererRef = useRef<THREE.WebGLRenderer>();
-  const cameraRef = useRef<THREE.PerspectiveCamera>();
+  const sceneRef = useRef<Scene>();
+  const rendererRef = useRef<WebGLRenderer>();
+  const cameraRef = useRef<PerspectiveCamera>();
   const controlsRef = useRef<OrbitControls>();
   const transformControlsRef = useRef<TransformControls>();
-  const selectedModelRef = useRef<THREE.Mesh | null>(null);
+  const selectedModelRef = useRef<Mesh | null>(null);
   const loaderRef = useRef<STLLoader>();
   const initializedRef = useRef<boolean>(false);
-  const currentMeshRef = useRef<THREE.Mesh | null>(null);
+  const currentMeshRef = useRef<Mesh | null>(null);
   
   // Camera control refs
-  const orthoCameraRef = useRef<THREE.OrthographicCamera>();
-  const perspectiveCameraRef = useRef<THREE.PerspectiveCamera>();
+  const orthoCameraRef = useRef<OrthographicCamera>();
+  const perspectiveCameraRef = useRef<PerspectiveCamera>();
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
-  const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
-  const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
-  const [currentStroke, setCurrentStroke] = useState<THREE.Group | null>(null);
+  const [drawingPoints, setDrawingPoints] = useState<Vector3[]>([]);
+  const [annotations, setAnnotations] = useState<Group[]>([]);
+  const [currentStroke, setCurrentStroke] = useState<Group | null>(null);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -65,11 +89,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
   const zoomIn = useCallback(() => {
     if (cameraRef.current) {
-      if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+      if (isOrthographic && cameraRef.current instanceof OrthographicCamera) {
         cameraRef.current.zoom *= 1.2;
         cameraRef.current.updateProjectionMatrix();
       } else {
-        const direction = new THREE.Vector3();
+        const direction = new Vector3();
         cameraRef.current.getWorldDirection(direction);
         cameraRef.current.position.add(direction.multiplyScalar(5));
       }
@@ -78,11 +102,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
   const zoomOut = useCallback(() => {
     if (cameraRef.current) {
-      if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+      if (isOrthographic && cameraRef.current instanceof OrthographicCamera) {
         cameraRef.current.zoom /= 1.2;
         cameraRef.current.updateProjectionMatrix();
       } else {
-        const direction = new THREE.Vector3();
+        const direction = new Vector3();
         cameraRef.current.getWorldDirection(direction);
         cameraRef.current.position.add(direction.multiplyScalar(-5));
       }
@@ -92,20 +116,20 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const fitToScreen = useCallback(() => {
     if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
     
-    const box = new THREE.Box3();
+    const box = new Box3();
     const meshes = models.filter(m => m.mesh).map(m => m.mesh!);
     
     if (meshes.length === 0) return;
     
     meshes.forEach(mesh => box.expandByObject(mesh));
     
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new Vector3());
+    const size = box.getSize(new Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     
     controlsRef.current.target.copy(center);
     
-    if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+    if (isOrthographic && cameraRef.current instanceof OrthographicCamera) {
       cameraRef.current.zoom = 30 / maxDim;
       cameraRef.current.updateProjectionMatrix();
     } else {
@@ -158,11 +182,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     
     initializedRef.current = true;
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(viewportSettings.backgroundColor);
+    const scene = new Scene();
+    scene.background = new Color(viewportSettings.backgroundColor);
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(
+    const camera = new PerspectiveCamera(
       75,
       mountRef.current.clientWidth / mountRef.current.clientHeight,
       0.1,
@@ -173,16 +197,16 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     perspectiveCameraRef.current = camera;
 
     // Create orthographic camera
-    const orthoCamera = new THREE.OrthographicCamera(
+    const orthoCamera = new OrthographicCamera(
       -50, 50, 50, -50, 0.1, 1000
     );
     orthoCamera.position.set(0, 0, 50);
     orthoCameraRef.current = orthoCamera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new WebGLRenderer({ antialias: true });
     renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = PCFSoftShadowMap;
     rendererRef.current = renderer;
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -199,23 +223,23 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     transformControlsRef.current = transformControls;
 
     // Lighting setup
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    const ambientLight = new AmbientLight(0x404040, 0.6);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, viewportSettings.lightIntensity);
+    const directionalLight = new DirectionalLight(0xffffff, viewportSettings.lightIntensity);
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
 
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+    const directionalLight2 = new DirectionalLight(0xffffff, 0.3);
     directionalLight2.position.set(-50, -50, -50);
     scene.add(directionalLight2);
 
     // Grid
     if (viewportSettings.showGrid) {
-      const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x444444);
+      const gridHelper = new GridHelper(100, 50, 0x444444, 0x444444);
       scene.add(gridHelper);
     }
 
