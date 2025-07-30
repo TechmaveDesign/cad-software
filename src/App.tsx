@@ -12,6 +12,7 @@ function App() {
   const [models, setModels] = useState<STLModel[]>([]);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
+  const [isOrthographic, setIsOrthographic] = useState(false);
   const [drawingSettings, setDrawingSettings] = useState<DrawingSettings>({
     brushSize: 2.0,
     brushOpacity: 0.8,
@@ -90,6 +91,9 @@ function App() {
     // This will be handled by the Viewport3D component
   };
 
+  const handleToggleOrthographic = () => {
+    setIsOrthographic(!isOrthographic);
+  };
 
   return (
     <div className="h-screen flex flex-col bg-slate-900">
@@ -103,10 +107,13 @@ function App() {
         onResetView={() => {}}
         onZoomIn={() => {}}
         onZoomOut={() => {}}
+        onFitToScreen={() => {}}
         onViewTop={() => {}}
         onViewFront={() => {}}
         onViewRight={() => {}}
         onViewIsometric={() => {}}
+        onToggleOrthographic={handleToggleOrthographic}
+        isOrthographic={isOrthographic}
       />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
@@ -125,12 +132,13 @@ function App() {
         />
       </div>
       
+      <ToothLibrary
         isOpen={isToothLibraryOpen}
         onClose={() => setIsToothLibraryOpen(false)}
         onToothSelect={handleToothSelect}
       />
+    </div>
+  );
 }
 
 export default App;
-  )
-}

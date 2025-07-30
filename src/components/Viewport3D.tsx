@@ -13,6 +13,7 @@ interface Viewport3DProps {
   onModelsChange: (models: STLModel[]) => void;
   activeTool: string | null;
   drawingSettings: DrawingSettings;
+  isOrthographic: boolean;
 }
 
 const Viewport3D: React.FC<Viewport3DProps> = ({ 
@@ -20,6 +21,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   onModelsChange, 
   activeTool, 
   drawingSettings,
+  isOrthographic
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
@@ -32,7 +34,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const initializedRef = useRef<boolean>(false);
   
   // Camera control refs
-  const [cameraMode, setCameraMode] = useState<'normal' | 'scale' | 'rotate'>('normal');
+  const orthoCameraRef = useRef<THREE.OrthographicCamera>();
+  const perspectiveCameraRef = useRef<THREE.PerspectiveCamera>();
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -59,29 +62,29 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
   const zoomIn = useCallback(() => {
     if (cameraRef.current) {
-      const direction = new THREE.Vector3();
-      cameraRef.current.getWorldDirection(direction);
-      cameraRef.current.position.add(direction.multiplyScalar(5));
+      if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+        cameraRef.current.zoom *= 1.2;
+        cameraRef.current.updateProjectionMatrix();
+      } else {
+        const direction = new THREE.Vector3();
+        cameraRef.current.getWorldDirection(direction);
+        cameraRef.current.position.add(direction.multiplyScalar(5));
+      }
     }
-  }, []);
+  }, [isOrthographic]);
 
   const zoomOut = useCallback(() => {
     if (cameraRef.current) {
-      const direction = new THREE.Vector3();
-      cameraRef.current.getWorldDirection(direction);
-      cameraRef.current.position.add(direction.multiplyScalar(-5));
+      if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+        cameraRef.current.zoom /= 1.2;
+        cameraRef.current.updateProjectionMatrix();
+      } else {
+        const direction = new THREE.Vector3();
+        cameraRef.current.getWorldDirection(direction);
+        cameraRef.current.position.add(direction.multiplyScalar(-5));
+      }
     }
-  }, []);
-
-  const scaleMode = useCallback(() => {
-    setCameraMode(prev => prev === 'scale' ? 'normal' : 'scale');
-    console.log('Scale mode toggled');
-  }, []);
-
-  const rotateMode = useCallback(() => {
-    setCameraMode(prev => prev === 'rotate' ? 'normal' : 'rotate');
-    console.log('Rotate mode toggled');
-  }, []);
+  }, [isOrthographic]);
 
   const fitToScreen = useCallback(() => {
     if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
@@ -99,12 +102,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     
     controlsRef.current.target.copy(center);
     
-    const distance = maxDim * 2;
-    cameraRef.current.position.copy(center);
-    cameraRef.current.position.z += distance;
+    if (isOrthographic && cameraRef.current instanceof THREE.OrthographicCamera) {
+      cameraRef.current.zoom = 30 / maxDim;
+      cameraRef.current.updateProjectionMatrix();
+    } else {
+      const distance = maxDim * 2;
+      cameraRef.current.position.copy(center);
+      cameraRef.current.position.z += distance;
+    }
     
     controlsRef.current.update();
-  }, [models]);
+  }, [models, isOrthographic]);
 
   const viewTop = useCallback(() => {
     if (cameraRef.current && controlsRef.current) {
@@ -159,7 +167,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     );
     camera.position.set(0, 0, 50);
     cameraRef.current = camera;
+    perspectiveCameraRef.current = camera;
 
+    // Create orthographic camera
+    const orthoCamera = new THREE.OrthographicCamera(
+      -50, 50, 50, -50, 0.1, 1000
+    );
+    orthoCamera.position.set(0, 0, 50);
+    orthoCameraRef.current = orthoCamera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
@@ -349,6 +364,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         case 'camera-zoom-out':
           zoomOut();
           break;
+        case 'camera-fit-screen':
+          fitToScreen();
+          break;
         case 'camera-view-top':
           viewTop();
           break;
@@ -361,24 +379,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         case 'camera-view-iso':
           viewIsometric();
           break;
-        case 'camera-scale-mode':
-          scaleMode();
-          break;
-        case 'camera-rotate-mode':
-          rotateMode();
-          break;
       }
     };
 
     window.addEventListener('camera-reset', handleCameraEvents);
     window.addEventListener('camera-zoom-in', handleCameraEvents);
     window.addEventListener('camera-zoom-out', handleCameraEvents);
+    window.addEventListener('camera-fit-screen', handleCameraEvents);
     window.addEventListener('camera-view-top', handleCameraEvents);
     window.addEventListener('camera-view-front', handleCameraEvents);
     window.addEventListener('camera-view-right', handleCameraEvents);
     window.addEventListener('camera-view-iso', handleCameraEvents);
-    window.addEventListener('camera-scale-mode', handleCameraEvents);
-    window.addEventListener('camera-rotate-mode', handleCameraEvents);
 
     return () => {
       initializedRef.current = false;
@@ -386,12 +397,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       window.removeEventListener('camera-reset', handleCameraEvents);
       window.removeEventListener('camera-zoom-in', handleCameraEvents);
       window.removeEventListener('camera-zoom-out', handleCameraEvents);
+      window.removeEventListener('camera-fit-screen', handleCameraEvents);
       window.removeEventListener('camera-view-top', handleCameraEvents);
       window.removeEventListener('camera-view-front', handleCameraEvents);
       window.removeEventListener('camera-view-right', handleCameraEvents);
       window.removeEventListener('camera-view-iso', handleCameraEvents);
-      window.removeEventListener('camera-scale-mode', handleCameraEvents);
-      window.removeEventListener('camera-rotate-mode', handleCameraEvents);
       
       if (renderer.domElement) {
         renderer.domElement.removeEventListener('mousedown', handleMouseDown);
@@ -423,29 +433,41 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     };
   }, []);
   
-  // Handle camera mode changes
+  // Handle camera switching
   useEffect(() => {
-    if (!controlsRef.current) return;
+    if (!perspectiveCameraRef.current || !orthoCameraRef.current || !controlsRef.current || !rendererRef.current) return;
     
-    // Adjust camera controls based on mode
-    switch (cameraMode) {
-      case 'scale':
-        controlsRef.current.enableRotate = false;
-        controlsRef.current.enablePan = false;
-        controlsRef.current.enableZoom = true;
-        break;
-      case 'rotate':
-        controlsRef.current.enableRotate = true;
-        controlsRef.current.enablePan = false;
-        controlsRef.current.enableZoom = false;
-        break;
-      default:
-        controlsRef.current.enableRotate = true;
-        controlsRef.current.enablePan = true;
-        controlsRef.current.enableZoom = true;
-        break;
+    const newCamera = isOrthographic ? orthoCameraRef.current : perspectiveCameraRef.current;
+    
+    // Copy position and rotation from current camera to new camera
+    if (cameraRef.current) {
+      newCamera.position.copy(cameraRef.current.position);
+      newCamera.rotation.copy(cameraRef.current.rotation);
+      
+      // Update aspect ratio for new camera
+      if (rendererRef.current) {
+        const aspect = rendererRef.current.domElement.clientWidth / rendererRef.current.domElement.clientHeight;
+        if (newCamera instanceof THREE.PerspectiveCamera) {
+          newCamera.aspect = aspect;
+        } else if (newCamera instanceof THREE.OrthographicCamera) {
+          const frustumSize = 100;
+          newCamera.left = -frustumSize * aspect / 2;
+          newCamera.right = frustumSize * aspect / 2;
+          newCamera.top = frustumSize / 2;
+          newCamera.bottom = -frustumSize / 2;
+        }
+        newCamera.updateProjectionMatrix();
+      }
     }
-  }, [cameraMode]);
+    
+    cameraRef.current = newCamera;
+    controlsRef.current.object = newCamera;
+    
+    // Update transform controls camera
+    if (transformControlsRef.current) {
+      transformControlsRef.current.camera = newCamera;
+    }
+  }, [isOrthographic]);
   
   // Update viewport settings
   useEffect(() => {
@@ -878,9 +900,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             `Drawing Tool: ${activeTool}` : 
             activeTool ? `Tool: ${activeTool}` : 'No tool selected'
           }
-          {cameraMode !== 'normal' && (
-            <span className="ml-4 text-blue-400">Camera Mode: {cameraMode}</span>
-          )}
           {selectedModelRef.current && ['translate', 'rotate', 'scale'].includes(activeTool || '') && (
             <span className="ml-4 text-blue-400">Model Selected</span>
           )}
@@ -923,13 +942,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
-          <span>Camera Mode: {cameraMode}</span>
           {activeTool && (
             <span>Tool: {activeTool}</span>
           )}
         </div>
         <div className="flex items-center space-x-4">
-          <span>Camera: {cameraMode === 'normal' ? 'Free' : cameraMode}</span>
+          <span>Camera: Perspective</span>
           <span>Renderer: WebGL</span>
         </div>
       </div>
