@@ -128,6 +128,18 @@ function App() {
           onModelColorChange={handleModelColorChange}
           activeTool={activeTool}
           onToolSelect={handleToolSelect}
+          onModelsAdd={(files) => {
+            console.log('Adding models from sidebar:', files.length);
+            const newModels: STLModel[] = files.map((file, index) => ({
+              id: `model-${Date.now()}-${index}`,
+              name: file.name,
+              type: models.length % 2 === 0 ? 'upper' : 'lower',
+              visible: true,
+              color: models.length % 2 === 0 ? '#3b82f6' : '#10b981',
+              file
+            }));
+            setModels(prevModels => [...prevModels, ...newModels]);
+          }}
         />
         <Viewport3D
           models={models}

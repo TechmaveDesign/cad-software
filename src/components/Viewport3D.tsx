@@ -857,43 +857,62 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         console.log('Loading new model:', model.name);
         const reader = new FileReader();
         reader.onload = (event) => {
-          console.log('File loaded, parsing STL...');
-          const geometry = loaderRef.current!.parse(event.target!.result as ArrayBuffer);
-          
-          // Center and scale the geometry
-          geometry.computeBoundingBox();
-          const center = new THREE.Vector3();
-          geometry.boundingBox!.getCenter(center);
-          geometry.translate(-center.x, -center.y, -center.z);
-          
-          const size = new THREE.Vector3();
-          geometry.boundingBox!.getSize(size);
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 30 / maxDim;
-          geometry.scale(scale, scale, scale);
+          try {
+            console.log('File loaded, parsing STL...');
+            const arrayBuffer = event.target!.result as ArrayBuffer;
+            console.log('ArrayBuffer size:', arrayBuffer.byteLength);
+            
+            const geometry = loaderRef.current!.parse(arrayBuffer);
+            console.log('STL parsed successfully, vertices:', geometry.attributes.position.count);
+            
+            // Center and scale the geometry
+            geometry.computeBoundingBox();
+            const center = new THREE.Vector3();
+            geometry.boundingBox!.getCenter(center);
+            geometry.translate(-center.x, -center.y, -center.z);
+            
+            const size = new THREE.Vector3();
+            geometry.boundingBox!.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 30 / maxDim;
+            geometry.scale(scale, scale, scale);
+            console.log('Geometry processed - size:', size, 'scale:', scale);
 
-          const material = new THREE.MeshStandardMaterial({
-            color: model.color,
-            metalness: 0.1,
-            roughness: 0.3,
-            wireframe: viewportSettings.wireframe
-          });
+            const material = new THREE.MeshStandardMaterial({
+              color: model.color,
+              metalness: 0.1,
+              roughness: 0.3,
+              wireframe: viewportSettings.wireframe
+            });
 
-          const mesh = new THREE.Mesh(geometry, material);
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-          mesh.visible = model.visible;
-          mesh.position.x = model.type === 'upper' ? 0 : 20;
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.visible = model.visible;
+            mesh.position.x = model.type === 'upper' ? 0 : 20;
+            mesh.userData.modelId = model.id; // Add reference for debugging
 
-          console.log('Adding mesh to scene:', mesh.uuid);
-          sceneRef.current!.add(mesh);
+            console.log('Adding mesh to scene:', mesh.uuid, 'at position:', mesh.position);
+            sceneRef.current!.add(mesh);
 
-          // Update model with mesh reference
-          const updatedModels = models.map(m => 
-            m.id === model.id ? { ...m, mesh } : m
-          );
-          console.log('Updating models with mesh reference');
-          onModelsChange(updatedModels);
+            // Update model with mesh reference
+            const updatedModels = models.map(m => 
+              m.id === model.id ? { ...m, mesh } : m
+            );
+            console.log('Updating models with mesh reference for model:', model.id);
+            onModelsChange(updatedModels);
+            
+            // Force a render to ensure the model appears
+            if (rendererRef.current && cameraRef.current) {
+              rendererRef.current.render(sceneRef.current!, cameraRef.current);
+            }
+          } catch (error) {
+            console.error('Error loading STL file:', error);
+            console.error('Model that failed:', model.name);
+          }
+        };
+        reader.onerror = (error) => {
+          console.error('FileReader error:', error);
         };
         console.log('Reading file as ArrayBuffer...');
         reader.readAsArrayBuffer(model.file);
