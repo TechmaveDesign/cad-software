@@ -1,21 +1,4 @@
 import * as THREE from 'three';
-import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
-
-// Extend THREE.BufferGeometry to include BVH methods
-declare module 'three' {
-  interface BufferGeometry {
-    computeBoundsTree: typeof computeBoundsTree;
-    disposeBoundsTree: typeof disposeBoundsTree;
-  }
-  interface Mesh {
-    raycast: typeof acceleratedRaycast;
-  }
-}
-
-// Add BVH methods to THREE.js prototypes
-THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
-THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
-THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 export interface CutLine {
   points: THREE.Vector3[];
@@ -32,9 +15,10 @@ export class CuttingSystem {
 
   public prepareMeshForCutting(mesh: THREE.Mesh): void {
     if (mesh.geometry instanceof THREE.BufferGeometry) {
-      // Compute BVH for fast intersection testing
-      mesh.geometry.computeBoundsTree();
-      console.log('Mesh prepared for cutting with BVH acceleration');
+      // Prepare mesh for cutting operations
+      mesh.geometry.computeBoundingBox();
+      mesh.geometry.computeBoundingSphere();
+      console.log('Mesh prepared for cutting operations');
     }
   }
 

@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { MeshLine, MeshLineMaterial } from 'meshline';
 
 export interface DrawingPoint {
   position: THREE.Vector3;
@@ -221,20 +220,17 @@ export class DrawingSystem {
   private createBrushStroke(stroke: DrawingStroke, points: THREE.Vector3[]): void {
     if (points.length < 2) return;
 
-    // Create smooth brush stroke using MeshLine
-    const line = new MeshLine();
-    line.setPoints(points);
-
-    const material = new MeshLineMaterial({
+    // Create brush stroke using BufferGeometry for compatibility
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({
       color: new THREE.Color(stroke.settings.brushColor),
-      opacity: stroke.settings.brushOpacity,
       transparent: true,
-      lineWidth: stroke.settings.brushSize,
-      sizeAttenuation: false,
+      opacity: stroke.settings.brushOpacity,
+      linewidth: stroke.settings.brushSize,
       depthTest: false
     });
 
-    const mesh = new THREE.Mesh(line, material);
+    const mesh = new THREE.Line(geometry, material);
     mesh.userData.strokeId = stroke.id;
     mesh.userData.strokeType = 'brush';
     
@@ -248,7 +244,7 @@ export class DrawingSystem {
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const material = new THREE.LineBasicMaterial({
       color: new THREE.Color(stroke.settings.pencilColor),
-      linewidth: stroke.settings.pencilSize,
+      linewidth: stroke.settings.pencilSize || 1,
       transparent: true,
       depthTest: false
     });

@@ -290,6 +290,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // Initialize drawing and cutting systems
     drawingSystemRef.current = new DrawingSystem(scene, camera);
     cuttingSystemRef.current = new CuttingSystem(scene);
+    
+    console.log('Drawing and cutting systems initialized');
 
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
@@ -688,6 +690,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             // Prepare mesh for cutting operations
             if (cuttingSystemRef.current) {
               cuttingSystemRef.current.prepareMeshForCutting(mesh);
+            } else {
+              console.warn('Cutting system not initialized');
             }
 
             // Update model with mesh reference
