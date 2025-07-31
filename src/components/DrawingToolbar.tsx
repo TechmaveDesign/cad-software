@@ -35,13 +35,13 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   const [showSettings, setShowSettings] = useState(false);
 
   const drawingTools = [
-    { id: 'move', name: 'Move', icon: Move3D, description: 'Move and rotate camera' },
-    { id: 'brush', name: 'Brush', icon: Brush, description: 'Paint on model surface' },
-    { id: 'pencil', name: 'Pencil', icon: Pencil, description: 'Draw thin lines' },
-    { id: 'polyline', name: 'Polyline', icon: Polygon, description: 'Connected line segments' },
-    { id: 'bezier', name: 'Bezier', icon: Spline, description: 'Smooth curves' },
-    { id: 'mask-brush', name: 'Mask', icon: Palette, description: 'Create mask areas' },
-    { id: 'eraser', name: 'Eraser', icon: Eraser, description: 'Remove drawings' }
+    { id: 'move', name: 'Move', icon: Move3D, description: 'Move and rotate camera', cursor: 'grab' },
+    { id: 'brush', name: 'Brush', icon: Brush, description: 'Paint on model surface', cursor: 'crosshair' },
+    { id: 'pencil', name: 'Pencil', icon: Pencil, description: 'Draw thin lines', cursor: 'crosshair' },
+    { id: 'polyline', name: 'Polyline', icon: Polygon, description: 'Connected line segments', cursor: 'crosshair' },
+    { id: 'bezier', name: 'Bezier', icon: Spline, description: 'Smooth curves', cursor: 'crosshair' },
+    { id: 'mask-brush', name: 'Mask', icon: Palette, description: 'Create mask areas', cursor: 'crosshair' },
+    { id: 'eraser', name: 'Eraser', icon: Eraser, description: 'Remove drawings', cursor: 'crosshair' }
   ];
 
   const handleSettingChange = (key: keyof DrawingSettings, value: number | string) => {
@@ -153,7 +153,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                 <label className="block text-slate-300 text-sm mb-1">Size (mm)</label>
                 <input
                   type="range"
-                  min="0.5"
+                  min="0.1"
                   max="5"
                   step="0.1"
                   value={settings.pencilSize}

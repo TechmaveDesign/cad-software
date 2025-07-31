@@ -7,8 +7,9 @@ import { STLModel, ViewportSettings } from '../types';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Grid3X3, Lightbulb, Palette } from 'lucide-react';
 import { DrawingSettings } from './DrawingToolbar';
-import { DrawingSystem } from '../utils/DrawingSystem';
-import { CuttingSystem } from '../utils/CuttingSystem';
+import { useDrawing } from '../hooks/useDrawing';
+import CustomCursor from './CustomCursor';
+import PencilRenderer from './PencilRenderer';
 
 interface Viewport3DProps {
   models: STLModel[];
@@ -34,19 +35,28 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const selectedModelRef = useRef<THREE.Mesh | null>(null);
   const loaderRef = useRef<STLLoader>();
   const initializedRef = useRef<boolean>(false);
-  const drawingSystemRef = useRef<DrawingSystem | null>(null);
-  const cuttingSystemRef = useRef<CuttingSystem | null>(null);
+  const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
+  const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
   
   // Camera control refs
   const orthoCameraRef = useRef<THREE.OrthographicCamera>();
   const perspectiveCameraRef = useRef<THREE.PerspectiveCamera>();
   
-  // Drawing state
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
-  const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
-  const [currentStroke, setCurrentStroke] = useState<THREE.Group | null>(null);
-  const [cutLine, setCutLine] = useState<THREE.Vector3[]>([]);
+  // Custom drawing hook
+  const {
+    isDrawing,
+    strokes,
+    currentStroke,
+    startDrawing,
+    addPoint,
+    finishDrawing,
+    clearStrokes,
+    undoLastStroke
+  } = useDrawing();
+  
+  // Cursor state
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [cursorVisible, setCursorVisible] = useState(false);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -287,93 +297,107 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // STL Loader
     loaderRef.current = new STLLoader();
 
-    // Initialize drawing and cutting systems
-    drawingSystemRef.current = new DrawingSystem(scene, camera);
-    cuttingSystemRef.current = new CuttingSystem(scene);
-    
-    console.log('Drawing and cutting systems initialized');
+    console.log('Three.js scene initialized');
 
-    // Mouse event handlers for drawing tools
+    // Custom mouse event handlers
     const handleMouseDown = (event: MouseEvent) => {
-      console.log('Viewport3D: Mouse down event, active tool:', activeTool);
-      console.log('Viewport3D: Mouse button:', event.button, 'at position:', event.clientX, event.clientY);
+      if (event.button !== 0) return; // Only left mouse button
       
-      if (!activeTool || !drawingSystemRef.current) return;
+      console.log('Mouse down - Active tool:', activeTool);
       
       const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
       if (!drawingTools.includes(activeTool)) return;
       
-      console.log('Viewport3D: Drawing tool detected:', activeTool);
-      
       event.preventDefault();
       event.stopPropagation();
       
-      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      console.log('Viewport3D: Available meshes for drawing:', meshes.length);
-      
-      if (meshes.length === 0) {
-        console.log('Viewport3D: No visible meshes available for drawing');
-        return;
-      }
-      
-      const toolType = activeTool === 'mask-brush' ? 'mask' : activeTool;
-      
-      const started = drawingSystemRef.current.startDrawing(
-        event, 
-        renderer.domElement, 
-        meshes, 
-        toolType, 
-        drawingSettings
-      );
-      
-      console.log('Viewport3D: Drawing started:', started);
-      
-      if (started) {
-        setIsDrawing(true);
+      const drawingPoint = getDrawingPoint(event);
+      if (drawingPoint) {
+        const color = activeTool === 'pencil' ? drawingSettings.pencilColor : 
+                     activeTool === 'brush' ? drawingSettings.brushColor : '#00ff00';
+        const size = activeTool === 'pencil' ? drawingSettings.pencilSize : 
+                    activeTool === 'brush' ? drawingSettings.brushSize : 1.0;
+        
+        startDrawing(drawingPoint, activeTool, color, size);
         controls.enabled = false; // Disable camera controls while drawing
-        console.log('Viewport3D: Drawing started successfully, camera controls disabled');
+        console.log('Started drawing with tool:', activeTool);
       }
     };
     
     const handleMouseMove = (event: MouseEvent) => {
-      if (!drawingSystemRef.current) return;
+      // Update cursor position
+      setCursorPosition({ x: event.clientX, y: event.clientY });
       
-      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
       const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
+      const isDrawingTool = activeTool && drawingTools.includes(activeTool);
       
-      if (activeTool && drawingTools.includes(activeTool)) {
-        const toolType = activeTool === 'mask-brush' ? 'mask' : activeTool;
-        const brushSize = toolType === 'brush' ? drawingSettings.brushSize : 
-                         toolType === 'pencil' ? drawingSettings.pencilSize : 
-                         drawingSettings.lineWidth;
-        
-        drawingSystemRef.current.updateCursor(event, renderer.domElement, meshes, toolType, brushSize);
+      // Show/hide cursor based on tool and model intersection
+      if (isDrawingTool) {
+        const hasIntersection = checkModelIntersection(event);
+        setCursorVisible(hasIntersection);
+      } else {
+        setCursorVisible(false);
       }
       
-      if (isDrawing && drawingSystemRef.current) {
-        drawingSystemRef.current.continueDrawing(event, renderer.domElement, meshes);
+      // Continue drawing if active
+      if (isDrawing && activeTool) {
+        const drawingPoint = getDrawingPoint(event);
+        if (drawingPoint) {
+          addPoint(drawingPoint);
+        }
       }
     };
     
     const handleMouseUp = () => {
-      if (isDrawing && drawingSystemRef.current) {
-        console.log('Viewport3D: Mouse up - finishing drawing');
-        setIsDrawing(false);
-        drawingSystemRef.current.finishDrawing();
+      if (isDrawing) {
+        finishDrawing();
         controls.enabled = true; // Re-enable camera controls
-        console.log('Viewport3D: Drawing completed, camera controls re-enabled');
+        console.log('Finished drawing');
       }
     };
     
-    // Model selection handler
+    const getDrawingPoint = (event: MouseEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouseRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseRef.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      raycasterRef.current.setFromCamera(mouseRef.current, camera);
+      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+      const intersects = raycasterRef.current.intersectObjects(meshes);
+      
+      if (intersects.length > 0) {
+        const intersect = intersects[0];
+        return {
+          x: event.clientX,
+          y: event.clientY,
+          worldPosition: intersect.point.clone(),
+          timestamp: Date.now()
+        };
+      }
+      
+      return null;
+    };
+    
+    const checkModelIntersection = (event: MouseEvent): boolean => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouseRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseRef.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      raycasterRef.current.setFromCamera(mouseRef.current, camera);
+      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+      const intersects = raycasterRef.current.intersectObjects(meshes);
+      
+      return intersects.length > 0;
+    };
+    
+    // Model selection handler (for transform tools)
     const handleModelClick = (event: MouseEvent) => {
-      if (activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) {
-        // Don't handle model selection when drawing tools are active
+      const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
+      if (activeTool && drawingTools.includes(activeTool)) {
         return;
       }
       
       if (!['translate', 'rotate', 'scale'].includes(activeTool || '')) {
-        // Clear transform controls if no transform tool is active
         if (transformControlsRef.current) {
           transformControlsRef.current.detach();
           selectedModelRef.current = null;
@@ -404,7 +428,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         if (transformControlsRef.current) {
           transformControlsRef.current.attach(selectedMesh);
           
-          // Set transform mode based on active tool
           if (activeTool === 'translate') {
             transformControlsRef.current.setMode('translate');
           } else if (activeTool === 'rotate') {
@@ -505,12 +528,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       }
       
       // Cleanup drawing and cutting systems
-      if (drawingSystemRef.current) {
-        drawingSystemRef.current.dispose();
-      }
-      if (cuttingSystemRef.current) {
-        cuttingSystemRef.current.dispose();
-      }
       
       // Proper cleanup of Three.js resources
       scene.traverse((object) => {
@@ -614,24 +631,13 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   useEffect(() => {
     if (!controlsRef.current || !transformControlsRef.current) return;
     
-    // Disable camera controls when drawing tools are active (but not during actual drawing)
+    // Handle camera controls based on active tool
     const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
     const isDrawingTool = activeTool && drawingTools.includes(activeTool);
-    controlsRef.current.enabled = !isDrawingTool;
     
-    // Hide/show drawing cursor
-    if (drawingSystemRef.current) {
-      if (isDrawingTool) {
-        // Cursor will be shown on mouse move
-      } else {
-        drawingSystemRef.current.hideCursor();
-      }
-    }
-    
-    // Handle cut tool
-    if (activeTool === 'cut' && cuttingSystemRef.current) {
-      // Cut tool is active - user can draw cut line
-      console.log('Cut tool activated - draw a line to cut the model');
+    // Only disable camera controls when actually drawing
+    if (!isDrawing) {
+      controlsRef.current.enabled = !isDrawingTool;
     }
     
     if (!transformControlsRef.current) return;
@@ -705,11 +711,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             sceneRef.current!.add(mesh);
             
             // Prepare mesh for cutting operations
-            if (cuttingSystemRef.current) {
-              cuttingSystemRef.current.prepareMeshForCutting(mesh);
-            } else {
-              console.warn('Cutting system not initialized');
-            }
 
             // Update model with mesh reference
             const updatedModels = models.map(m => 
@@ -773,22 +774,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   };
 
   const clearAnnotations = () => {
-    if (!drawingSystemRef.current) return;
-    
-    drawingSystemRef.current.clearAllStrokes();
+    clearStrokes();
     console.log('Cleared all annotations');
   };
   
   const undoLastAction = () => {
-    if (drawingSystemRef.current) {
-      drawingSystemRef.current.undo();
-    }
+    undoLastStroke();
   };
   
   const redoLastAction = () => {
-    if (drawingSystemRef.current) {
-      drawingSystemRef.current.redo();
-    }
+    // TODO: Implement redo functionality
+    console.log('Redo not implemented yet');
   };
 
   return (
@@ -833,7 +829,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
               className="w-20"
             />
           </div>
-          {annotations.length > 0 && (
+          {strokes.length > 0 && (
             <button
               onClick={clearAnnotations}
               className="px-3 py-1 rounded text-xs bg-red-600 text-white hover:bg-red-700 transition-colors duration-200"
@@ -868,8 +864,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           {selectedModelRef.current && ['translate', 'rotate', 'scale'].includes(activeTool || '') && (
             <span className="ml-4 text-blue-400">Model Selected</span>
           )}
-          {drawingSystemRef.current && drawingSystemRef.current.getStrokeCount() > 0 && (
-            <span className="ml-4 text-green-400">Drawings: {drawingSystemRef.current.getStrokeCount()}</span>
+          {strokes.length > 0 && (
+            <span className="ml-4 text-green-400">Drawings: {strokes.length}</span>
           )}
           {isDrawing && (
             <span className="ml-4 text-yellow-400">Drawing...</span>
@@ -902,13 +898,33 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         )}
       </div>
 
+      {/* Custom Cursor */}
+      <CustomCursor
+        tool={activeTool}
+        size={activeTool === 'pencil' ? drawingSettings.pencilSize : 
+              activeTool === 'brush' ? drawingSettings.brushSize : 1.0}
+        color={activeTool === 'pencil' ? drawingSettings.pencilColor : 
+               activeTool === 'brush' ? drawingSettings.brushColor : '#00ff00'}
+        position={cursorPosition}
+        visible={cursorVisible}
+      />
+
+      {/* Pencil Renderer */}
+      {sceneRef.current && (
+        <PencilRenderer
+          strokes={strokes}
+          currentStroke={currentStroke}
+          scene={sceneRef.current}
+        />
+      )}
+
       {/* Status Bar */}
       <div className="bg-slate-800 border-t border-slate-700 px-4 py-2 flex items-center justify-between text-xs text-slate-400">
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
-          {drawingSystemRef.current && (
-            <span>Strokes: {drawingSystemRef.current.getStrokeCount()}</span>
+          {strokes.length > 0 && (
+            <span>Strokes: {strokes.length}</span>
           )}
           {activeTool && (
             <span>Tool: {activeTool}</span>
