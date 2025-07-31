@@ -4,7 +4,6 @@ export interface DrawingPoint {
   position: THREE.Vector3;
   normal: THREE.Vector3;
   uv: THREE.Vector2;
-  face: THREE.Face3 | null;
   timestamp: number;
 }
 
@@ -42,27 +41,28 @@ export class DrawingSystem {
     this.scene.add(this.drawingGroup);
     
     this.createCursor();
+    console.log('DrawingSystem: Custom drawing system initialized');
   }
 
   private createCursor(): void {
     const geometry = new THREE.RingGeometry(0.5, 1, 16);
     const material = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
+      color: 0x00ff00,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.7,
       side: THREE.DoubleSide,
       depthTest: false
     });
     
     this.cursorMesh = new THREE.Mesh(geometry, material);
     this.cursorMesh.visible = false;
+    this.cursorMesh.renderOrder = 1000;
     this.scene.add(this.cursorMesh);
+    console.log('DrawingSystem: Cursor created');
   }
 
   public updateCursor(event: MouseEvent, canvas: HTMLElement, models: THREE.Mesh[], toolType: string, brushSize: number): void {
     if (!this.cursorMesh) return;
-
-    console.log('DrawingSystem: Updating cursor for tool:', toolType);
 
     const rect = canvas.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -71,21 +71,22 @@ export class DrawingSystem {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(models);
 
-    console.log('DrawingSystem: Cursor intersections:', intersects.length);
-
     if (intersects.length > 0) {
       const intersect = intersects[0];
-      console.log('DrawingSystem: Cursor position:', intersect.point);
       
       this.cursorMesh.position.copy(intersect.point);
-      this.cursorMesh.lookAt(intersect.point.clone().add(intersect.face?.normal || new THREE.Vector3(0, 0, 1)));
       
-      // Update cursor size based on tool
-      const scale = toolType === 'brush' ? brushSize * 0.5 : brushSize * 0.2;
+      // Orient cursor to surface normal
+      if (intersect.face && intersect.face.normal) {
+        const normal = intersect.face.normal.clone();
+        normal.transformDirection(intersect.object.matrixWorld);
+        this.cursorMesh.lookAt(intersect.point.clone().add(normal));
+      }
+      
+      // Update cursor size and color based on tool
+      const scale = toolType === 'brush' ? brushSize * 0.3 : brushSize * 0.2;
       this.cursorMesh.scale.setScalar(scale);
       this.cursorMesh.visible = true;
-      
-      console.log('DrawingSystem: Cursor visible at scale:', scale);
 
       // Update cursor color based on tool
       const material = this.cursorMesh.material as THREE.MeshBasicMaterial;
@@ -104,35 +105,41 @@ export class DrawingSystem {
       }
     } else {
       this.cursorMesh.visible = false;
-      console.log('DrawingSystem: Cursor hidden - no intersections');
     }
   }
 
   public startDrawing(event: MouseEvent, canvas: HTMLElement, models: THREE.Mesh[], toolType: string, settings: any): boolean {
-    console.log('DrawingSystem: Starting drawing with tool:', toolType);
-    console.log('DrawingSystem: Available models:', models.length);
+    console.log('DrawingSystem: Starting custom drawing with tool:', toolType);
+    console.log('DrawingSystem: Available models for drawing:', models.length);
     
     const rect = canvas.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    console.log('DrawingSystem: Mouse coordinates:', this.mouse.x, this.mouse.y);
+    console.log('DrawingSystem: Mouse coordinates:', this.mouse.x.toFixed(3), this.mouse.y.toFixed(3));
     
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(models);
 
     console.log('DrawingSystem: Intersections found:', intersects.length);
     
-    if (intersects.length === 0) return false;
+    if (intersects.length === 0) {
+      console.log('DrawingSystem: No intersections - cannot start drawing');
+      return false;
+    }
 
     const intersect = intersects[0];
     console.log('DrawingSystem: Intersection point:', intersect.point);
     
+    // Transform intersection point to world coordinates
+    const worldPoint = intersect.point.clone();
+    const worldNormal = intersect.face?.normal?.clone() || new THREE.Vector3(0, 0, 1);
+    worldNormal.transformDirection(intersect.object.matrixWorld);
+    
     const drawingPoint: DrawingPoint = {
-      position: intersect.point.clone(),
-      normal: intersect.face?.normal?.clone() || new THREE.Vector3(0, 0, 1),
+      position: worldPoint,
+      normal: worldNormal,
       uv: intersect.uv || new THREE.Vector2(),
-      face: intersect.face || null,
       timestamp: Date.now()
     };
 
@@ -145,80 +152,55 @@ export class DrawingSystem {
     };
 
     this.isDrawing = true;
-    console.log('DrawingSystem: Created stroke:', this.currentStroke.id, 'with type:', toolType);
+    console.log('DrawingSystem: Created stroke:', this.currentStroke.id);
 
-    // Handle different tool types
-    switch (toolType) {
-      case 'brush':
-      case 'pencil':
-        this.createContinuousStroke(this.currentStroke);
-        break;
-      case 'polyline':
-        this.addPolylinePoint(drawingPoint);
-        break;
-      case 'bezier':
-        this.addBezierPoint(drawingPoint);
-        break;
-      case 'mask':
-        this.startMaskArea(drawingPoint, settings);
-        break;
-      case 'eraser':
-        this.eraseAtPoint(drawingPoint, settings);
-        break;
-      default:
-        console.warn('DrawingSystem: Unknown tool type:', toolType);
-        break;
+    // Start drawing based on tool type
+    if (toolType === 'pencil') {
+      this.createCustomPencilStroke(this.currentStroke);
     }
 
-    console.log(`DrawingSystem: Started drawing with ${toolType} at:`, drawingPoint.position);
     return true;
   }
 
   public continueDrawing(event: MouseEvent, canvas: HTMLElement, models: THREE.Mesh[]): void {
     if (!this.isDrawing || !this.currentStroke) return;
 
-    console.log('DrawingSystem: Continuing drawing...');
-
     const rect = canvas.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    console.log('DrawingSystem: Mouse coords:', this.mouse.x.toFixed(3), this.mouse.y.toFixed(3));
-
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(models);
-
-    console.log('DrawingSystem: Continue intersections:', intersects.length);
     
-    if (intersects.length === 0) {
-      console.log('DrawingSystem: No intersections during continue');
-      return;
-    }
+    if (intersects.length === 0) return;
 
     const intersect = intersects[0];
-    console.log('DrawingSystem: Continue intersection point:', intersect.point);
+    
+    // Transform intersection point to world coordinates
+    const worldPoint = intersect.point.clone();
+    const worldNormal = intersect.face?.normal?.clone() || new THREE.Vector3(0, 0, 1);
+    worldNormal.transformDirection(intersect.object.matrixWorld);
     
     const drawingPoint: DrawingPoint = {
-      position: intersect.point.clone(),
-      normal: intersect.face?.normal?.clone() || new THREE.Vector3(0, 0, 1),
+      position: worldPoint,
+      normal: worldNormal,
       uv: intersect.uv || new THREE.Vector2(),
-      face: intersect.face || null,
       timestamp: Date.now()
     };
 
-    // Only add point if it's far enough from the last point (smoothing)
+    // Check distance from last point for smoothing
     const lastPoint = this.currentStroke.points[this.currentStroke.points.length - 1];
     const distance = drawingPoint.position.distanceTo(lastPoint.position);
-    const minDistance = this.currentStroke.type === 'brush' ? 0.5 : 0.05; // Very small distance for pencil
-    
-    console.log('DrawingSystem: Distance from last point:', distance.toFixed(3), 'min required:', minDistance);
+    const minDistance = 0.1; // Very small for smooth lines
 
     if (distance > minDistance) {
       this.currentStroke.points.push(drawingPoint);
-      this.updateContinuousStroke(this.currentStroke);
-      console.log('DrawingSystem: Added point to stroke, total points:', this.currentStroke.points.length);
-    } else {
-      console.log('DrawingSystem: Point too close, skipping');
+      
+      if (this.currentStroke.type === 'pencil') {
+        this.updateCustomPencilStroke(this.currentStroke);
+      }
+      
+      console.log('DrawingSystem: Added point, total points:', this.currentStroke.points.length);
     }
   }
 
@@ -231,268 +213,114 @@ export class DrawingSystem {
     // Save to history for undo/redo
     this.saveToHistory();
     
-    console.log(`Finished drawing stroke ${this.currentStroke.id} with ${this.currentStroke.points.length} points`);
+    console.log('DrawingSystem: Finished drawing stroke:', this.currentStroke.id, 'with', this.currentStroke.points.length, 'points');
     
     this.currentStroke = null;
     this.isDrawing = false;
   }
 
-  private createContinuousStroke(stroke: DrawingStroke): void {
-    const points = stroke.points.map(p => p.position);
+  private createCustomPencilStroke(stroke: DrawingStroke): void {
+    if (stroke.points.length < 1) return;
+
+    console.log('DrawingSystem: Creating custom pencil stroke with', stroke.points.length, 'points');
     
-    if (stroke.type === 'brush') {
-      this.createBrushStroke(stroke, points);
-    } else if (stroke.type === 'pencil') {
-      this.createPencilStroke(stroke, points);
-    }
+    // Create initial line with first point
+    const points = stroke.points.map(p => p.position);
+    this.createSmoothLine(stroke, points);
   }
 
-  private updateContinuousStroke(stroke: DrawingStroke): void {
+  private updateCustomPencilStroke(stroke: DrawingStroke): void {
+    // Remove old mesh
     if (stroke.mesh) {
       this.drawingGroup.remove(stroke.mesh);
+      if (stroke.mesh.geometry) stroke.mesh.geometry.dispose();
+      if (stroke.mesh.material) {
+        if (Array.isArray(stroke.mesh.material)) {
+          stroke.mesh.material.forEach(mat => mat.dispose());
+        } else {
+          stroke.mesh.material.dispose();
+        }
+      }
       stroke.mesh = undefined;
     }
-    this.createContinuousStroke(stroke);
+
+    // Create new mesh with all points
+    const points = stroke.points.map(p => p.position);
+    this.createSmoothLine(stroke, points);
   }
 
-  private createBrushStroke(stroke: DrawingStroke, points: THREE.Vector3[]): void {
+  private createSmoothLine(stroke: DrawingStroke, points: THREE.Vector3[]): void {
     if (points.length < 2) return;
 
-    console.log('DrawingSystem: Creating brush stroke with', points.length, 'points');
+    console.log('DrawingSystem: Creating smooth line with', points.length, 'points');
+
+    // Create smooth curve through points using CatmullRom
+    let curve: THREE.CatmullRomCurve3;
     
-    // Create MeshLine for smooth brush strokes
-    const line = new MeshLine();
-    line.setPoints(points);
+    if (points.length === 2) {
+      // For 2 points, create a simple line
+      curve = new THREE.CatmullRomCurve3(points);
+    } else {
+      // For multiple points, create smooth curve
+      curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.1);
+    }
+
+    // Get smooth points from curve
+    const curvePoints = curve.getPoints(Math.max(50, points.length * 10));
     
-    const material = new MeshLineMaterial({
-      color: new THREE.Color(stroke.settings.brushColor),
-      lineWidth: Math.max(stroke.settings.brushSize * 0.1, 0.02),
-      transparent: true,
-      opacity: stroke.settings.brushOpacity,
+    // Create tube geometry for better visibility
+    const tubeGeometry = new THREE.TubeGeometry(
+      curve,
+      Math.max(20, points.length * 5), // segments
+      Math.max(0.05, (stroke.settings.pencilSize || 1.0) * 0.1), // radius
+      8, // radial segments
+      false // closed
+    );
+
+    // Create material
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(stroke.settings.pencilColor || '#00ff00'),
+      transparent: false,
+      side: THREE.DoubleSide,
       depthTest: true,
-      depthWrite: true,
-      side: THREE.DoubleSide
+      depthWrite: true
     });
 
-    const mesh = new THREE.Mesh(line.geometry, material);
-    mesh.userData.strokeId = stroke.id;
-    mesh.userData.strokeType = 'brush';
-    
-    this.drawingGroup.add(mesh);
-    stroke.mesh = mesh;
-  }
-
-  private createPencilStroke(stroke: DrawingStroke, points: THREE.Vector3[]): void {
-    if (points.length < 2) return;
-
-    console.log('DrawingSystem: Creating pencil stroke with', points.length, 'points');
-    console.log('DrawingSystem: Points:', points.map(p => `(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})`));
-    
-    // Create MeshLine for smooth, high-quality lines
-    const line = new MeshLine();
-    line.setPoints(points);
-    
-    // Get pencil settings with fallbacks
-    const pencilColor = stroke.settings.pencilColor || '#00ff00';
-    const pencilSize = stroke.settings.pencilSize || 1.0;
-    
-    console.log('DrawingSystem: Pencil settings - color:', pencilColor, 'size:', pencilSize);
-    
-    const material = new MeshLineMaterial({
-      color: new THREE.Color(pencilColor),
-      lineWidth: Math.max(pencilSize * 0.1, 0.01), // Convert mm to world units
-      transparent: true,
-      opacity: 1.0,
-      depthTest: true,
-      depthWrite: true,
-      alphaTest: 0.1,
-      side: THREE.DoubleSide
-    });
-
-    const mesh = new THREE.Mesh(line.geometry, material);
+    // Create mesh
+    const mesh = new THREE.Mesh(tubeGeometry, material);
     mesh.userData.strokeId = stroke.id;
     mesh.userData.strokeType = 'pencil';
-    mesh.renderOrder = 1000; // Render on top
+    mesh.renderOrder = 100; // Render on top
     
-    console.log('DrawingSystem: Adding pencil mesh to scene');
+    console.log('DrawingSystem: Adding custom pencil mesh to scene');
     this.drawingGroup.add(mesh);
     stroke.mesh = mesh;
-  }
-
-  private addPolylinePoint(point: DrawingPoint): void {
-    // Find existing polyline or create new one
-    let polylineStroke = Array.from(this.strokes.values()).find(s => s.type === 'polyline' && !s.completed);
-    
-    if (!polylineStroke) {
-      polylineStroke = {
-        id: `polyline_${Date.now()}`,
-        type: 'polyline',
-        points: [],
-        settings: this.currentStroke?.settings || {},
-        completed: false
-      };
-      this.strokes.set(polylineStroke.id, polylineStroke);
-    }
-
-    polylineStroke.points.push(point);
-    this.updatePolyline(polylineStroke);
-  }
-
-  private updatePolyline(stroke: DrawingStroke): void {
-    if (stroke.mesh) {
-      this.drawingGroup.remove(stroke.mesh);
-    }
-
-    const points = stroke.points.map(p => p.position);
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({
-      color: new THREE.Color(stroke.settings.lineColor || '#0000ff'),
-      linewidth: stroke.settings.lineWidth || 1,
-      transparent: true,
-      depthTest: false
-    });
-
-    const line = new THREE.Line(geometry, material);
-    line.userData.strokeId = stroke.id;
-    line.userData.strokeType = 'polyline';
-    
-    this.drawingGroup.add(line);
-    stroke.mesh = line;
-
-    // Add point markers
-    stroke.points.forEach((point, index) => {
-      const markerGeometry = new THREE.SphereGeometry(0.2, 8, 8);
-      const markerMaterial = new THREE.MeshBasicMaterial({
-        color: 0xff0000,
-        transparent: true,
-        depthTest: false
-      });
-      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-      marker.position.copy(point.position);
-      this.drawingGroup.add(marker);
-    });
-  }
-
-  private addBezierPoint(point: DrawingPoint): void {
-    // Similar to polyline but creates bezier curves
-    let bezierStroke = Array.from(this.strokes.values()).find(s => s.type === 'bezier' && !s.completed);
-    
-    if (!bezierStroke) {
-      bezierStroke = {
-        id: `bezier_${Date.now()}`,
-        type: 'bezier',
-        points: [],
-        settings: this.currentStroke?.settings || {},
-        completed: false
-      };
-      this.strokes.set(bezierStroke.id, bezierStroke);
-    }
-
-    bezierStroke.points.push(point);
-    
-    if (bezierStroke.points.length >= 4) {
-      this.updateBezierCurve(bezierStroke);
-    }
-  }
-
-  private updateBezierCurve(stroke: DrawingStroke): void {
-    if (stroke.mesh) {
-      this.drawingGroup.remove(stroke.mesh);
-    }
-
-    const points = stroke.points.map(p => p.position);
-    
-    // Create bezier curve from last 4 points
-    const p0 = points[points.length - 4];
-    const p1 = points[points.length - 3];
-    const p2 = points[points.length - 2];
-    const p3 = points[points.length - 1];
-
-    const curve = new THREE.CubicBezierCurve3(p0, p1, p2, p3);
-    const curvePoints = curve.getPoints(50);
-
-    const geometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
-    const material = new THREE.LineBasicMaterial({
-      color: new THREE.Color(stroke.settings.lineColor || '#0000ff'),
-      linewidth: stroke.settings.lineWidth || 1,
-      transparent: true,
-      depthTest: false
-    });
-
-    const line = new THREE.Line(geometry, material);
-    line.userData.strokeId = stroke.id;
-    line.userData.strokeType = 'bezier';
-    
-    this.drawingGroup.add(line);
-    stroke.mesh = line;
-  }
-
-  private startMaskArea(point: DrawingPoint, settings: any): void {
-    // Create mask visualization
-    const radius = settings.brushSize || 2;
-    const geometry = new THREE.CircleGeometry(radius, 32);
-    const material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(settings.brushColor || '#ff0000'),
-      transparent: true,
-      opacity: 0.3,
-      side: THREE.DoubleSide,
-      depthTest: false
-    });
-
-    const mask = new THREE.Mesh(geometry, material);
-    mask.position.copy(point.position);
-    mask.lookAt(point.position.clone().add(point.normal));
-    mask.userData.strokeId = this.currentStroke!.id;
-    mask.userData.strokeType = 'mask';
-    
-    this.drawingGroup.add(mask);
-    this.currentStroke!.mesh = mask;
-  }
-
-  private eraseAtPoint(point: DrawingPoint, settings: any): void {
-    const eraseRadius = settings.brushSize || 2;
-    const strokesToRemove: string[] = [];
-
-    // Find strokes within erase radius
-    this.strokes.forEach((stroke, id) => {
-      if (stroke.type === 'eraser') return; // Don't erase eraser strokes
-      
-      const hasPointsInRadius = stroke.points.some(p => 
-        p.position.distanceTo(point.position) < eraseRadius
-      );
-
-      if (hasPointsInRadius) {
-        if (stroke.mesh) {
-          this.drawingGroup.remove(stroke.mesh);
-        }
-        strokesToRemove.push(id);
-      }
-    });
-
-    // Remove erased strokes
-    strokesToRemove.forEach(id => {
-      this.strokes.delete(id);
-    });
-
-    console.log(`Erased ${strokesToRemove.length} strokes at:`, point.position);
   }
 
   public clearAllStrokes(): void {
+    console.log('DrawingSystem: Clearing all strokes');
     this.strokes.forEach(stroke => {
       if (stroke.mesh) {
         this.drawingGroup.remove(stroke.mesh);
+        if (stroke.mesh.geometry) stroke.mesh.geometry.dispose();
+        if (stroke.mesh.material) {
+          if (Array.isArray(stroke.mesh.material)) {
+            stroke.mesh.material.forEach(mat => mat.dispose());
+          } else {
+            stroke.mesh.material.dispose();
+          }
+        }
       }
     });
     this.strokes.clear();
     this.saveToHistory();
-    console.log('Cleared all drawing strokes');
   }
 
   public undo(): void {
     if (this.historyIndex > 0) {
       this.historyIndex--;
       this.restoreFromHistory();
-      console.log('Undo drawing action');
+      console.log('DrawingSystem: Undo action');
     }
   }
 
@@ -500,7 +328,7 @@ export class DrawingSystem {
     if (this.historyIndex < this.history.length - 1) {
       this.historyIndex++;
       this.restoreFromHistory();
-      console.log('Redo drawing action');
+      console.log('DrawingSystem: Redo action');
     }
   }
 
@@ -518,6 +346,14 @@ export class DrawingSystem {
     this.strokes.forEach(stroke => {
       if (stroke.mesh) {
         this.drawingGroup.remove(stroke.mesh);
+        if (stroke.mesh.geometry) stroke.mesh.geometry.dispose();
+        if (stroke.mesh.material) {
+          if (Array.isArray(stroke.mesh.material)) {
+            stroke.mesh.material.forEach(mat => mat.dispose());
+          } else {
+            stroke.mesh.material.dispose();
+          }
+        }
       }
     });
     this.strokes.clear();
@@ -526,13 +362,9 @@ export class DrawingSystem {
     const historyState = this.history[this.historyIndex];
     historyState.forEach(stroke => {
       this.strokes.set(stroke.id, stroke);
-      // Recreate mesh based on stroke type
-      if (stroke.type === 'brush' || stroke.type === 'pencil') {
-        this.createContinuousStroke(stroke);
-      } else if (stroke.type === 'polyline') {
-        this.updatePolyline(stroke);
-      } else if (stroke.type === 'bezier') {
-        this.updateBezierCurve(stroke);
+      if (stroke.type === 'pencil' && stroke.points.length > 0) {
+        const points = stroke.points.map(p => p.position);
+        this.createSmoothLine(stroke, points);
       }
     });
   }
@@ -548,9 +380,30 @@ export class DrawingSystem {
   }
 
   public dispose(): void {
+    console.log('DrawingSystem: Disposing drawing system');
+    
+    // Clean up cursor
     if (this.cursorMesh) {
       this.scene.remove(this.cursorMesh);
+      if (this.cursorMesh.geometry) this.cursorMesh.geometry.dispose();
+      if (this.cursorMesh.material) this.cursorMesh.material.dispose();
     }
+    
+    // Clean up all strokes
+    this.strokes.forEach(stroke => {
+      if (stroke.mesh) {
+        if (stroke.mesh.geometry) stroke.mesh.geometry.dispose();
+        if (stroke.mesh.material) {
+          if (Array.isArray(stroke.mesh.material)) {
+            stroke.mesh.material.forEach(mat => mat.dispose());
+          } else {
+            stroke.mesh.material.dispose();
+          }
+        }
+      }
+    });
+    
+    // Remove drawing group
     this.scene.remove(this.drawingGroup);
     this.strokes.clear();
     this.history = [];

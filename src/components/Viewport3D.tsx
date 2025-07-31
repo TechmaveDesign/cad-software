@@ -296,8 +296,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
       console.log('Viewport3D: Mouse down event, active tool:', activeTool);
-      console.log('Viewport3D: Event target:', event.target);
-      console.log('Viewport3D: Mouse button:', event.button);
+      console.log('Viewport3D: Mouse button:', event.button, 'at position:', event.clientX, event.clientY);
       
       if (!activeTool || !drawingSystemRef.current) return;
       
@@ -311,12 +310,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
       console.log('Viewport3D: Available meshes for drawing:', meshes.length);
-      console.log('Viewport3D: Mesh details:', meshes.map(m => ({ 
-        id: m.userData.modelId, 
-        visible: m.visible,
-        position: m.position,
-        geometry: m.geometry?.attributes?.position?.count || 0
-      })));
+      
+      if (meshes.length === 0) {
+        console.log('Viewport3D: No visible meshes available for drawing');
+        return;
+      }
       
       const toolType = activeTool === 'mask-brush' ? 'mask' : activeTool;
       
@@ -333,7 +331,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       if (started) {
         setIsDrawing(true);
         controls.enabled = false; // Disable camera controls while drawing
-        console.log('Viewport3D: Drawing mode activated, camera controls disabled');
+        console.log('Viewport3D: Drawing started successfully, camera controls disabled');
       }
     };
     
@@ -353,18 +351,17 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       }
       
       if (isDrawing && drawingSystemRef.current) {
-        console.log('Viewport3D: Continuing drawing...');
         drawingSystemRef.current.continueDrawing(event, renderer.domElement, meshes);
       }
     };
     
     const handleMouseUp = () => {
       if (isDrawing && drawingSystemRef.current) {
-        console.log('Viewport3D: Finishing drawing');
+        console.log('Viewport3D: Mouse up - finishing drawing');
         setIsDrawing(false);
         drawingSystemRef.current.finishDrawing();
         controls.enabled = true; // Re-enable camera controls
-        console.log('Viewport3D: Drawing finished, camera controls re-enabled');
+        console.log('Viewport3D: Drawing completed, camera controls re-enabled');
       }
     };
     

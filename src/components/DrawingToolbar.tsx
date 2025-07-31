@@ -153,7 +153,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                 <label className="block text-slate-300 text-sm mb-1">Size (mm)</label>
                 <input
                   type="range"
-                  min="0.1"
+                  min="0.5"
                   max="5"
                   step="0.1"
                   value={settings.pencilSize}
