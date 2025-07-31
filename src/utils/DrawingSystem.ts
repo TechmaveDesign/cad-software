@@ -62,6 +62,8 @@ export class DrawingSystem {
   public updateCursor(event: MouseEvent, canvas: HTMLElement, models: THREE.Mesh[], toolType: string, brushSize: number): void {
     if (!this.cursorMesh) return;
 
+    console.log('DrawingSystem: Updating cursor for tool:', toolType);
+
     const rect = canvas.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -69,8 +71,12 @@ export class DrawingSystem {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(models);
 
+    console.log('DrawingSystem: Cursor intersections:', intersects.length);
+
     if (intersects.length > 0) {
       const intersect = intersects[0];
+      console.log('DrawingSystem: Cursor position:', intersect.point);
+      
       this.cursorMesh.position.copy(intersect.point);
       this.cursorMesh.lookAt(intersect.point.clone().add(intersect.face?.normal || new THREE.Vector3(0, 0, 1)));
       
@@ -78,6 +84,8 @@ export class DrawingSystem {
       const scale = toolType === 'brush' ? brushSize * 0.5 : brushSize * 0.2;
       this.cursorMesh.scale.setScalar(scale);
       this.cursorMesh.visible = true;
+      
+      console.log('DrawingSystem: Cursor visible at scale:', scale);
 
       // Update cursor color based on tool
       const material = this.cursorMesh.material as THREE.MeshBasicMaterial;
@@ -96,6 +104,7 @@ export class DrawingSystem {
       }
     } else {
       this.cursorMesh.visible = false;
+      console.log('DrawingSystem: Cursor hidden - no intersections');
     }
   }
 
@@ -168,16 +177,27 @@ export class DrawingSystem {
   public continueDrawing(event: MouseEvent, canvas: HTMLElement, models: THREE.Mesh[]): void {
     if (!this.isDrawing || !this.currentStroke) return;
 
+    console.log('DrawingSystem: Continuing drawing...');
+
     const rect = canvas.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+    console.log('DrawingSystem: Mouse coords:', this.mouse.x.toFixed(3), this.mouse.y.toFixed(3));
+
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(models);
 
-    if (intersects.length === 0) return;
+    console.log('DrawingSystem: Continue intersections:', intersects.length);
+    
+    if (intersects.length === 0) {
+      console.log('DrawingSystem: No intersections during continue');
+      return;
+    }
 
     const intersect = intersects[0];
+    console.log('DrawingSystem: Continue intersection point:', intersect.point);
+    
     const drawingPoint: DrawingPoint = {
       position: intersect.point.clone(),
       normal: intersect.face?.normal?.clone() || new THREE.Vector3(0, 0, 1),
@@ -189,12 +209,16 @@ export class DrawingSystem {
     // Only add point if it's far enough from the last point (smoothing)
     const lastPoint = this.currentStroke.points[this.currentStroke.points.length - 1];
     const distance = drawingPoint.position.distanceTo(lastPoint.position);
-    const minDistance = this.currentStroke.type === 'brush' ? 0.5 : 0.1; // Smaller distance for pencil
+    const minDistance = this.currentStroke.type === 'brush' ? 0.5 : 0.05; // Very small distance for pencil
+    
+    console.log('DrawingSystem: Distance from last point:', distance.toFixed(3), 'min required:', minDistance);
 
     if (distance > minDistance) {
       this.currentStroke.points.push(drawingPoint);
       this.updateContinuousStroke(this.currentStroke);
       console.log('DrawingSystem: Added point to stroke, total points:', this.currentStroke.points.length);
+    } else {
+      console.log('DrawingSystem: Point too close, skipping');
     }
   }
 
@@ -234,17 +258,23 @@ export class DrawingSystem {
   private createBrushStroke(stroke: DrawingStroke, points: THREE.Vector3[]): void {
     if (points.length < 2) return;
 
-    // Create brush stroke using BufferGeometry for compatibility
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({
+    console.log('DrawingSystem: Creating brush stroke with', points.length, 'points');
+    
+    // Create MeshLine for smooth brush strokes
+    const line = new MeshLine();
+    line.setPoints(points);
+    
+    const material = new MeshLineMaterial({
       color: new THREE.Color(stroke.settings.brushColor),
+      lineWidth: Math.max(stroke.settings.brushSize * 0.1, 0.02),
       transparent: true,
       opacity: stroke.settings.brushOpacity,
-      linewidth: stroke.settings.brushSize,
-      depthTest: false
+      depthTest: true,
+      depthWrite: true,
+      side: THREE.DoubleSide
     });
 
-    const mesh = new THREE.Line(geometry, material);
+    const mesh = new THREE.Mesh(line.geometry, material);
     mesh.userData.strokeId = stroke.id;
     mesh.userData.strokeType = 'brush';
     
@@ -256,8 +286,11 @@ export class DrawingSystem {
     if (points.length < 2) return;
 
     console.log('DrawingSystem: Creating pencil stroke with', points.length, 'points');
+    console.log('DrawingSystem: Points:', points.map(p => `(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})`));
     
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    // Create MeshLine for smooth, high-quality lines
+    const line = new MeshLine();
+    line.setPoints(points);
     
     // Get pencil settings with fallbacks
     const pencilColor = stroke.settings.pencilColor || '#00ff00';
@@ -265,22 +298,25 @@ export class DrawingSystem {
     
     console.log('DrawingSystem: Pencil settings - color:', pencilColor, 'size:', pencilSize);
     
-    const material = new THREE.LineBasicMaterial({
+    const material = new MeshLineMaterial({
       color: new THREE.Color(pencilColor),
-      linewidth: Math.max(pencilSize, 1), // Ensure minimum line width
+      lineWidth: Math.max(pencilSize * 0.1, 0.01), // Convert mm to world units
       transparent: true,
-      depthTest: false,
-      opacity: 1.0
+      opacity: 1.0,
+      depthTest: true,
+      depthWrite: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide
     });
 
-    const line = new THREE.Line(geometry, material);
-    line.userData.strokeId = stroke.id;
-    line.userData.strokeType = 'pencil';
-    line.renderOrder = 1000; // Render on top
+    const mesh = new THREE.Mesh(line.geometry, material);
+    mesh.userData.strokeId = stroke.id;
+    mesh.userData.strokeType = 'pencil';
+    mesh.renderOrder = 1000; // Render on top
     
-    console.log('DrawingSystem: Adding pencil line to scene');
-    this.drawingGroup.add(line);
-    stroke.mesh = line;
+    console.log('DrawingSystem: Adding pencil mesh to scene');
+    this.drawingGroup.add(mesh);
+    stroke.mesh = mesh;
   }
 
   private addPolylinePoint(point: DrawingPoint): void {

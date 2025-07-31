@@ -296,6 +296,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
       console.log('Viewport3D: Mouse down event, active tool:', activeTool);
+      console.log('Viewport3D: Event target:', event.target);
+      console.log('Viewport3D: Mouse button:', event.button);
       
       if (!activeTool || !drawingSystemRef.current) return;
       
@@ -309,6 +311,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
       console.log('Viewport3D: Available meshes for drawing:', meshes.length);
+      console.log('Viewport3D: Mesh details:', meshes.map(m => ({ 
+        id: m.userData.modelId, 
+        visible: m.visible,
+        position: m.position,
+        geometry: m.geometry?.attributes?.position?.count || 0
+      })));
       
       const toolType = activeTool === 'mask-brush' ? 'mask' : activeTool;
       
