@@ -40,6 +40,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
     { id: 'pencil', name: 'Pencil', icon: Pencil, description: 'Draw thin lines' },
     { id: 'polyline', name: 'Polyline', icon: Polygon, description: 'Connected line segments' },
     { id: 'bezier', name: 'Bezier', icon: Spline, description: 'Smooth curves' },
+    { id: 'mask-brush', name: 'Mask', icon: Palette, description: 'Create mask areas' },
     { id: 'eraser', name: 'Eraser', icon: Eraser, description: 'Remove drawings' }
   ];
 

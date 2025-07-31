@@ -7,6 +7,8 @@ import { STLModel, ViewportSettings } from '../types';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Grid3X3, Lightbulb, Palette } from 'lucide-react';
 import { DrawingSettings } from './DrawingToolbar';
+import { DrawingSystem } from '../utils/DrawingSystem';
+import { CuttingSystem } from '../utils/CuttingSystem';
 
 interface Viewport3DProps {
   models: STLModel[];
@@ -32,6 +34,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const selectedModelRef = useRef<THREE.Mesh | null>(null);
   const loaderRef = useRef<STLLoader>();
   const initializedRef = useRef<boolean>(false);
+  const drawingSystemRef = useRef<DrawingSystem | null>(null);
+  const cuttingSystemRef = useRef<CuttingSystem | null>(null);
   
   // Camera control refs
   const orthoCameraRef = useRef<THREE.OrthographicCamera>();
@@ -42,6 +46,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   const [drawingPoints, setDrawingPoints] = useState<THREE.Vector3[]>([]);
   const [annotations, setAnnotations] = useState<THREE.Group[]>([]);
   const [currentStroke, setCurrentStroke] = useState<THREE.Group | null>(null);
+  const [cutLine, setCutLine] = useState<THREE.Vector3[]>([]);
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
@@ -282,71 +287,62 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     // STL Loader
     loaderRef.current = new STLLoader();
 
+    // Initialize drawing and cutting systems
+    drawingSystemRef.current = new DrawingSystem(scene, camera);
+    cuttingSystemRef.current = new CuttingSystem(scene);
+
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
-      if (!activeTool || !['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool)) return;
+      if (!activeTool || !drawingSystemRef.current) return;
+      
+      const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
+      if (!drawingTools.includes(activeTool)) return;
       
       event.preventDefault();
       event.stopPropagation();
       
-      const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
-        ((event.clientX - rect.left) / rect.width) * 2 - 1,
-        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+      const toolType = activeTool === 'mask-brush' ? 'mask' : activeTool;
+      
+      const started = drawingSystemRef.current.startDrawing(
+        event, 
+        renderer.domElement, 
+        meshes, 
+        toolType, 
+        drawingSettings
       );
       
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
-      
-      const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycaster.intersectObjects(meshes);
-      
-      if (intersects.length > 0) {
-        const point = intersects[0].point;
-        
-        if (activeTool === 'brush' || activeTool === 'pencil') {
-          setIsDrawing(true);
-          setDrawingPoints([point]);
-          startNewStroke(point, activeTool);
-        } else if (activeTool === 'polyline') {
-          addPolylinePoint(point);
-        } else if (activeTool === 'bezier') {
-          addBezierPoint(point);
-        } else if (activeTool === 'eraser') {
-          eraseAtPoint(point);
-        }
+      if (started) {
+        setIsDrawing(true);
+        controls.enabled = false; // Disable camera controls while drawing
       }
     };
     
     const handleMouseMove = (event: MouseEvent) => {
-      if (!isDrawing || !activeTool || !['brush', 'pencil'].includes(activeTool)) return;
-      
-      event.preventDefault();
-      event.stopPropagation();
-      
-      const rect = renderer.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
-        ((event.clientX - rect.left) / rect.width) * 2 - 1,
-        -((event.clientY - rect.top) / rect.height) * 2 + 1
-      );
-      
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
+      if (!drawingSystemRef.current) return;
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
-      const intersects = raycaster.intersectObjects(meshes);
+      const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
       
-      if (intersects.length > 0) {
-        const point = intersects[0].point;
-        setDrawingPoints(prev => [...prev, point]);
-        continueStroke(point, activeTool);
+      if (activeTool && drawingTools.includes(activeTool)) {
+        const toolType = activeTool === 'mask-brush' ? 'mask' : activeTool;
+        const brushSize = toolType === 'brush' ? drawingSettings.brushSize : 
+                         toolType === 'pencil' ? drawingSettings.pencilSize : 
+                         drawingSettings.lineWidth;
+        
+        drawingSystemRef.current.updateCursor(event, renderer.domElement, meshes, toolType, brushSize);
+      }
+      
+      if (isDrawing && drawingSystemRef.current) {
+        drawingSystemRef.current.continueDrawing(event, renderer.domElement, meshes);
       }
     };
     
     const handleMouseUp = () => {
-      if (isDrawing) {
+      if (isDrawing && drawingSystemRef.current) {
         setIsDrawing(false);
-        finishStroke();
+        drawingSystemRef.current.finishDrawing();
+        controls.enabled = true; // Re-enable camera controls
       }
     };
     
@@ -489,6 +485,14 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       
+      // Cleanup drawing and cutting systems
+      if (drawingSystemRef.current) {
+        drawingSystemRef.current.dispose();
+      }
+      if (cuttingSystemRef.current) {
+        cuttingSystemRef.current.dispose();
+      }
+      
       // Proper cleanup of Three.js resources
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
@@ -591,9 +595,25 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   useEffect(() => {
     if (!controlsRef.current || !transformControlsRef.current) return;
     
-    // Disable camera controls when drawing tools are active
-    const isDrawingTool = activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'eraser'].includes(activeTool);
+    // Disable camera controls when drawing tools are active (but not during actual drawing)
+    const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
+    const isDrawingTool = activeTool && drawingTools.includes(activeTool);
     controlsRef.current.enabled = !isDrawingTool;
+    
+    // Hide/show drawing cursor
+    if (drawingSystemRef.current) {
+      if (isDrawingTool) {
+        // Cursor will be shown on mouse move
+      } else {
+        drawingSystemRef.current.hideCursor();
+      }
+    }
+    
+    // Handle cut tool
+    if (activeTool === 'cut' && cuttingSystemRef.current) {
+      // Cut tool is active - user can draw cut line
+      console.log('Cut tool activated - draw a line to cut the model');
+    }
     
     if (!transformControlsRef.current) return;
     
@@ -614,237 +634,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       selectedModelRef.current = null;
     }
   }, [activeTool]);
-  
-  // Drawing helper functions
-  const startNewStroke = (point: THREE.Vector3, toolType: string) => {
-    if (!sceneRef.current) return;
-    
-    console.log('Starting new stroke at:', point, 'with tool:', toolType);
-    
-    // Create new stroke group
-    const strokeGroup = new THREE.Group();
-    strokeGroup.userData.toolType = toolType;
-    strokeGroup.userData.points = [point];
-    strokeGroup.userData.settings = { ...drawingSettings };
-    
-    // Add to scene immediately
-    sceneRef.current.add(strokeGroup);
-    setAnnotations(prev => [...prev, strokeGroup]);
-    setCurrentStroke(strokeGroup);
-    
-    // Add first point
-    addPointToStroke(strokeGroup, point, toolType);
-  };
-  
-  const continueStroke = (point: THREE.Vector3, toolType: string) => {
-    if (!currentStroke) return;
-    
-    console.log('Continuing stroke at:', point);
-    
-    currentStroke.userData.points.push(point);
-    addPointToStroke(currentStroke, point, toolType);
-    
-    // Connect points with lines for smooth drawing
-    if (currentStroke.userData.points.length > 1) {
-      const points = currentStroke.userData.points;
-      const lastPoint = points[points.length - 2];
-      connectPoints(currentStroke, lastPoint, point, toolType);
-    }
-  };
-  
-  const finishStroke = () => {
-    console.log('Finishing stroke');
-    setCurrentStroke(null);
-  };
-  
-  const addPointToStroke = (strokeGroup: THREE.Group, point: THREE.Vector3, toolType: string) => {
-    const size = toolType === 'brush' ? drawingSettings.brushSize : drawingSettings.pencilSize;
-    const color = toolType === 'brush' ? drawingSettings.brushColor : drawingSettings.pencilColor;
-    const opacity = toolType === 'brush' ? drawingSettings.brushOpacity : 1.0;
-    
-    console.log('Adding point to stroke:', point, 'size:', size, 'color:', color);
-    
-    const geometry = new THREE.SphereGeometry(size * 0.05, 8, 8);
-    const material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(color),
-      transparent: true,
-      opacity: opacity,
-      depthTest: false
-    });
-    
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.copy(point);
-    sphere.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
-    strokeGroup.add(sphere);
-  };
-  
-  const connectPoints = (strokeGroup: THREE.Group, point1: THREE.Vector3, point2: THREE.Vector3, toolType: string) => {
-    const color = toolType === 'brush' ? drawingSettings.brushColor : drawingSettings.pencilColor;
-    const width = toolType === 'brush' ? drawingSettings.brushSize * 0.05 : drawingSettings.pencilSize * 0.05;
-    const opacity = toolType === 'brush' ? drawingSettings.brushOpacity : 1.0;
-    
-    // Create cylinder between points for smooth lines
-    const direction = new THREE.Vector3().subVectors(point2, point1);
-    const length = direction.length();
-    
-    if (length > 0) {
-      const geometry = new THREE.CylinderGeometry(width, width, length, 6);
-      const material = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(color),
-        transparent: true,
-        opacity: opacity,
-        depthTest: false
-      });
-      
-      const cylinder = new THREE.Mesh(geometry, material);
-      
-      // Position and orient cylinder
-      const midpoint = new THREE.Vector3().addVectors(point1, point2).multiplyScalar(0.5);
-      cylinder.position.copy(midpoint);
-      cylinder.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
-      
-      // Orient cylinder along the line
-      const up = new THREE.Vector3(0, 1, 0);
-      const axis = new THREE.Vector3().crossVectors(up, direction.normalize());
-      const angle = Math.acos(up.dot(direction));
-      
-      if (axis.length() > 0) {
-        cylinder.rotateOnAxis(axis.normalize(), angle);
-      }
-      
-      strokeGroup.add(cylinder);
-    }
-  };
-  
-  const addPolylinePoint = (point: THREE.Vector3) => {
-    if (!sceneRef.current) return;
-    
-    console.log('Adding polyline point:', point);
-    
-    // Add point marker
-    const geometry = new THREE.SphereGeometry(drawingSettings.lineWidth * 0.1, 8, 8);
-    const material = new THREE.MeshBasicMaterial({ 
-      color: new THREE.Color(drawingSettings.lineColor),
-      depthTest: false
-    });
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.copy(point);
-    sphere.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
-    
-    let polylineGroup = annotations.find(group => group.userData.toolType === 'polyline');
-    if (!polylineGroup) {
-      polylineGroup = new THREE.Group();
-      polylineGroup.userData.toolType = 'polyline';
-      polylineGroup.userData.points = [];
-      sceneRef.current.add(polylineGroup);
-      setAnnotations(prev => [...prev, polylineGroup!]);
-    }
-    
-    polylineGroup.add(sphere);
-    polylineGroup.userData.points.push(point);
-    
-    // Draw line to previous point
-    if (polylineGroup.userData.points.length > 1) {
-      const points = polylineGroup.userData.points;
-      const point1 = points[points.length - 2].clone().add(new THREE.Vector3(0, 0, 0.01));
-      const point2 = points[points.length - 1].clone().add(new THREE.Vector3(0, 0, 0.01));
-      
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints([point1, point2]);
-      const lineMaterial = new THREE.LineBasicMaterial({ 
-        color: new THREE.Color(drawingSettings.lineColor),
-        depthTest: false
-      });
-      const line = new THREE.Line(lineGeometry, lineMaterial);
-      polylineGroup.add(line);
-    }
-  };
-  
-  const addBezierPoint = (point: THREE.Vector3) => {
-    if (!sceneRef.current) return;
-    
-    console.log('Adding bezier point:', point);
-    
-    // Add control point
-    const geometry = new THREE.SphereGeometry(drawingSettings.lineWidth * 0.15, 8, 8);
-    const material = new THREE.MeshBasicMaterial({ 
-      color: new THREE.Color(drawingSettings.lineColor),
-      depthTest: false
-    });
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.copy(point);
-    sphere.position.add(new THREE.Vector3(0, 0, 0.01)); // Slightly offset from surface
-    
-    let bezierGroup = annotations.find(group => group.userData.toolType === 'bezier');
-    if (!bezierGroup) {
-      bezierGroup = new THREE.Group();
-      bezierGroup.userData.toolType = 'bezier';
-      bezierGroup.userData.controlPoints = [];
-      sceneRef.current.add(bezierGroup);
-      setAnnotations(prev => [...prev, bezierGroup!]);
-    }
-    
-    bezierGroup.add(sphere);
-    bezierGroup.userData.controlPoints.push(point);
-    
-    // Create bezier curve when we have enough points
-    if (bezierGroup.userData.controlPoints.length >= 4) {
-      const points = bezierGroup.userData.controlPoints;
-      const curve = new THREE.CubicBezierCurve3(
-        points[points.length - 4],
-        points[points.length - 3],
-        points[points.length - 2],
-        points[points.length - 1]
-      );
-      
-      const curvePoints = curve.getPoints(50);
-      // Offset curve points slightly above surface
-      const offsetCurvePoints = curvePoints.map(p => p.clone().add(new THREE.Vector3(0, 0, 0.01)));
-      const curveGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
-      const curveMaterial = new THREE.LineBasicMaterial({ 
-        color: new THREE.Color(drawingSettings.lineColor),
-        depthTest: false
-      });
-      const curveLine = new THREE.Line(curveGeometry, curveMaterial);
-      bezierGroup.add(curveLine);
-    }
-  };
 
-  const eraseAtPoint = (point: THREE.Vector3) => {
-    if (!sceneRef.current) return;
-    
-    console.log('Erasing at point:', point);
-    
-    const eraseRadius = drawingSettings.brushSize;
-    
-    // Find annotations to erase
-    const groupsToCheck = [...annotations];
-    groupsToCheck.forEach(group => {
-      const objectsToRemove: THREE.Object3D[] = [];
-      
-      group.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.position.distanceTo(point) < eraseRadius) {
-          objectsToRemove.push(child);
-        }
-      });
-      
-      // Remove objects
-      objectsToRemove.forEach(obj => {
-        group.remove(obj);
-        if (obj instanceof THREE.Mesh) {
-          obj.geometry.dispose();
-          if (obj.material instanceof THREE.Material) {
-            obj.material.dispose();
-          }
-        }
-      });
-      
-      // Remove empty groups
-      if (group.children.length === 0) {
-        sceneRef.current!.remove(group);
-        setAnnotations(prev => prev.filter(g => g !== group));
-      }
-    });
-  };
 
   // Update scene when models change
   useEffect(() => {
@@ -894,6 +684,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
             console.log('Adding mesh to scene:', mesh.uuid, 'at position:', mesh.position);
             sceneRef.current!.add(mesh);
+            
+            // Prepare mesh for cutting operations
+            if (cuttingSystemRef.current) {
+              cuttingSystemRef.current.prepareMeshForCutting(mesh);
+            }
 
             // Update model with mesh reference
             const updatedModels = models.map(m => 
@@ -957,12 +752,22 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   };
 
   const clearAnnotations = () => {
-    if (!sceneRef.current) return;
+    if (!drawingSystemRef.current) return;
     
-    annotations.forEach(group => {
-      sceneRef.current!.remove(group);
-    });
-    setAnnotations([]);
+    drawingSystemRef.current.clearAllStrokes();
+    console.log('Cleared all annotations');
+  };
+  
+  const undoLastAction = () => {
+    if (drawingSystemRef.current) {
+      drawingSystemRef.current.undo();
+    }
+  };
+  
+  const redoLastAction = () => {
+    if (drawingSystemRef.current) {
+      drawingSystemRef.current.redo();
+    }
   };
 
   return (
@@ -1015,6 +820,22 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
               Clear Annotations
             </button>
           )}
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={undoLastAction}
+              className="px-2 py-1 rounded text-xs bg-slate-600 text-white hover:bg-slate-500 transition-colors duration-200"
+              title="Undo (Ctrl+Z)"
+            >
+              ↶
+            </button>
+            <button
+              onClick={redoLastAction}
+              className="px-2 py-1 rounded text-xs bg-slate-600 text-white hover:bg-slate-500 transition-colors duration-200"
+              title="Redo (Ctrl+Y)"
+            >
+              ↷
+            </button>
+          </div>
         </div>
         
         <div className="text-slate-400 text-sm">
@@ -1026,8 +847,8 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           {selectedModelRef.current && ['translate', 'rotate', 'scale'].includes(activeTool || '') && (
             <span className="ml-4 text-blue-400">Model Selected</span>
           )}
-          {annotations.length > 0 && (
-            <span className="ml-4 text-green-400">Drawings: {annotations.length}</span>
+          {drawingSystemRef.current && drawingSystemRef.current.getStrokeCount() > 0 && (
+            <span className="ml-4 text-green-400">Drawings: {drawingSystemRef.current.getStrokeCount()}</span>
           )}
           {isDrawing && (
             <span className="ml-4 text-yellow-400">Drawing...</span>
@@ -1065,13 +886,21 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span>Models: {models.length}</span>
           <span>Visible: {models.filter(m => m.visible).length}</span>
+          {drawingSystemRef.current && (
+            <span>Strokes: {drawingSystemRef.current.getStrokeCount()}</span>
+          )}
           {activeTool && (
             <span>Tool: {activeTool}</span>
           )}
         </div>
         <div className="text-slate-400 text-sm">
           <span className="mr-4">Projection: {isOrthographic ? 'Orthographic' : 'Perspective'}</span>
-          <span>Use mouse wheel to zoom, drag to rotate</span>
+          <span>
+            {activeTool && ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'].includes(activeTool) 
+              ? 'Click and drag on model to draw' 
+              : 'Use mouse wheel to zoom, drag to rotate'
+            }
+          </span>
         </div>
       </div>
     </div>
