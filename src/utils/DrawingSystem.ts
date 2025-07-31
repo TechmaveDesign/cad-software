@@ -100,16 +100,25 @@ export class DrawingSystem {
   }
 
   public startDrawing(event: MouseEvent, canvas: HTMLElement, models: THREE.Mesh[], toolType: string, settings: any): boolean {
+    console.log('DrawingSystem: Starting drawing with tool:', toolType);
+    console.log('DrawingSystem: Available models:', models.length);
+    
     const rect = canvas.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+    console.log('DrawingSystem: Mouse coordinates:', this.mouse.x, this.mouse.y);
+    
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(models);
 
+    console.log('DrawingSystem: Intersections found:', intersects.length);
+    
     if (intersects.length === 0) return false;
 
     const intersect = intersects[0];
+    console.log('DrawingSystem: Intersection point:', intersect.point);
+    
     const drawingPoint: DrawingPoint = {
       position: intersect.point.clone(),
       normal: intersect.face?.normal?.clone() || new THREE.Vector3(0, 0, 1),
@@ -127,6 +136,7 @@ export class DrawingSystem {
     };
 
     this.isDrawing = true;
+    console.log('DrawingSystem: Created stroke:', this.currentStroke.id, 'with type:', toolType);
 
     // Handle different tool types
     switch (toolType) {
@@ -146,9 +156,12 @@ export class DrawingSystem {
       case 'eraser':
         this.eraseAtPoint(drawingPoint, settings);
         break;
+      default:
+        console.warn('DrawingSystem: Unknown tool type:', toolType);
+        break;
     }
 
-    console.log(`Started drawing with ${toolType} at:`, drawingPoint.position);
+    console.log(`DrawingSystem: Started drawing with ${toolType} at:`, drawingPoint.position);
     return true;
   }
 
@@ -176,11 +189,12 @@ export class DrawingSystem {
     // Only add point if it's far enough from the last point (smoothing)
     const lastPoint = this.currentStroke.points[this.currentStroke.points.length - 1];
     const distance = drawingPoint.position.distanceTo(lastPoint.position);
-    const minDistance = this.currentStroke.type === 'brush' ? 0.5 : 0.2;
+    const minDistance = this.currentStroke.type === 'brush' ? 0.5 : 0.1; // Smaller distance for pencil
 
     if (distance > minDistance) {
       this.currentStroke.points.push(drawingPoint);
       this.updateContinuousStroke(this.currentStroke);
+      console.log('DrawingSystem: Added point to stroke, total points:', this.currentStroke.points.length);
     }
   }
 
@@ -241,18 +255,30 @@ export class DrawingSystem {
   private createPencilStroke(stroke: DrawingStroke, points: THREE.Vector3[]): void {
     if (points.length < 2) return;
 
+    console.log('DrawingSystem: Creating pencil stroke with', points.length, 'points');
+    
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    
+    // Get pencil settings with fallbacks
+    const pencilColor = stroke.settings.pencilColor || '#00ff00';
+    const pencilSize = stroke.settings.pencilSize || 1.0;
+    
+    console.log('DrawingSystem: Pencil settings - color:', pencilColor, 'size:', pencilSize);
+    
     const material = new THREE.LineBasicMaterial({
-      color: new THREE.Color(stroke.settings.pencilColor),
-      linewidth: stroke.settings.pencilSize || 1,
+      color: new THREE.Color(pencilColor),
+      linewidth: Math.max(pencilSize, 1), // Ensure minimum line width
       transparent: true,
-      depthTest: false
+      depthTest: false,
+      opacity: 1.0
     });
 
     const line = new THREE.Line(geometry, material);
     line.userData.strokeId = stroke.id;
     line.userData.strokeType = 'pencil';
+    line.renderOrder = 1000; // Render on top
     
+    console.log('DrawingSystem: Adding pencil line to scene');
     this.drawingGroup.add(line);
     stroke.mesh = line;
   }

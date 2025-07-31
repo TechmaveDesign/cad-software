@@ -295,15 +295,21 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
 
     // Mouse event handlers for drawing tools
     const handleMouseDown = (event: MouseEvent) => {
+      console.log('Viewport3D: Mouse down event, active tool:', activeTool);
+      
       if (!activeTool || !drawingSystemRef.current) return;
       
       const drawingTools = ['brush', 'pencil', 'polyline', 'bezier', 'mask-brush', 'eraser'];
       if (!drawingTools.includes(activeTool)) return;
       
+      console.log('Viewport3D: Drawing tool detected:', activeTool);
+      
       event.preventDefault();
       event.stopPropagation();
       
       const meshes = models.filter(m => m.mesh && m.visible).map(m => m.mesh!);
+      console.log('Viewport3D: Available meshes for drawing:', meshes.length);
+      
       const toolType = activeTool === 'mask-brush' ? 'mask' : activeTool;
       
       const started = drawingSystemRef.current.startDrawing(
@@ -314,9 +320,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         drawingSettings
       );
       
+      console.log('Viewport3D: Drawing started:', started);
+      
       if (started) {
         setIsDrawing(true);
         controls.enabled = false; // Disable camera controls while drawing
+        console.log('Viewport3D: Drawing mode activated, camera controls disabled');
       }
     };
     
@@ -336,15 +345,18 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       }
       
       if (isDrawing && drawingSystemRef.current) {
+        console.log('Viewport3D: Continuing drawing...');
         drawingSystemRef.current.continueDrawing(event, renderer.domElement, meshes);
       }
     };
     
     const handleMouseUp = () => {
       if (isDrawing && drawingSystemRef.current) {
+        console.log('Viewport3D: Finishing drawing');
         setIsDrawing(false);
         drawingSystemRef.current.finishDrawing();
         controls.enabled = true; // Re-enable camera controls
+        console.log('Viewport3D: Drawing finished, camera controls re-enabled');
       }
     };
     

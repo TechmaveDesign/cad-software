@@ -48,6 +48,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     onSettingsChange(newSettings);
+    console.log('DrawingToolbar: Settings changed:', key, '=', value);
   };
 
   const ToolButton = ({ tool }: { tool: typeof drawingTools[0] }) => (
@@ -153,7 +154,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                 <input
                   type="range"
                   min="0.1"
-                  max="3"
+                  max="5"
                   step="0.1"
                   value={settings.pencilSize}
                   onChange={(e) => handleSettingChange('pencilSize', parseFloat(e.target.value))}
