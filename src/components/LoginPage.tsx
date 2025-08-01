@@ -647,9 +647,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
           </div>
         </div>
         {/* Stats */}
-        <div className="absolute top-8 right-8 text-right">
-          <div className="text-white text-4xl font-bold mb-2">1000+ users. 50M+ AI</div>
-          <div className="text-slate-400 text-xl">generated dental models.</div>
+        <div className="absolute top-8 right-8 text-center">
+          <div className="text-5xl font-bold mb-2" style={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>400K+ users. 50M+ AI</div>
+          <div className="text-slate-400 text-xl">generated graphics.</div>
         </div>
 
         {/* 3D Model Container with spacing */}
