@@ -17,7 +17,6 @@ export interface Tool {
 }
 
 export interface ViewportSettings {
-  wireframe: boolean;
   showGrid: boolean;
   backgroundColor: string;
   lightIntensity: number;

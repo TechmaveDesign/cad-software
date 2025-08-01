@@ -767,7 +767,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         );
       }
     });
-  }, [models, viewportSettings.wireframe, onModelsChange]);
+  }, [models, onModelsChange]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newModels: STLModel[] = acceptedFiles.map((file, index) => ({
