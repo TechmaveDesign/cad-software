@@ -298,11 +298,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     scene.add(directionalLight2);
 
     // Grid
-    if (showGrid) {
+    if (viewportSettings.showGrid) {
       const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x444444);
-      gridHelper.name = 'gridHelper';
       scene.add(gridHelper);
-      console.log('Initial grid added to scene');
     }
 
     // STL Loader
