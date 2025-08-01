@@ -631,7 +631,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
       </div>
 
       {/* Right Side - 3D Model and Stats */}
-      <div className="flex-1 relative bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
+      <div className="flex-1 relative bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden pl-16">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
@@ -652,10 +652,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
           <div className="text-slate-400 text-xl">generated dental models.</div>
         </div>
 
-        {/* 3D Model Container */}
-        <div className="relative flex-1 flex items-center justify-center">
+        {/* 3D Model Container with spacing */}
+        <div className="relative flex-1 flex items-center justify-center pr-8">
           {/* 3D Dental Tooth Model */}
-          <div className="relative w-80 h-full max-h-[800px]">
+          <div className="relative w-80 h-full max-h-[800px] ml-8">
             {/* 3D Tooth with CSS Transform */}
             <div className="relative w-full h-full" style={{ 
               perspective: '1000px',
