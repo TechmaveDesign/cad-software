@@ -116,7 +116,14 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       {/* Toggle Button */}
       <button
         onClick={() => setIsMinimized(!isMinimized)}
-        className="bg-slate-800/95 backdrop-blur-sm rounded-l-lg shadow-lg border border-slate-600 border-r-0 p-2 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-300"
+        className={`backdrop-blur-sm rounded-l-lg shadow-lg border border-slate-600 border-r-0 p-2 text-white transition-all duration-300 ${
+          isMinimized 
+            ? 'hover:opacity-90' 
+            : 'bg-slate-800/95 text-slate-300 hover:text-white hover:bg-slate-700'
+        }`}
+        style={{ 
+          backgroundColor: isMinimized ? '#28c489' : undefined
+        }}
         title={isMinimized ? "Show Tools" : "Hide Tools"}
       >
         {isMinimized ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
