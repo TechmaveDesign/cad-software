@@ -671,7 +671,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 style={{
                   transformStyle: 'preserve-3d',
                   transform: 'rotateX(-10deg) rotateY(15deg)',
-                  animation: 'float 6s ease-in-out infinite'
+                  animation: 'float 6s ease-in-out infinite',
+                  marginTop: '220px'
                 }}
               >
                 {/* Tooth Crown - Front */}
