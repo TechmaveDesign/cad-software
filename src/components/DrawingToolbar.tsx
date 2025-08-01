@@ -33,6 +33,29 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   });
 
   const [showSettings, setShowSettings] = useState(false);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close settings panel
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showSettings && 
+          settingsPanelRef.current && 
+          toolbarRef.current &&
+          !settingsPanelRef.current.contains(event.target as Node) &&
+          !toolbarRef.current.contains(event.target as Node)) {
+        setShowSettings(false);
+      }
+    };
+
+    if (showSettings) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSettings]);
 
   const drawingTools = [
     { id: 'move', name: 'Move', icon: Move3D, description: 'Move and rotate camera', cursor: 'grab' },
@@ -51,6 +74,16 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
     console.log('DrawingToolbar: Settings changed:', key, '=', value);
   };
 
+  const handleSaveDrawing = () => {
+    console.log('Drawing saved with settings:', settings);
+    setShowSettings(false); // Close settings panel after saving
+    // TODO: Implement actual save functionality
+  };
+
+  const handleClearAll = () => {
+    console.log('Clearing all drawings');
+    // TODO: Implement clear functionality
+  };
   const ToolButton = ({ tool }: { tool: typeof drawingTools[0] }) => (
     <button
       onClick={() => onToolSelect(tool.id)}
@@ -74,7 +107,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   );
 
   return (
-    <div className="bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 p-3">
+    <div ref={toolbarRef} className="bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 p-3">
       <div className="flex items-center justify-center">
         {/* Drawing Tools - Horizontal Layout */}
         <div className="flex items-center space-x-3">
@@ -107,7 +140,18 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
       {/* Tool Settings Panel */}
       {showSettings && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-6 bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 min-w-[600px]">
+        <div 
+          ref={settingsPanelRef}
+          className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-6 bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 min-w-[600px] transition-all duration-500 ease-out ${
+            showSettings 
+              ? 'opacity-100 scale-100 translate-y-0' 
+              : 'opacity-0 scale-95 translate-y-4'
+          }`}
+          style={{
+            transformOrigin: 'bottom center',
+            animation: showSettings ? 'slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1)' : 'slideDownFade 0.3s cubic-bezier(0.4, 0, 1, 1)'
+          }}
+        >
           <div className="grid grid-cols-3 gap-6">
             {/* Brush Settings */}
             <div className="space-y-3">
@@ -219,16 +263,47 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
               Active Tool: {activeTool ? drawingTools.find(t => t.id === activeTool)?.name || 'None' : 'None'}
             </div>
             <div className="flex items-center space-x-2">
-              <button className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg text-sm transition-colors duration-200">
+              <button 
+                onClick={handleClearAll}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg text-sm transition-colors duration-200"
+              >
                 Clear All
               </button>
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors duration-200">
+              <button 
+                onClick={handleSaveDrawing}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors duration-200"
+              >
                 Save Drawing
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes slideUpFade {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+          }
+        }
+
+        @keyframes slideDownFade {
+          0% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px) scale(0.95);
+          }
+        }
+      `}</style>
     </div>
   );
 };
