@@ -357,7 +357,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         </div>
 
         {/* 3D Model Container */}
-        <div className="relative">
+        <div className="relative mt-16">
           {/* 3D Cube Model */}
           <div className="relative w-80 h-96">
             {/* 3D Cube with CSS Transform */}
@@ -459,18 +459,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             {/* Orbital Circle with Arrow */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div 
-                className="w-96 h-96 border border-slate-600 rounded-full relative"
+                className="w-80 h-80 border border-slate-600 rounded-full relative"
                 style={{
-                  animation: 'rotate 8s linear infinite'
+                  animation: 'rotate 8s linear infinite',
+                  transform: 'rotateX(75deg)'
                 }}
               >
                 {/* Arrow on the circle */}
                 <div 
-                  className="absolute w-0 h-0 -top-2 left-1/2 transform -translate-x-1/2"
+                  className="absolute -top-1 left-1/2 transform -translate-x-1/2"
                   style={{
-                    borderLeft: '8px solid transparent',
-                    borderRight: '8px solid transparent',
-                    borderBottom: '12px solid #8b5cf6'
+                    width: '0',
+                    height: '0',
+                    borderLeft: '6px solid transparent',
+                    borderRight: '6px solid transparent',
+                    borderBottom: '10px solid #8b5cf6'
                   }}
                 ></div>
               </div>
