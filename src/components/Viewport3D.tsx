@@ -820,16 +820,6 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         <div className="flex items-center space-x-4">
           <span className="text-slate-400 text-sm">Viewport Controls</span>
           <button
-            onClick={toggleWireframe}
-            className={`px-3 py-1 rounded text-xs transition-colors duration-200 ${
-              viewportSettings.wireframe
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-            }`}
-          >
-            Wireframe
-          </button>
-          <button
             onClick={toggleGrid}
             className={`px-3 py-1 rounded text-xs transition-colors duration-200 flex items-center space-x-1 ${
               showGrid
