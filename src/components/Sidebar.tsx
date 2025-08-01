@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onModelsAdd
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['models', 'edit', 'draw'])
+    new Set(['models', 'edit'])
   );
 
   const toggleSection = (section: string) => {
@@ -59,10 +59,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'subtract-volume', name: 'Subtract Volume', icon: Minus },
   ];
 
-  const drawTools = [
-    { id: 'mask-brush', name: 'Mask Brush', icon: PaintBucket },
-    { id: 'bezier', name: 'Bezier Tool', icon: Ruler },
-  ];
 
   const SectionHeader = ({ 
     title, 
@@ -173,21 +169,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* Draw Tools Section */}
-      <div className="border-b border-slate-700">
-        <SectionHeader title="Draw Tools" sectionId="draw" icon={PaintBucket} />
-        {expandedSections.has('draw') && (
-          <div>
-            {drawTools.map((tool) => (
-              <ToolButton
-                key={tool.id}
-                tool={tool}
-                isActive={activeTool === tool.id}
-              />
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Tool Settings */}
       {activeTool && (
