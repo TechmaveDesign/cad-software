@@ -215,3 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
     </div>
+  );
+};
+
+export default Sidebar;
