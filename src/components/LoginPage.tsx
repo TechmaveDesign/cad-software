@@ -335,7 +335,131 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       </div>
 
       {/* Right Side - 3D Model and Stats */}
-            <div className="relative w-64 h-80">
+      <div className="flex-1 bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col items-center justify-center p-12 relative overflow-hidden">
+        {/* Stats Section */}
+        <div className="text-center mb-16 z-10">
+          <div className="text-6xl font-bold text-white mb-4">50,000+</div>
+          <div className="text-slate-400 text-xl">generated dental models.</div>
+        </div>
+
+        {/* 3D Model Container */}
+        <div className="relative">
+          <div className="relative w-64 h-64">
+            <div 
+              className="absolute inset-0 flex items-center justify-center"
+              style={{
+                perspective: '800px',
+                transformStyle: 'preserve-3d'
+              }}
+            >
+              <div 
+                className="relative"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transform: 'rotateX(-15deg) rotateY(25deg)',
+                  animation: 'float 6s ease-in-out infinite'
+                }}
+              >
+                {/* Front Face */}
+                <div 
+                  className="absolute bg-gradient-to-br from-slate-600 to-slate-700"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: '80px',
+                    height: '160px',
+                    transform: 'translateZ(40px)',
+                    marginLeft: '-40px',
+                    marginTop: '-80px',
+                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(71, 85, 105, 0.5)'
+                  }}
+                ></div>
+                
+                {/* Back Face */}
+                <div 
+                  className="absolute bg-gradient-to-br from-slate-700 to-slate-800"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: '80px',
+                    height: '160px',
+                    transform: 'translateZ(-40px) rotateY(180deg)',
+                    marginLeft: '-40px',
+                    marginTop: '-80px',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(51, 65, 85, 0.5)'
+                  }}
+                ></div>
+                
+                {/* Right Face */}
+                <div 
+                  className="absolute bg-gradient-to-br from-slate-500 to-slate-600"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: '80px',
+                    height: '160px',
+                    transform: 'rotateY(90deg) translateZ(40px)',
+                    marginLeft: '-40px',
+                    marginTop: '-80px',
+                    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.35)',
+                    border: '1px solid rgba(100, 116, 139, 0.5)'
+                  }}
+                ></div>
+                
+                {/* Left Face */}
+                <div 
+                  className="absolute bg-gradient-to-br from-slate-700 to-slate-800"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: '80px',
+                    height: '160px',
+                    transform: 'rotateY(-90deg) translateZ(40px)',
+                    marginLeft: '-40px',
+                    marginTop: '-80px',
+                    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.35)',
+                    border: '1px solid rgba(51, 65, 85, 0.5)'
+                  }}
+                ></div>
+                
+                {/* Top Face */}
+                <div 
+                  className="absolute bg-gradient-to-br from-slate-400 to-slate-500"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: '80px',
+                    height: '80px',
+                    transform: 'rotateX(90deg) translateZ(80px)',
+                    marginLeft: '-40px',
+                    marginTop: '-40px',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(148, 163, 184, 0.5)'
+                  }}
+                ></div>
+                
+                {/* Bottom Face */}
+                <div 
+                  className="absolute bg-gradient-to-br from-slate-800 to-slate-900"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: '80px',
+                    height: '80px',
+                    transform: 'rotateX(-90deg) translateZ(80px)',
+                    marginLeft: '-40px',
+                    marginTop: '-40px',
+                    boxShadow: '0 12px 24px rgba(0, 0, 0, 0.5)',
+                    border: '1px solid rgba(30, 41, 59, 0.5)'
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
@@ -345,145 +469,51 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         </div>
 
         {/* Large "3D" Background Text */}
-                    transform: 'rotateX(-15deg) rotateY(25deg)',
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div 
             className="text-[20rem] font-black text-slate-700/20 select-none leading-none tracking-wider"
             style={{
+              transform: 'rotateX(-15deg) rotateY(25deg)',
               background: 'linear-gradient(to bottom, rgba(51, 65, 85, 0.3) 0%, rgba(51, 65, 85, 0.05) 100%)',
               WebkitBackgroundClip: 'text',
               backgroundClip: 'text'
             }}
           >
-                      marginLeft: '-40px',
-                      marginTop: '-80px',
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.4)',
-                      border: '1px solid rgba(71, 85, 105, 0.5)'
-          <div className="text-slate-400 text-xl">generated dental models.</div>
+            3D
+          </div>
         </div>
 
-        {/* 3D Model Container */}
-        <div className="relative">
-                    className="absolute bg-gradient-to-br from-slate-700 to-slate-800"
-          <div className="relative w-64 h-64">
-                      width: '80px',
-                      height: '160px',
-                      transform: 'translateZ(-40px) rotateY(180deg)',
-              transformStyle: 'preserve-3d'
-            }}>
-                      marginLeft: '-40px',
-                      marginTop: '-80px',
-                      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                      border: '1px solid rgba(51, 65, 85, 0.5)'
-                  transformStyle: 'preserve-3d',
-                  transform: 'rotateX(-15deg) rotateY(25deg)',
-                  animation: 'float 6s ease-in-out infinite'
-                }}
-              >
-                    className="absolute bg-gradient-to-br from-slate-500 to-slate-600"
-                <div 
-                      width: '80px',
-                      height: '160px',
-                      transform: 'rotateY(90deg) translateZ(40px)',
-                    left: '50%',
-                    top: '50%',
-                      marginLeft: '-40px',
-                      marginTop: '-80px',
-                      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.35)',
-                      border: '1px solid rgba(100, 116, 139, 0.5)'
-                
-                {/* Back Face */}
-                <div 
-                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600"
-                  style={{
-                    className="absolute bg-gradient-to-br from-slate-700 to-slate-800"
-                    left: '50%',
-                      width: '80px',
-                      height: '160px',
-                      transform: 'rotateY(-90deg) translateZ(40px)',
-                  }}
-                ></div>
-                      marginLeft: '-40px',
-                      marginTop: '-80px',
-                      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.35)',
-                      border: '1px solid rgba(51, 65, 85, 0.5)'
-                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-650 to-slate-750 border border-slate-550"
-                  style={{
-                    transform: 'rotateY(90deg) translateZ(64px)',
-                    left: '50%',
-                    top: '50%',
-                    className="absolute bg-gradient-to-br from-slate-400 to-slate-500"
-                    marginTop: '-64px',
-                      width: '80px',
-                      height: '80px',
-                      transform: 'rotateX(90deg) translateZ(80px)',
-                
-                {/* Left Face */}
-                      marginLeft: '-40px',
-                      marginTop: '-40px',
-                      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                      border: '1px solid rgba(148, 163, 184, 0.5)'
-                    transform: 'rotateY(-90deg) translateZ(64px)',
-                    left: '50%',
-                    top: '50%',
-                    marginLeft: '-64px',
-                    marginTop: '-64px'
-                    className="absolute bg-gradient-to-br from-slate-800 to-slate-900"
-                ></div>
-                      width: '80px',
-                      height: '80px',
-                      transform: 'rotateX(-90deg) translateZ(80px)',
-                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-500 to-slate-600 border border-slate-400"
-                  style={{
-                      marginLeft: '-40px',
-                      marginTop: '-40px',
-                      boxShadow: '0 12px 24px rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(30, 41, 59, 0.5)'
-                    marginLeft: '-64px',
-                    marginTop: '-64px'
-                  }}
-                ></div>
-                
-                {/* Bottom Face */}
-              <div className="absolute top-16 left-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-              <div className="absolute top-16 right-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-              <div className="absolute bottom-16 left-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-              <div className="absolute bottom-16 right-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-              <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
-              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
-                    marginLeft: '-64px',
-              {/* Horizontal Orbital Circle with Arrow */}
-                  }}
-                ></div>
-              </div>
-                  className="border border-slate-600 rounded-full relative opacity-60"
+        {/* Floating Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 left-20 w-2 h-2 bg-blue-400 rounded-full opacity-60 animate-pulse"></div>
+          <div className="absolute top-32 right-32 w-3 h-3 bg-purple-400 rounded-full opacity-40 animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-32 left-32 w-2 h-2 bg-blue-300 rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-300 rounded-full opacity-60 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+        </div>
 
-                    width: '320px',
-                    height: '320px'
-            <div className="absolute bottom-12 left-12 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-12 right-12 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
-
-            {/* Orbital Circle with Arrow */}
-                      top: '-8px',
-              <div 
-                      transform: 'translate(-50%, 0)',
-                      animation: 'orbitArrow 8s linear infinite'
-                  animation: 'rotate 8s linear infinite'
-                }}
-              >
-                {/* Arrow on the circle */}
-                <div 
-                  className="absolute w-0 h-0 -top-2 left-1/2 transform -translate-x-1/2"
-                  style={{
-                        borderBottom: '12px solid #8b5cf6',
-                        transform: 'rotate(90deg)'
-                    borderRight: '8px solid transparent',
-                    borderBottom: '12px solid #8b5cf6'
-                  }}
-                ></div>
-              </div>
-            </div>
+        {/* Orbital Circle with Arrow */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div 
+            className="border border-slate-600 rounded-full relative opacity-60"
+            style={{
+              width: '320px',
+              height: '320px',
+              animation: 'rotate 8s linear infinite'
+            }}
+          >
+            {/* Arrow on the circle */}
+            <div 
+              className="absolute w-0 h-0 -top-2 left-1/2 transform -translate-x-1/2"
+              style={{
+                top: '-8px',
+                transform: 'translate(-50%, 0)',
+                animation: 'orbitArrow 8s linear infinite',
+                borderLeft: '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderBottom: '12px solid #8b5cf6',
+                transform: 'rotate(90deg)'
+              }}
+            ></div>
           </div>
         </div>
 
