@@ -95,9 +95,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       onClick={() => onToolSelect(tool.id)}
       className={`w-full flex items-center space-x-3 px-4 py-3 text-sm transition-colors duration-200 ${
         isActive
-          ? 'bg-blue-600 text-white'
+          ? 'text-white'
           : 'text-slate-400 hover:text-white hover:bg-slate-700'
       }`}
+      style={{ 
+        backgroundColor: isActive ? '#4fc6c2' : 'transparent'
+      }}
     >
       <tool.icon size={16} />
       <span>{tool.name}</span>

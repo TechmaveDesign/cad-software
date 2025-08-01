@@ -135,6 +135,12 @@ const ToothLibrary: React.FC<ToothLibraryProps> = ({ isOpen, onClose, onToothSel
                 <p className="text-slate-400 text-xs capitalize">{tooth.category}</p>
                 <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-md transition-colors duration-200 flex items-center justify-center space-x-1">
+                  <button 
+                    className="w-full text-white text-xs py-2 rounded-md transition-colors duration-200 flex items-center justify-center space-x-1"
+                    style={{ backgroundColor: '#4fc6c2' }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
+                  >
                     <Plus size={12} />
                     <span>Add to Scene</span>
                   </button>
@@ -164,7 +170,10 @@ const ToothLibrary: React.FC<ToothLibraryProps> = ({ isOpen, onClose, onToothSel
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+              className="px-4 py-2 text-white rounded-lg transition-colors duration-200"
+              style={{ backgroundColor: '#4fc6c2' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
             >
               Close
             </button>

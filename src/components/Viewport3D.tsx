@@ -823,9 +823,12 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
             onClick={toggleGrid}
             className={`px-3 py-1 rounded text-xs transition-colors duration-200 flex items-center space-x-1 ${
               showGrid
-                ? 'bg-blue-600 text-white'
+                ? 'text-white'
                 : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
             }`}
+            style={{ 
+              backgroundColor: showGrid ? '#4fc6c2' : undefined
+            }}
           >
             <Grid3X3 size={12} />
             <span>Grid</span>

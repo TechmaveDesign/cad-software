@@ -109,9 +109,12 @@ const CameraControls: React.FC<CameraControlsProps> = ({
               onClick={onToggleOrthographic}
               className={`p-2 rounded transition-colors duration-200 ${
                 isOrthographic
-                  ? 'bg-blue-600 text-white'
+                  ? 'text-white'
                   : 'text-slate-300 hover:text-white hover:bg-slate-600'
               }`}
+              style={{ 
+                backgroundColor: isOrthographic ? '#4fc6c2' : undefined
+              }}
               title={`Switch to ${isOrthographic ? 'Perspective' : 'Orthographic'} View`}
             >
               <Eye size={16} />

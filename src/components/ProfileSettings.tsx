@@ -147,7 +147,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
           <div className="flex items-center space-x-4">
             <button
               onClick={onBackToWorkspace}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+              className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg transition-colors duration-200"
+              style={{ backgroundColor: '#4fc6c2' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
             >
               <ArrowLeft size={16} />
               <span>Back to Workspace</span>
@@ -170,7 +173,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
           <div className="mb-8">
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <div className="w-24 h-24 bg-blue-600 rounded-2xl flex items-center justify-center overflow-hidden">
+                <div className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#4fc6c2' }}>
                   {profile.profileImage ? (
                     <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -205,9 +208,15 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                       type="text"
                       value={profile.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                        errors.name ? 'border-red-500' : 'border-slate-600 focus:border-blue-500'
+                      className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                        errors.name ? 'border-red-500' : 'border-slate-600'
                       }`}
+                      style={{ 
+                        focusBorderColor: '#4fc6c2',
+                        '--tw-ring-color': '#4fc6c2'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                      onBlur={(e) => e.target.style.borderColor = errors.name ? '#ef4444' : '#475569'}
                       placeholder="Enter your full name"
                     />
                     {errors.name && (
@@ -224,9 +233,15 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                         type="email"
                         value={profile.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className={`flex-1 px-4 py-3 bg-slate-800 border rounded-l-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                          errors.email ? 'border-red-500' : 'border-slate-600 focus:border-blue-500'
+                        className={`flex-1 px-4 py-3 bg-slate-800 border rounded-l-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                          errors.email ? 'border-red-500' : 'border-slate-600'
                         }`}
+                        style={{ 
+                          focusBorderColor: '#4fc6c2',
+                          '--tw-ring-color': '#4fc6c2'
+                        }}
+                        onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                        onBlur={(e) => e.target.style.borderColor = errors.email ? '#ef4444' : '#475569'}
                         placeholder="Enter your email address"
                       />
                       <div className="flex items-center px-4 bg-slate-700 border border-l-0 border-slate-600 rounded-r-lg">
@@ -246,9 +261,15 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                       type="tel"
                       value={profile.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                        errors.phone ? 'border-red-500' : 'border-slate-600 focus:border-blue-500'
+                      className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                        errors.phone ? 'border-red-500' : 'border-slate-600'
                       }`}
+                      style={{ 
+                        focusBorderColor: '#4fc6c2',
+                        '--tw-ring-color': '#4fc6c2'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                      onBlur={(e) => e.target.style.borderColor = errors.phone ? '#ef4444' : '#475569'}
                       placeholder="Enter your phone number"
                     />
                     {errors.phone && (
@@ -280,7 +301,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                 <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#4fc6c2' }}>
                         <Shield size={20} className="text-white" />
                       </div>
                       <div>
@@ -309,7 +330,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                 
                 <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                   <div className="flex items-center space-x-4 mb-6">
-                    <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center overflow-hidden">
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#4fc6c2' }}>
                       {profile.profileImage ? (
                         <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
@@ -347,8 +368,17 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                   className={`w-full flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors duration-200 ${
                     isLoading
                       ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'text-white'
                   }`}
+                  style={{ 
+                    backgroundColor: isLoading ? '#475569' : '#4fc6c2',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) e.target.style.backgroundColor = '#3fb3af';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading) e.target.style.backgroundColor = '#4fc6c2';
+                  }}
                 >
                   <Save size={16} />
                   <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>

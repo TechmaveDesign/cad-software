@@ -211,7 +211,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center space-x-3 mb-12">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#4fc6c2' }}>
               <span className="text-white font-bold text-lg">3D</span>
             </div>
             <span className="text-white font-bold text-xl">DentalCAD Pro</span>
@@ -275,9 +275,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="Your email address"
-                      className={`w-full pl-10 pr-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                        errors.email ? 'border-red-500' : 'border-slate-700 focus:border-blue-500'
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                        errors.email ? 'border-red-500' : 'border-slate-700'
                       }`}
+                      style={{ 
+                        focusBorderColor: '#4fc6c2',
+                        '--tw-ring-color': '#4fc6c2'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                      onBlur={(e) => e.target.style.borderColor = errors.email ? '#ef4444' : '#475569'}
                     />
                   </div>
                   {errors.email && (
@@ -291,7 +297,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                     <button
                       type="button"
                       onClick={handleForgotPassword}
-                      className="text-blue-400 hover:text-blue-300 text-sm transition-colors duration-200"
+                      className="text-sm transition-colors duration-200"
+                      style={{ color: '#4fc6c2' }}
+                      onMouseEnter={(e) => e.target.style.color = '#3fb3af'}
+                      onMouseLeave={(e) => e.target.style.color = '#4fc6c2'}
                     >
                       Forgot password?
                     </button>
@@ -303,9 +312,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
                       placeholder="Your password"
-                      className={`w-full pl-10 pr-12 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                        errors.password ? 'border-red-500' : 'border-slate-700 focus:border-blue-500'
+                      className={`w-full pl-10 pr-12 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                        errors.password ? 'border-red-500' : 'border-slate-700'
                       }`}
+                      style={{ 
+                        focusBorderColor: '#4fc6c2',
+                        '--tw-ring-color': '#4fc6c2'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                      onBlur={(e) => e.target.style.borderColor = errors.password ? '#ef4444' : '#475569'}
                     />
                     <button
                       type="button"
@@ -326,8 +341,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg font-medium transition-colors duration-200 ${
                     isLoading
                       ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'text-white'
                   }`}
+                  style={{ 
+                    backgroundColor: isLoading ? '#475569' : '#4fc6c2',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) e.target.style.backgroundColor = '#3fb3af';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading) e.target.style.backgroundColor = '#4fc6c2';
+                  }}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
@@ -344,7 +368,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             <>
               {/* 2FA Verification */}
               <div className="mb-8">
-                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#4fc6c2' }}>
                   <Shield size={32} className="text-white" />
                 </div>
                 <h1 className="text-white text-3xl font-bold mb-2 text-center">Two-Factor Authentication</h1>
@@ -364,9 +388,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                     value={formData.twoFactorCode}
                     onChange={(e) => handleInputChange('twoFactorCode', e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
-                    className={`w-full px-4 py-4 bg-slate-800 border rounded-lg text-white text-center text-2xl font-mono tracking-widest placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                      errors.twoFactorCode ? 'border-red-500' : 'border-slate-700 focus:border-blue-500'
+                    className={`w-full px-4 py-4 bg-slate-800 border rounded-lg text-white text-center text-2xl font-mono tracking-widest placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                      errors.twoFactorCode ? 'border-red-500' : 'border-slate-700'
                     }`}
+                    style={{ 
+                      focusBorderColor: '#4fc6c2',
+                      '--tw-ring-color': '#4fc6c2'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                    onBlur={(e) => e.target.style.borderColor = errors.twoFactorCode ? '#ef4444' : '#475569'}
                     maxLength={6}
                     autoComplete="one-time-code"
                   />
@@ -378,8 +408,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg font-medium transition-colors duration-200 ${
                     isLoading || formData.twoFactorCode.length !== 6
                       ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'text-white'
                   }`}
+                  style={{ 
+                    backgroundColor: (isLoading || formData.twoFactorCode.length !== 6) ? '#475569' : '#4fc6c2',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading && formData.twoFactorCode.length === 6) e.target.style.backgroundColor = '#3fb3af';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading && formData.twoFactorCode.length === 6) e.target.style.backgroundColor = '#4fc6c2';
+                  }}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
@@ -395,7 +434,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   <button
                     type="button"
                     onClick={resend2FACode}
-                    className="text-blue-400 hover:text-blue-300 text-sm transition-colors duration-200"
+                    className="text-sm transition-colors duration-200"
+                    style={{ color: '#4fc6c2' }}
+                    onMouseEnter={(e) => e.target.style.color = '#3fb3af'}
+                    onMouseLeave={(e) => e.target.style.color = '#4fc6c2'}
                   >
                     Didn't receive a code? Resend
                   </button>
@@ -416,7 +458,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             <>
               {/* Forgot Password */}
               <div className="mb-8">
-                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#4fc6c2' }}>
                   <Mail size={32} className="text-white" />
                 </div>
                 <h1 className="text-white text-3xl font-bold mb-2 text-center">Reset Password</h1>
@@ -439,9 +481,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                       value={formData.resetEmail}
                       onChange={(e) => handleInputChange('resetEmail', e.target.value)}
                       placeholder="Enter your email address"
-                      className={`w-full pl-10 pr-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                        errors.resetEmail ? 'border-red-500' : 'border-slate-700 focus:border-blue-500'
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                        errors.resetEmail ? 'border-red-500' : 'border-slate-700'
                       }`}
+                      style={{ 
+                        focusBorderColor: '#4fc6c2',
+                        '--tw-ring-color': '#4fc6c2'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                      onBlur={(e) => e.target.style.borderColor = errors.resetEmail ? '#ef4444' : '#475569'}
                       autoComplete="email"
                     />
                   </div>
@@ -453,8 +501,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg font-medium transition-colors duration-200 ${
                     isLoading
                       ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'text-white'
                   }`}
+                  style={{ 
+                    backgroundColor: isLoading ? '#475569' : '#4fc6c2',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) e.target.style.backgroundColor = '#3fb3af';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading) e.target.style.backgroundColor = '#4fc6c2';
+                  }}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
@@ -481,7 +538,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             <>
               {/* Forgot Password 2FA Verification */}
               <div className="mb-8">
-                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#4fc6c2' }}>
                   <Shield size={32} className="text-white" />
                 </div>
                 <h1 className="text-white text-3xl font-bold mb-2 text-center">Verify Reset Code</h1>
@@ -501,9 +558,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                     value={formData.resetCode}
                     onChange={(e) => handleInputChange('resetCode', e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
-                    className={`w-full px-4 py-4 bg-slate-800 border rounded-lg text-white text-center text-2xl font-mono tracking-widest placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
-                      errors.resetCode ? 'border-red-500' : 'border-slate-700 focus:border-blue-500'
+                    className={`w-full px-4 py-4 bg-slate-800 border rounded-lg text-white text-center text-2xl font-mono tracking-widest placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                      errors.resetCode ? 'border-red-500' : 'border-slate-700'
                     }`}
+                    style={{ 
+                      focusBorderColor: '#4fc6c2',
+                      '--tw-ring-color': '#4fc6c2'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                    onBlur={(e) => e.target.style.borderColor = errors.resetCode ? '#ef4444' : '#475569'}
                     maxLength={6}
                     autoComplete="one-time-code"
                   />
@@ -515,8 +578,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg font-medium transition-colors duration-200 ${
                     isLoading || formData.resetCode.length !== 6
                       ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'text-white'
                   }`}
+                  style={{ 
+                    backgroundColor: (isLoading || formData.resetCode.length !== 6) ? '#475569' : '#4fc6c2',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading && formData.resetCode.length === 6) e.target.style.backgroundColor = '#3fb3af';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading && formData.resetCode.length === 6) e.target.style.backgroundColor = '#4fc6c2';
+                  }}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
@@ -532,7 +604,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   <button
                     type="button"
                     onClick={resendResetCode}
-                    className="text-blue-400 hover:text-blue-300 text-sm transition-colors duration-200"
+                    className="text-sm transition-colors duration-200"
+                    style={{ color: '#4fc6c2' }}
+                    onMouseEnter={(e) => e.target.style.color = '#3fb3af'}
+                    onMouseLeave={(e) => e.target.style.color = '#4fc6c2'}
                   >
                     Didn't receive a code? Resend
                   </button>

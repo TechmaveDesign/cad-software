@@ -91,9 +91,12 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       onClick={() => onToolSelect(tool.id)}
       className={`relative group flex flex-col items-center p-2 rounded-lg transition-all duration-200 ${
         activeTool === tool.id
-          ? 'bg-blue-600 text-white shadow-md scale-105'
+          ? 'text-white shadow-md scale-105'
           : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-sm'
       }`}
+      style={{ 
+        backgroundColor: activeTool === tool.id ? '#4fc6c2' : undefined
+      }}
       title={tool.description}
     >
       <tool.icon size={18} />
@@ -103,7 +106,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       
       {/* Active indicator */}
       {activeTool === tool.id && (
-        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full border border-slate-800"></div>
+        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-slate-800" style={{ backgroundColor: '#4fc6c2' }}></div>
       )}
     </button>
   );
@@ -137,9 +140,12 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                 onClick={() => setShowSettings(!showSettings)}
                 className={`relative group flex flex-col items-center p-2 rounded-lg transition-all duration-200 ${
                   showSettings
-                    ? 'bg-blue-600 text-white shadow-md scale-105'
+                   ? 'text-white shadow-md scale-105'
                     : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-sm'
                 }`}
+               style={{ 
+                 backgroundColor: showSettings ? '#4fc6c2' : undefined
+               }}
                 title="Tool Settings"
               >
                 <Settings size={18} />
@@ -147,7 +153,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   Settings
                 </span>
                 {showSettings && (
-                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full border border-slate-800"></div>
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-slate-800" style={{ backgroundColor: '#4fc6c2' }}></div>
                 )}
               </button>
             </div>
@@ -185,7 +191,8 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.brushSize}
                   onChange={(e) => handleSettingChange('brushSize', parseFloat(e.target.value))}
-                  className="w-full h-2 accent-blue-600"
+                  className="w-full h-2"
+                  style={{ accentColor: '#4fc6c2' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.brushSize}mm</div>
               </div>
@@ -198,7 +205,8 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.brushOpacity}
                   onChange={(e) => handleSettingChange('brushOpacity', parseFloat(e.target.value))}
-                  className="w-full h-2 accent-blue-600"
+                  className="w-full h-2"
+                  style={{ accentColor: '#4fc6c2' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{Math.round(settings.brushOpacity * 100)}%</div>
               </div>
@@ -228,7 +236,8 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.pencilSize}
                   onChange={(e) => handleSettingChange('pencilSize', parseFloat(e.target.value))}
-                  className="w-full h-2 accent-blue-600"
+                  className="w-full h-2"
+                  style={{ accentColor: '#4fc6c2' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.pencilSize}mm</div>
               </div>
@@ -258,7 +267,8 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.lineWidth}
                   onChange={(e) => handleSettingChange('lineWidth', parseFloat(e.target.value))}
-                  className="w-full h-2 accent-blue-600"
+                  className="w-full h-2"
+                  style={{ accentColor: '#4fc6c2' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.lineWidth}mm</div>
               </div>
@@ -288,7 +298,10 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
               </button>
               <button 
                 onClick={handleSaveDrawing}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition-colors duration-200"
+               className="px-3 py-1.5 text-white rounded-md text-sm transition-colors duration-200"
+               style={{ backgroundColor: '#4fc6c2' }}
+               onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
+               onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
               >
                 Save Drawing
               </button>
