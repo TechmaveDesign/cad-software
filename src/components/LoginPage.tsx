@@ -351,13 +351,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             style={{
               background: 'linear-gradient(to bottom, rgba(51, 65, 85, 0.3) 0%, rgba(51, 65, 85, 0.05) 100%)',
               WebkitBackgroundClip: 'text',
-                    className="absolute bg-gradient-to-br from-slate-600 to-slate-700"
               backgroundClip: 'text'
-                      width: '80px',
-                      height: '160px',
-                      transform: 'translateZ(40px)',
-          </div>
-        </div>
+            }}
+          >
                       marginLeft: '-40px',
                       marginTop: '-80px',
                       boxShadow: '0 8px 16px rgba(0, 0, 0, 0.4)',
