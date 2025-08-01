@@ -170,50 +170,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
 
-      {/* Tool Settings */}
-      {activeTool && (
-        <div className="flex-1 p-4">
-          <h3 className="text-slate-300 font-medium mb-4">Tool Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-slate-400 text-sm mb-2">Spacer (mm)</label>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                defaultValue="0.05"
-                className="w-full"
-              />
-              <div className="text-slate-500 text-xs mt-1">0.05mm</div>
-            </div>
-            <div>
-              <label className="block text-slate-400 text-sm mb-2">Thickness (mm)</label>
-              <input
-                type="range"
-                min="0.5"
-                max="5"
-                step="0.1"
-                defaultValue="1.75"
-                className="w-full"
-              />
-              <div className="text-slate-500 text-xs mt-1">1.75mm</div>
-            </div>
-            <div>
-              <label className="block text-slate-400 text-sm mb-2">Taper Angle (°)</label>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                step="0.5"
-                defaultValue="0"
-                className="w-full"
-              />
-              <div className="text-slate-500 text-xs mt-1">0°</div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
