@@ -103,11 +103,6 @@ function App() {
   return (
     <div className="h-screen flex flex-col bg-slate-900">
       <Navbar />
-      <DrawingToolbar
-        activeTool={activeTool}
-        onToolSelect={handleToolSelect}
-        onSettingsChange={handleDrawingSettingsChange}
-      />
       <CameraControls
         onResetView={() => {}}
         onZoomIn={() => {}}
@@ -121,7 +116,7 @@ function App() {
         isOrthographic={isOrthographic}
         onModelTranslate={handleModelTranslate}
       />
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         <Sidebar
           models={models}
           onModelVisibilityToggle={handleModelVisibilityToggle}
@@ -148,6 +143,15 @@ function App() {
           drawingSettings={drawingSettings}
           isOrthographic={isOrthographic}
         />
+        
+        {/* Fixed Bottom Drawing Toolbar */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+          <DrawingToolbar
+            activeTool={activeTool}
+            onToolSelect={handleToolSelect}
+            onSettingsChange={handleDrawingSettingsChange}
+          />
+        </div>
       </div>
       
       <ToothLibrary
