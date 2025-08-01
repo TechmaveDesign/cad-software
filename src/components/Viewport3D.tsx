@@ -686,7 +686,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
       transformControlsRef.current.detach();
       selectedModelRef.current = null;
     }
-  }, [activeTool]);
+  }, [activeTool, isDrawing]);
 
 
   // Update scene when models change
@@ -769,7 +769,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
         );
       }
     });
-  }, [models, viewportSettings.wireframe]);
+  }, [models, viewportSettings.wireframe, onModelsChange]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newModels: STLModel[] = acceptedFiles.map((file, index) => ({
