@@ -205,7 +205,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="min-h-screen flex" style={{ backgroundColor: '#090909' }}>
       {/* Left Side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
