@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LoginPage from './components/LoginPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import DrawingToolbar from './components/DrawingToolbar';
@@ -10,6 +11,7 @@ import { STLModel, ToothModel } from './types';
 import { DrawingSettings } from './components/DrawingToolbar';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [models, setModels] = useState<STLModel[]>([]);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
@@ -107,6 +109,13 @@ function App() {
   if (showProfileSettings) {
     return (
       <ProfileSettings onBackToWorkspace={() => setShowProfileSettings(false)} />
+    );
+  }
+
+  // If not authenticated, show login page
+  if (!isAuthenticated) {
+    return (
+      <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
     );
   }
 
