@@ -346,15 +346,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
         {/* Large "3D" Background Text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div 
-            className="text-[20rem] font-black text-slate-700/20 select-none leading-none tracking-wider"
-            style={{
-              background: 'linear-gradient(to bottom, rgba(51, 65, 85, 0.3) 0%, rgba(51, 65, 85, 0.05) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
-          >
+          <div className="text-[20rem] font-black text-slate-700/20 select-none leading-none tracking-wider">
             3D
           </div>
         </div>
@@ -492,17 +484,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         {/* CSS Animations */}
         <style jsx>{`
           @keyframes float {
-            0%, 100% { transform: rotateX(-20deg) rotateY(30deg) translateY(0px); }
-            50% { transform: rotateX(-20deg) rotateY(30deg) translateY(-8px); }
+            0%, 100% { transform: rotateX(-15deg) rotateY(25deg) translateY(0px); }
+            50% { transform: rotateX(-15deg) rotateY(25deg) translateY(-10px); }
           }
           
-          @keyframes orbitArrow {
-            0% { 
-              transform: translate(-50%, -50%) rotate(0deg) translateX(128px) rotate(0deg);
-            }
-            100% { 
-              transform: translate(-50%, -50%) rotate(-360deg) translateX(128px) rotate(360deg);
-            }
+          @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
         `}</style>
       </div>
