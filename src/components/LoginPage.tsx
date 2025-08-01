@@ -653,9 +653,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
         </div>
 
         {/* 3D Model Container */}
-        <div className="relative mt-16">
+        <div className="relative flex-1 flex items-center justify-center">
           {/* 3D Dental Tooth Model */}
-          <div className="relative w-80 h-[700px]">
+          <div className="relative w-80 h-full max-h-[800px]">
             {/* 3D Tooth with CSS Transform */}
             <div className="relative w-full h-full" style={{ 
               perspective: '1000px',
@@ -673,15 +673,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 <div 
                   className="absolute border border-slate-500"
                   style={{
-                    width: '140px',
-                    height: '220px',
+                    width: '160px',
+                    height: '280px',
                     backgroundColor: '#f8fafc',
                     borderRadius: '60px 60px 20px 20px',
-                    transform: 'translateZ(60px)',
+                    transform: 'translateZ(70px)',
                     left: '50%',
-                    top: '50%',
-                    marginLeft: '-70px',
-                    marginTop: '-110px',
+                    top: '30%',
+                    marginLeft: '-80px',
+                    marginTop: '-140px',
                     boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
                   }}
                 ></div>
@@ -690,15 +690,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 <div 
                   className="absolute border border-slate-500"
                   style={{
-                    width: '140px',
-                    height: '220px',
+                    width: '160px',
+                    height: '280px',
                     backgroundColor: '#e2e8f0',
                     borderRadius: '60px 60px 20px 20px',
-                    transform: 'translateZ(-60px) rotateY(180deg)',
+                    transform: 'translateZ(-70px) rotateY(180deg)',
                     left: '50%',
-                    top: '50%',
-                    marginLeft: '-70px',
-                    marginTop: '-110px',
+                    top: '30%',
+                    marginLeft: '-80px',
+                    marginTop: '-140px',
                     boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
                   }}
                 ></div>
@@ -707,15 +707,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 <div 
                   className="absolute border border-slate-500"
                   style={{
-                    width: '140px',
-                    height: '220px',
+                    width: '160px',
+                    height: '280px',
                     backgroundColor: '#f1f5f9',
                     borderRadius: '60px 60px 20px 20px',
-                    transform: 'rotateY(90deg) translateZ(60px)',
+                    transform: 'rotateY(90deg) translateZ(70px)',
                     left: '50%',
-                    top: '50%',
-                    marginLeft: '-70px',
-                    marginTop: '-110px',
+                    top: '30%',
+                    marginLeft: '-80px',
+                    marginTop: '-140px',
                     boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
                   }}
                 ></div>
@@ -724,15 +724,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 <div 
                   className="absolute border border-slate-500"
                   style={{
-                    width: '140px',
-                    height: '220px',
+                    width: '160px',
+                    height: '280px',
                     backgroundColor: '#f1f5f9',
                     borderRadius: '60px 60px 20px 20px',
-                    transform: 'rotateY(-90deg) translateZ(60px)',
+                    transform: 'rotateY(-90deg) translateZ(70px)',
                     left: '50%',
-                    top: '50%',
-                    marginLeft: '-70px',
-                    marginTop: '-110px',
+                    top: '30%',
+                    marginLeft: '-80px',
+                    marginTop: '-140px',
                     boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
                   }}
                 ></div>
@@ -741,15 +741,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 <div 
                   className="absolute border border-slate-400"
                   style={{
-                    width: '140px',
-                    height: '140px',
+                    width: '160px',
+                    height: '160px',
                     backgroundColor: '#ffffff',
                     borderRadius: '50%',
-                    transform: 'rotateX(90deg) translateZ(110px)',
+                    transform: 'rotateX(90deg) translateZ(140px)',
                     left: '50%',
-                    top: '50%',
-                    marginLeft: '-70px',
-                    marginTop: '-70px',
+                    top: '30%',
+                    marginLeft: '-80px',
+                    marginTop: '-80px',
                     boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.1)'
                   }}
                 >
@@ -762,15 +762,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 <div 
                   className="absolute border border-slate-500"
                   style={{
-                    width: '100px',
-                    height: '280px',
+                    width: '120px',
+                    height: '400px',
                     backgroundColor: '#fef3c7',
                     borderRadius: '0 0 40px 40px',
-                    transform: 'rotateX(-90deg) translateZ(-140px)',
+                    transform: 'rotateX(-90deg) translateZ(-200px)',
                     left: '50%',
-                    top: '50%',
-                    marginLeft: '-50px',
-                    marginTop: '-140px',
+                    top: '30%',
+                    marginLeft: '-60px',
+                    marginTop: '-200px',
                     boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
                   }}
                 ></div>
@@ -778,26 +778,26 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             </div>
 
             {/* Tooth Measurement Points */}
-            <div className="absolute" style={{ top: '180px', left: '50%', transform: 'translateX(-50%)' }}>
+            <div className="absolute" style={{ top: '25%', left: '50%', transform: 'translateX(-50%)' }}>
               {/* 4 measurement points on tooth crown */}
               <div className="relative">
                 {/* Front measurement points */}
-                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ left: '-90px', top: '0px' }}></div>
-                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ right: '-90px', top: '0px' }}></div>
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ left: '-100px', top: '0px' }}></div>
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ right: '-100px', top: '0px' }}></div>
                 {/* Back measurement points */}
-                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ left: '-70px', top: '-20px' }}></div>
-                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ right: '-70px', top: '-20px' }}></div>
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ left: '-80px', top: '-20px' }}></div>
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ right: '-80px', top: '-20px' }}></div>
                 
                 {/* Measurement lines */}
-                <svg className="absolute" style={{ left: '-105px', top: '-35px', width: '210px', height: '50px' }}>
+                <svg className="absolute" style={{ left: '-115px', top: '-35px', width: '230px', height: '50px' }}>
                   {/* Front measurement line */}
-                  <line x1="15" y1="35" x2="195" y2="35" stroke="#3b82f6" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  <line x1="15" y1="35" x2="215" y2="35" stroke="#3b82f6" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
                   {/* Back measurement line */}
-                  <line x1="35" y1="15" x2="175" y2="15" stroke="#3b82f6" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  <line x1="35" y1="15" x2="195" y2="15" stroke="#3b82f6" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
                   {/* Left measurement line */}
                   <line x1="15" y1="25" x2="30" y2="10" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
                   {/* Right measurement line */}
-                  <line x1="195" y1="35" x2="175" y2="15" stroke="#3b82f6" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  <line x1="215" y1="35" x2="195" y2="15" stroke="#3b82f6" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
                 </svg>
               </div>
             </div>
