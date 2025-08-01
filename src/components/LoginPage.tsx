@@ -596,7 +596,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
       </div>
 
       {/* Right Side - 3D Model and Stats */}
-      <div className="flex-1 relative bg-black flex flex-col items-center justify-center overflow-hidden pl-16">
+      <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden pl-16" style={{
+        background: 'linear-gradient(to bottom, #0a0a0a 0%, #1a1a1a 50%, #000000 100%)'
+      }}>
         {/* Background Pattern */}
         <div className="absolute inset-0">
           {/* Grid Pattern */}
@@ -626,11 +628,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
           }}>10K+ dentists. 500K+ models</div>
           <div className="text-slate-400 text-xl">created with precision.</div>
           
-          {/* Join Now Button */}
+          {/* Software Description */}
           <div className="mt-8">
-            <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg">
-              Join Now
-            </button>
+            <div className="text-center">
+              <div className="text-slate-300 text-lg font-medium">Professional dental CAD software for precise modeling</div>
+              <div className="text-slate-400 text-base mt-1">Design, edit, and create dental prosthetics with advanced 3D tools</div>
+            </div>
           </div>
         </div>
 
