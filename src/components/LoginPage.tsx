@@ -370,7 +370,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             <>
               {/* 2FA Verification */}
               <div className="mb-8">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#28c489' }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: 'rgb(32 40 58)' }}>
                   <Shield size={32} className="text-white" />
                 </div>
                 <h1 className="text-white text-3xl font-bold mb-2 text-center">Two-Factor Authentication</h1>
@@ -460,7 +460,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             <>
               {/* Forgot Password */}
               <div className="mb-8">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#28c489' }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: 'rgb(32 40 58)' }}>
                   <Mail size={32} className="text-white" />
                 </div>
                 <h1 className="text-white text-3xl font-bold mb-2 text-center">Reset Password</h1>
@@ -540,7 +540,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             <>
               {/* Forgot Password 2FA Verification */}
               <div className="mb-8">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#28c489' }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: 'rgb(32 40 58)' }}>
                   <Shield size={32} className="text-white" />
                 </div>
                 <h1 className="text-white text-3xl font-bold mb-2 text-center">Verify Reset Code</h1>

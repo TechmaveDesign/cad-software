@@ -301,7 +301,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                 <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#28c489' }}>
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgb(32 40 58)' }}>
                         <Shield size={20} className="text-white" />
                       </div>
                       <div>
