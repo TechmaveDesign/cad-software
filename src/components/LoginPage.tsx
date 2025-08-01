@@ -655,7 +655,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
         {/* 3D Model Container */}
         <div className="relative mt-16">
           {/* 3D Cube Model */}
-          <div className="relative w-64 h-[500px]">
+          <div className="relative w-64 h-[600px]">
             {/* 3D Cube with CSS Transform */}
             <div className="relative w-full h-full" style={{ 
               perspective: '1000px',
@@ -674,13 +674,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className="absolute border border-slate-600"
                   style={{
                     width: '160px',
-                    height: '240px',
+                    height: '300px',
                     backgroundColor: '#0f0f0f',
                     transform: 'translateZ(80px)',
                     left: '50%',
                     top: '50%',
                     marginLeft: '-80px',
-                    marginTop: '-120px'
+                    marginTop: '-150px'
                   }}
                 ></div>
                 
@@ -689,13 +689,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className="absolute border border-slate-600"
                   style={{
                     width: '160px',
-                    height: '240px',
+                    height: '300px',
                     backgroundColor: '#0f0f0f',
                     transform: 'translateZ(-80px) rotateY(180deg)',
                     left: '50%',
                     top: '50%',
                     marginLeft: '-80px',
-                    marginTop: '-120px'
+                    marginTop: '-150px'
                   }}
                 ></div>
                 
@@ -704,13 +704,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className="absolute border border-slate-600"
                   style={{
                     width: '160px',
-                    height: '240px',
+                    height: '300px',
                     backgroundColor: '#0f0f0f',
                     transform: 'rotateY(90deg) translateZ(80px)',
                     left: '50%',
                     top: '50%',
                     marginLeft: '-80px',
-                    marginTop: '-120px'
+                    marginTop: '-150px'
                   }}
                 ></div>
                 
@@ -719,13 +719,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                   className="absolute border border-slate-600"
                   style={{
                     width: '160px',
-                    height: '240px',
+                    height: '300px',
                     backgroundColor: '#0f0f0f',
                     transform: 'rotateY(-90deg) translateZ(80px)',
                     left: '50%',
                     top: '50%',
                     marginLeft: '-80px',
-                    marginTop: '-120px'
+                    marginTop: '-150px'
                   }}
                 ></div>
                 
@@ -736,8 +736,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                     width: '160px',
                     height: '160px',
                     backgroundColor: '#262a30',
-                    borderRadius: '12px',
-                    transform: 'rotateX(90deg) translateZ(120px)',
+                    borderRadius: '8px',
+                    transform: 'rotateX(90deg) translateZ(150px)',
                     left: '50%',
                     top: '50%',
                     marginLeft: '-80px',
@@ -752,7 +752,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                     width: '160px',
                     height: '160px',
                     backgroundColor: '#0f0f0f',
-                    transform: 'rotateX(-90deg) translateZ(120px)',
+                    transform: 'rotateX(-90deg) translateZ(150px)',
                     left: '50%',
                     top: '50%',
                     marginLeft: '-80px',
@@ -762,18 +762,44 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
               </div>
             </div>
 
-            {/* Corner Dots */}
-            <div className="absolute top-12 left-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute top-12 right-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-12 left-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-12 right-20 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
+            {/* Top Layer Corner Dots with Dashed Lines */}
+            <div className="absolute" style={{ top: '80px', left: '50%', transform: 'translateX(-50%)' }}>
+              {/* Top layer dots positioned around the cube top */}
+              <div className="relative">
+                {/* Front left dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-60px', top: '-10px' }}></div>
+                {/* Front right dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-60px', top: '-10px' }}></div>
+                {/* Back left dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-40px', top: '-30px' }}></div>
+                {/* Back right dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-40px', top: '-30px' }}></div>
+                {/* Top center dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-1px', top: '-25px' }}></div>
+                
+                {/* Dashed lines connecting the dots around top layer */}
+                <svg className="absolute" style={{ left: '-70px', top: '-40px', width: '140px', height: '60px' }}>
+                  {/* Front edge dashed line */}
+                  <line x1="10" y1="20" x2="130" y2="20" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  {/* Left edge dashed line */}
+                  <line x1="10" y1="20" x2="30" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  {/* Right edge dashed line */}
+                  <line x1="130" y1="20" x2="110" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  {/* Back edge dashed line */}
+                  <line x1="30" y1="5" x2="110" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  {/* Center connecting lines */}
+                  <line x1="70" y1="10" x2="30" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
+                  <line x1="70" y1="10" x2="110" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
+                  <line x1="70" y1="10" x2="10" y2="20" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
+                  <line x1="70" y1="10" x2="130" y2="20" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
+                </svg>
+              </div>
+            </div>
 
             {/* Orbital Circle with Arrow */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div 
-                className="w-80 h-80 border border-slate-600 rounded-full relative"
+                className="w-96 h-96 border border-slate-600 rounded-full relative"
                 style={{
                   animation: 'rotate 8s linear infinite',
                   transform: 'rotateX(75deg)'
