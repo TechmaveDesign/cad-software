@@ -298,9 +298,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     scene.add(directionalLight2);
 
     // Grid
-    if (viewportSettings.showGrid) {
+    if (showGrid) {
       const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x444444);
+      gridHelper.name = 'gridHelper';
       scene.add(gridHelper);
+      console.log('Initial grid added to scene');
     }
 
     // STL Loader
@@ -622,19 +624,35 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   useEffect(() => {
     if (!sceneRef.current) return;
     
-    // Remove existing grid
-    const existingGrid = sceneRef.current.getObjectByName('gridHelper');
-    if (existingGrid) {
-      sceneRef.current.remove(existingGrid);
-    }
+    // Remove existing grids
+    const existingGrids = [];
+    sceneRef.current.traverse((object) => {
+      if (object instanceof THREE.GridHelper) {
+        existingGrids.push(object);
+      }
+    });
+    
+    existingGrids.forEach(grid => {
+      sceneRef.current!.remove(grid);
+      grid.dispose();
+    });
+    
+    console.log('Grid visibility changed to:', showGrid);
     
     // Add new grid if enabled
-    if (viewportSettings.showGrid) {
+    if (showGrid) {
       const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x444444);
       gridHelper.name = 'gridHelper';
       sceneRef.current.add(gridHelper);
+      console.log('Grid added to scene');
+    } else {
+      console.log('Grid removed from scene');
     }
-  }, [viewportSettings.showGrid]);
+    
+    // Force re-render
+    if (rendererRef.current && cameraRef.current) {
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    }
   
   // Update transform controls when active tool changes
   useEffect(() => {
