@@ -5,6 +5,7 @@ import DrawingToolbar from './components/DrawingToolbar';
 import CameraControls from './components/CameraControls';
 import Viewport3D from './components/Viewport3D';
 import ToothLibrary from './components/ToothLibrary';
+import ProfileSettings from './components/ProfileSettings';
 import { STLModel, ToothModel } from './types';
 import { DrawingSettings } from './components/DrawingToolbar';
 
@@ -12,6 +13,7 @@ function App() {
   const [models, setModels] = useState<STLModel[]>([]);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [isOrthographic, setIsOrthographic] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [drawingSettings, setDrawingSettings] = useState<DrawingSettings>({
@@ -101,9 +103,16 @@ function App() {
     window.dispatchEvent(new CustomEvent('model-translate', { detail: { direction } }));
   };
 
+  // If profile settings is open, show only the profile page
+  if (showProfileSettings) {
+    return (
+      <ProfileSettings onBackToWorkspace={() => setShowProfileSettings(false)} />
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-slate-900">
-      <Navbar />
+      <Navbar onProfileClick={() => setShowProfileSettings(true)} />
       <CameraControls
         onResetView={() => {}}
         onZoomIn={() => {}}
