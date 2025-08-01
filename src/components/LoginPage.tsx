@@ -346,7 +346,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
         {/* Large "3D" Background Text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-[20rem] font-black text-slate-700/20 select-none leading-none tracking-wider">
+          <div 
+            className="text-[20rem] font-black text-slate-700/20 select-none leading-none tracking-wider"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(51, 65, 85, 0.3) 0%, rgba(51, 65, 85, 0.05) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
             3D
           </div>
         </div>
