@@ -492,13 +492,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         {/* CSS Animations */}
         <style jsx>{`
           @keyframes float {
-            0%, 100% { transform: rotateX(-15deg) rotateY(25deg) translateY(0px); }
-            50% { transform: rotateX(-15deg) rotateY(25deg) translateY(-10px); }
+            0%, 100% { transform: rotateX(-20deg) rotateY(30deg) translateY(0px); }
+            50% { transform: rotateX(-20deg) rotateY(30deg) translateY(-8px); }
           }
           
-          @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+          @keyframes orbitArrow {
+            0% { 
+              transform: translate(-50%, -50%) rotate(0deg) translateX(128px) rotate(0deg);
+            }
+            100% { 
+              transform: translate(-50%, -50%) rotate(-360deg) translateX(128px) rotate(360deg);
+            }
           }
         `}</style>
       </div>
