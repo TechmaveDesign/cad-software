@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Brush, Pencil, Spline, Hexagon as Polygon, Eraser, Palette, Settings, Move3D } from 'lucide-react';
 
 interface DrawingToolbarProps {
