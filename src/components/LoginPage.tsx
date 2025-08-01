@@ -597,19 +597,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
 
       {/* Right Side - 3D Model and Stats */}
       <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden pl-16" style={{
-        background: 'linear-gradient(to bottom, #0a0a0a 0%, #1a1a1a 50%, #000000 100%)'
+        backgroundImage: 'linear-gradient(rgb(9 9 9 / 10%) 1px, #0c0b11 1px), linear-gradient(90deg, #0c0b11 1px, #211f2d 1px)'
       }}>
         {/* Background Pattern */}
         <div className="absolute inset-0">
-          {/* Grid Pattern */}
-          <div className="absolute inset-0 opacity-20" style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px'
-          }}></div>
-          
           {/* Geometric shapes */}
           <div className="absolute top-20 left-20 w-2 h-2 bg-blue-500 rounded-full opacity-60"></div>
           <div className="absolute top-40 right-32 w-3 h-3 bg-purple-500 rounded-full opacity-40"></div>
