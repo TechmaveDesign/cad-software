@@ -99,7 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           : 'text-slate-400 hover:text-white hover:bg-slate-700'
       }`}
       style={{ 
-        backgroundColor: isActive ? '#4fc6c2' : 'transparent'
+        backgroundColor: isActive ? '#28c489' : 'transparent'
       }}
     >
       <tool.icon size={16} />

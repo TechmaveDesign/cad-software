@@ -136,9 +136,9 @@ const ToothLibrary: React.FC<ToothLibraryProps> = ({ isOpen, onClose, onToothSel
                 <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button 
                     className="w-full text-white text-xs py-2 rounded-md transition-colors duration-200 flex items-center justify-center space-x-1"
-                    style={{ backgroundColor: '#4fc6c2' }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
+                    style={{ backgroundColor: '#28c489' }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#22ae79'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#28c489'}
                   >
                     <Plus size={12} />
                     <span>Add to Scene</span>
@@ -170,9 +170,9 @@ const ToothLibrary: React.FC<ToothLibraryProps> = ({ isOpen, onClose, onToothSel
             <button
               onClick={onClose}
               className="px-4 py-2 text-white rounded-lg transition-colors duration-200"
-              style={{ backgroundColor: '#4fc6c2' }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
+              style={{ backgroundColor: '#28c489' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#22ae79'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#28c489'}
             >
               Close
             </button>

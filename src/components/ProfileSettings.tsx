@@ -148,9 +148,9 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
             <button
               onClick={onBackToWorkspace}
               className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg transition-colors duration-200"
-              style={{ backgroundColor: '#4fc6c2' }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
+              style={{ backgroundColor: '#28c489' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#22ae79'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#28c489'}
             >
               <ArrowLeft size={16} />
               <span>Back to Workspace</span>
@@ -173,7 +173,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
           <div className="mb-8">
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#4fc6c2' }}>
+                <div className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#28c489' }}>
                   {profile.profileImage ? (
                     <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -212,10 +212,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                         errors.name ? 'border-red-500' : 'border-slate-600'
                       }`}
                       style={{ 
-                        focusBorderColor: '#4fc6c2',
-                        '--tw-ring-color': '#4fc6c2'
+                        focusBorderColor: '#28c489',
+                        '--tw-ring-color': '#28c489'
                       }}
-                      onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                      onFocus={(e) => e.target.style.borderColor = '#28c489'}
                       onBlur={(e) => e.target.style.borderColor = errors.name ? '#ef4444' : '#475569'}
                       placeholder="Enter your full name"
                     />
@@ -237,10 +237,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                           errors.email ? 'border-red-500' : 'border-slate-600'
                         }`}
                         style={{ 
-                          focusBorderColor: '#4fc6c2',
-                          '--tw-ring-color': '#4fc6c2'
+                          focusBorderColor: '#28c489',
+                          '--tw-ring-color': '#28c489'
                         }}
-                        onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                        onFocus={(e) => e.target.style.borderColor = '#28c489'}
                         onBlur={(e) => e.target.style.borderColor = errors.email ? '#ef4444' : '#475569'}
                         placeholder="Enter your email address"
                       />
@@ -265,10 +265,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                         errors.phone ? 'border-red-500' : 'border-slate-600'
                       }`}
                       style={{ 
-                        focusBorderColor: '#4fc6c2',
-                        '--tw-ring-color': '#4fc6c2'
+                        focusBorderColor: '#28c489',
+                        '--tw-ring-color': '#28c489'
                       }}
-                      onFocus={(e) => e.target.style.borderColor = '#4fc6c2'}
+                      onFocus={(e) => e.target.style.borderColor = '#28c489'}
                       onBlur={(e) => e.target.style.borderColor = errors.phone ? '#ef4444' : '#475569'}
                       placeholder="Enter your phone number"
                     />
@@ -301,7 +301,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                 <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#4fc6c2' }}>
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#28c489' }}>
                         <Shield size={20} className="text-white" />
                       </div>
                       <div>
@@ -330,7 +330,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                 
                 <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                   <div className="flex items-center space-x-4 mb-6">
-                    <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#4fc6c2' }}>
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#28c489' }}>
                       {profile.profileImage ? (
                         <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
@@ -371,13 +371,13 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, on
                       : 'text-white'
                   }`}
                   style={{ 
-                    backgroundColor: isLoading ? '#475569' : '#4fc6c2',
+                    backgroundColor: isLoading ? '#475569' : '#28c489',
                   }}
                   onMouseEnter={(e) => {
-                    if (!isLoading) e.target.style.backgroundColor = '#3fb3af';
+                    if (!isLoading) e.target.style.backgroundColor = '#22ae79';
                   }}
                   onMouseLeave={(e) => {
-                    if (!isLoading) e.target.style.backgroundColor = '#4fc6c2';
+                    if (!isLoading) e.target.style.backgroundColor = '#28c489';
                   }}
                 >
                   <Save size={16} />

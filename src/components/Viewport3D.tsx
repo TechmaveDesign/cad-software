@@ -827,7 +827,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
                 : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
             }`}
             style={{ 
-              backgroundColor: showGrid ? '#4fc6c2' : undefined
+              backgroundColor: showGrid ? '#28c489' : undefined
             }}
           >
             <Grid3X3 size={12} />

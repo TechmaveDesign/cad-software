@@ -88,8 +88,8 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
           <div 
             className="pointer-events-none w-4 h-4 border-2 rounded-full bg-opacity-30"
             style={{ 
-              borderColor: '#4fc6c2',
-              backgroundColor: '#4fc6c2'
+              borderColor: '#28c489',
+              backgroundColor: '#28c489'
             }}
           />
         );

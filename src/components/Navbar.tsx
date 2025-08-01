@@ -32,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({ onProfileClick, onLogout }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#4fc6c2' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#28c489' }}>
               <span className="text-white font-bold text-sm">3D</span>
             </div>
             <span className="text-white font-semibold text-lg">DentalCAD Pro</span>
@@ -69,7 +69,7 @@ const Navbar: React.FC<NavbarProps> = ({ onProfileClick, onLogout }) => {
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                 className="flex items-center space-x-2 p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors duration-200"
               >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#4fc6c2' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#28c489' }}>
                   {user.avatar ? (
                     <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full" />
                   ) : (
@@ -88,7 +88,7 @@ const Navbar: React.FC<NavbarProps> = ({ onProfileClick, onLogout }) => {
                 <div className="absolute right-0 top-full mt-2 w-64 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50">
                   <div className="p-4 border-b border-slate-700">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#4fc6c2' }}>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#28c489' }}>
                         {user.avatar ? (
                           <img src={user.avatar} alt="Profile" className="w-12 h-12 rounded-full" />
                         ) : (

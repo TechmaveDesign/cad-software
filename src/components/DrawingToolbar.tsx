@@ -95,7 +95,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
           : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-sm'
       }`}
       style={{ 
-        backgroundColor: activeTool === tool.id ? '#4fc6c2' : undefined
+        backgroundColor: activeTool === tool.id ? '#28c489' : undefined
       }}
       title={tool.description}
     >
@@ -106,7 +106,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       
       {/* Active indicator */}
       {activeTool === tool.id && (
-        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-slate-800" style={{ backgroundColor: '#4fc6c2' }}></div>
+        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-slate-800" style={{ backgroundColor: '#28c489' }}></div>
       )}
     </button>
   );
@@ -144,7 +144,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                     : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-sm'
                 }`}
                style={{ 
-                 backgroundColor: showSettings ? '#4fc6c2' : undefined
+                 backgroundColor: showSettings ? '#28c489' : undefined
                }}
                 title="Tool Settings"
               >
@@ -153,7 +153,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   Settings
                 </span>
                 {showSettings && (
-                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-slate-800" style={{ backgroundColor: '#4fc6c2' }}></div>
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-slate-800" style={{ backgroundColor: '#28c489' }}></div>
                 )}
               </button>
             </div>
@@ -192,7 +192,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   value={settings.brushSize}
                   onChange={(e) => handleSettingChange('brushSize', parseFloat(e.target.value))}
                   className="w-full h-2"
-                  style={{ accentColor: '#4fc6c2' }}
+                  style={{ accentColor: '#28c489' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.brushSize}mm</div>
               </div>
@@ -206,7 +206,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   value={settings.brushOpacity}
                   onChange={(e) => handleSettingChange('brushOpacity', parseFloat(e.target.value))}
                   className="w-full h-2"
-                  style={{ accentColor: '#4fc6c2' }}
+                  style={{ accentColor: '#28c489' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{Math.round(settings.brushOpacity * 100)}%</div>
               </div>
@@ -237,7 +237,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   value={settings.pencilSize}
                   onChange={(e) => handleSettingChange('pencilSize', parseFloat(e.target.value))}
                   className="w-full h-2"
-                  style={{ accentColor: '#4fc6c2' }}
+                  style={{ accentColor: '#28c489' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.pencilSize}mm</div>
               </div>
@@ -268,7 +268,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   value={settings.lineWidth}
                   onChange={(e) => handleSettingChange('lineWidth', parseFloat(e.target.value))}
                   className="w-full h-2"
-                  style={{ accentColor: '#4fc6c2' }}
+                  style={{ accentColor: '#28c489' }}
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.lineWidth}mm</div>
               </div>
@@ -299,9 +299,9 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
               <button 
                 onClick={handleSaveDrawing}
                className="px-3 py-1.5 text-white rounded-md text-sm transition-colors duration-200"
-               style={{ backgroundColor: '#4fc6c2' }}
-               onMouseEnter={(e) => e.target.style.backgroundColor = '#3fb3af'}
-               onMouseLeave={(e) => e.target.style.backgroundColor = '#4fc6c2'}
+               style={{ backgroundColor: '#28c489' }}
+               onMouseEnter={(e) => e.target.style.backgroundColor = '#22ae79'}
+               onMouseLeave={(e) => e.target.style.backgroundColor = '#28c489'}
               >
                 Save Drawing
               </button>

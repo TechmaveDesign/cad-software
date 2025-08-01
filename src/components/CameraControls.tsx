@@ -113,7 +113,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-slate-600'
               }`}
               style={{ 
-                backgroundColor: isOrthographic ? '#4fc6c2' : undefined
+                backgroundColor: isOrthographic ? '#28c489' : undefined
               }}
               title={`Switch to ${isOrthographic ? 'Perspective' : 'Orthographic'} View`}
             >
