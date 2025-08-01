@@ -89,65 +89,65 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   const ToolButton = ({ tool }: { tool: typeof drawingTools[0] }) => (
     <button
       onClick={() => onToolSelect(tool.id)}
-      className={`relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200 ${
+      className={`relative group flex flex-col items-center p-2 rounded-lg transition-all duration-200 ${
         activeTool === tool.id
-          ? 'bg-blue-600 text-white shadow-lg scale-110'
-          : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-md'
+          ? 'bg-blue-600 text-white shadow-md scale-105'
+          : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-sm'
       }`}
       title={tool.description}
     >
-      <tool.icon size={24} />
-      <span className="text-xs mt-1 font-medium hidden group-hover:block absolute -left-20 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
+      <tool.icon size={18} />
+      <span className="text-xs font-medium hidden group-hover:block absolute -left-16 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
         {tool.name}
       </span>
       
       {/* Active indicator */}
       {activeTool === tool.id && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-slate-800"></div>
+        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full border border-slate-800"></div>
       )}
     </button>
   );
 
   return (
-    <div ref={toolbarRef} className="flex items-center">
+    <div ref={toolbarRef} className="flex items-center z-40">
       {/* Toggle Button */}
       <button
         onClick={() => setIsMinimized(!isMinimized)}
-        className="bg-slate-800/95 backdrop-blur-sm rounded-l-xl shadow-2xl border border-slate-600 border-r-0 p-3 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-300"
+        className="bg-slate-800/95 backdrop-blur-sm rounded-l-lg shadow-lg border border-slate-600 border-r-0 p-2 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-300"
         title={isMinimized ? "Show Tools" : "Hide Tools"}
       >
-        {isMinimized ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+        {isMinimized ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
 
       {/* Main Toolbar */}
-      <div className={`bg-slate-800/95 backdrop-blur-sm rounded-r-2xl shadow-2xl border border-slate-600 transition-all duration-300 ${
-        isMinimized ? 'w-0 overflow-hidden border-l-0' : 'p-3'
+      <div className={`bg-slate-800/95 backdrop-blur-sm rounded-r-lg shadow-lg border border-slate-600 transition-all duration-300 ${
+        isMinimized ? 'w-0 overflow-hidden border-l-0' : 'p-2'
       }`}>
         {!isMinimized && (
           <div className="flex flex-col items-center justify-center">
             {/* Drawing Tools - Vertical Layout */}
-            <div className="flex flex-col items-center space-y-3">
+            <div className="flex flex-col items-center space-y-2">
               {drawingTools.map(tool => (
                 <ToolButton key={tool.id} tool={tool} />
               ))}
 
               {/* Settings Toggle */}
-              <div className="w-8 h-px bg-slate-600 my-2"></div>
+              <div className="w-6 h-px bg-slate-600 my-1"></div>
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200 ${
+                className={`relative group flex flex-col items-center p-2 rounded-lg transition-all duration-200 ${
                   showSettings
-                    ? 'bg-blue-600 text-white shadow-lg scale-110'
-                    : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-md'
+                    ? 'bg-blue-600 text-white shadow-md scale-105'
+                    : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-sm'
                 }`}
                 title="Tool Settings"
               >
-                <Settings size={24} />
-                <span className="text-xs mt-1 font-medium hidden group-hover:block absolute -left-20 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
+                <Settings size={18} />
+                <span className="text-xs font-medium hidden group-hover:block absolute -left-16 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
                   Settings
                 </span>
                 {showSettings && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-slate-800"></div>
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full border border-slate-800"></div>
                 )}
               </button>
             </div>
@@ -159,7 +159,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       {showSettings && !isMinimized && (
         <div 
           ref={settingsPanelRef}
-          className={`absolute right-full top-1/2 transform -translate-y-1/2 mr-4 p-6 bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 min-w-[600px] transition-all duration-500 ease-out ${
+          className={`absolute right-full top-1/2 transform -translate-y-1/2 mr-3 p-4 bg-slate-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-slate-600 min-w-[500px] transition-all duration-500 ease-out ${
             showSettings 
               ? 'opacity-100 scale-100 translate-x-0' 
               : 'opacity-0 scale-95 translate-x-4'
@@ -169,7 +169,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
             animation: showSettings ? 'slideLeftFade 0.5s cubic-bezier(0.16, 1, 0.3, 1)' : 'slideRightFade 0.3s cubic-bezier(0.4, 0, 1, 1)'
           }}
         >
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-4">
             {/* Brush Settings */}
             <div className="space-y-3">
               <h4 className="text-white font-semibold flex items-center space-x-2">
@@ -185,7 +185,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.brushSize}
                   onChange={(e) => handleSettingChange('brushSize', parseFloat(e.target.value))}
-                  className="w-full accent-blue-600"
+                  className="w-full h-2 accent-blue-600"
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.brushSize}mm</div>
               </div>
@@ -198,7 +198,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.brushOpacity}
                   onChange={(e) => handleSettingChange('brushOpacity', parseFloat(e.target.value))}
-                  className="w-full accent-blue-600"
+                  className="w-full h-2 accent-blue-600"
                 />
                 <div className="text-slate-400 text-xs mt-1">{Math.round(settings.brushOpacity * 100)}%</div>
               </div>
@@ -208,7 +208,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   type="color"
                   value={settings.brushColor}
                   onChange={(e) => handleSettingChange('brushColor', e.target.value)}
-                  className="w-full h-10 rounded-lg border border-slate-600 cursor-pointer bg-slate-700"
+                  className="w-full h-8 rounded-md border border-slate-600 cursor-pointer bg-slate-700"
                 />
               </div>
             </div>
@@ -228,7 +228,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.pencilSize}
                   onChange={(e) => handleSettingChange('pencilSize', parseFloat(e.target.value))}
-                  className="w-full accent-blue-600"
+                  className="w-full h-2 accent-blue-600"
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.pencilSize}mm</div>
               </div>
@@ -238,7 +238,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   type="color"
                   value={settings.pencilColor}
                   onChange={(e) => handleSettingChange('pencilColor', e.target.value)}
-                  className="w-full h-10 rounded-lg border border-slate-600 cursor-pointer bg-slate-700"
+                  className="w-full h-8 rounded-md border border-slate-600 cursor-pointer bg-slate-700"
                 />
               </div>
             </div>
@@ -258,7 +258,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   step="0.1"
                   value={settings.lineWidth}
                   onChange={(e) => handleSettingChange('lineWidth', parseFloat(e.target.value))}
-                  className="w-full accent-blue-600"
+                  className="w-full h-2 accent-blue-600"
                 />
                 <div className="text-slate-400 text-xs mt-1">{settings.lineWidth}mm</div>
               </div>
@@ -268,27 +268,27 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   type="color"
                   value={settings.lineColor}
                   onChange={(e) => handleSettingChange('lineColor', e.target.value)}
-                  className="w-full h-10 rounded-lg border border-slate-600 cursor-pointer bg-slate-700"
+                  className="w-full h-8 rounded-md border border-slate-600 cursor-pointer bg-slate-700"
                 />
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="mt-6 pt-4 border-t border-slate-600 flex items-center justify-between">
+          <div className="mt-4 pt-3 border-t border-slate-600 flex items-center justify-between">
             <div className="text-slate-300 text-sm">
               Active Tool: {activeTool ? drawingTools.find(t => t.id === activeTool)?.name || 'None' : 'None'}
             </div>
             <div className="flex items-center space-x-2">
               <button 
                 onClick={handleClearAll}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg text-sm transition-colors duration-200"
+                className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-md text-sm transition-colors duration-200"
               >
                 Clear All
               </button>
               <button 
                 onClick={handleSaveDrawing}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors duration-200"
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition-colors duration-200"
               >
                 Save Drawing
               </button>
