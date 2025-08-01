@@ -57,7 +57,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       className={`relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200 ${
         activeTool === tool.id
           ? 'bg-blue-600 text-white shadow-lg scale-110'
-          : 'bg-white/90 text-slate-700 hover:bg-white hover:text-slate-900 shadow-md'
+          : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-md'
       }`}
       title={tool.description}
     >
@@ -68,13 +68,13 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       
       {/* Active indicator */}
       {activeTool === tool.id && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white"></div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-slate-800"></div>
       )}
     </button>
   );
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 p-3">
+    <div className="bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 p-3">
       <div className="flex items-center justify-center">
         {/* Drawing Tools - Horizontal Layout */}
         <div className="flex items-center space-x-3">
@@ -84,12 +84,13 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
           {/* Settings Toggle */}
           <div className="w-px h-8 bg-gray-300 mx-2"></div>
+          <div className="w-px h-8 bg-slate-600 mx-2"></div>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className={`relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200 ${
               showSettings
                 ? 'bg-blue-600 text-white shadow-lg scale-110'
-                : 'bg-white/90 text-slate-700 hover:bg-white hover:text-slate-900 shadow-md'
+                : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-md'
             }`}
             title="Tool Settings"
           >
@@ -98,7 +99,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
               Settings
             </span>
             {showSettings && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-slate-800"></div>
             )}
           </button>
         </div>
@@ -106,16 +107,16 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
       {/* Tool Settings Panel */}
       {showSettings && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 min-w-[600px]">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-6 bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 min-w-[600px]">
           <div className="grid grid-cols-3 gap-6">
             {/* Brush Settings */}
             <div className="space-y-3">
-              <h4 className="text-slate-800 font-semibold flex items-center space-x-2">
+              <h4 className="text-white font-semibold flex items-center space-x-2">
                 <Brush size={16} />
                 <span>Brush</span>
               </h4>
               <div>
-                <label className="block text-slate-600 text-sm mb-1">Size (mm)</label>
+                <label className="block text-slate-300 text-sm mb-1">Size (mm)</label>
                 <input
                   type="range"
                   min="0.5"
@@ -125,10 +126,10 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   onChange={(e) => handleSettingChange('brushSize', parseFloat(e.target.value))}
                   className="w-full accent-blue-600"
                 />
-                <div className="text-slate-500 text-xs mt-1">{settings.brushSize}mm</div>
+                <div className="text-slate-400 text-xs mt-1">{settings.brushSize}mm</div>
               </div>
               <div>
-                <label className="block text-slate-600 text-sm mb-1">Opacity</label>
+                <label className="block text-slate-300 text-sm mb-1">Opacity</label>
                 <input
                   type="range"
                   min="0.1"
@@ -138,27 +139,27 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   onChange={(e) => handleSettingChange('brushOpacity', parseFloat(e.target.value))}
                   className="w-full accent-blue-600"
                 />
-                <div className="text-slate-500 text-xs mt-1">{Math.round(settings.brushOpacity * 100)}%</div>
+                <div className="text-slate-400 text-xs mt-1">{Math.round(settings.brushOpacity * 100)}%</div>
               </div>
               <div>
-                <label className="block text-slate-600 text-sm mb-1">Color</label>
+                <label className="block text-slate-300 text-sm mb-1">Color</label>
                 <input
                   type="color"
                   value={settings.brushColor}
                   onChange={(e) => handleSettingChange('brushColor', e.target.value)}
-                  className="w-full h-10 rounded-lg border border-gray-300 cursor-pointer"
+                  className="w-full h-10 rounded-lg border border-slate-600 cursor-pointer bg-slate-700"
                 />
               </div>
             </div>
 
             {/* Pencil Settings */}
             <div className="space-y-3">
-              <h4 className="text-slate-800 font-semibold flex items-center space-x-2">
+              <h4 className="text-white font-semibold flex items-center space-x-2">
                 <Pencil size={16} />
                 <span>Pencil</span>
               </h4>
               <div>
-                <label className="block text-slate-600 text-sm mb-1">Size (mm)</label>
+                <label className="block text-slate-300 text-sm mb-1">Size (mm)</label>
                 <input
                   type="range"
                   min="0.1"
@@ -168,27 +169,27 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   onChange={(e) => handleSettingChange('pencilSize', parseFloat(e.target.value))}
                   className="w-full accent-blue-600"
                 />
-                <div className="text-slate-500 text-xs mt-1">{settings.pencilSize}mm</div>
+                <div className="text-slate-400 text-xs mt-1">{settings.pencilSize}mm</div>
               </div>
               <div>
-                <label className="block text-slate-600 text-sm mb-1">Color</label>
+                <label className="block text-slate-300 text-sm mb-1">Color</label>
                 <input
                   type="color"
                   value={settings.pencilColor}
                   onChange={(e) => handleSettingChange('pencilColor', e.target.value)}
-                  className="w-full h-10 rounded-lg border border-gray-300 cursor-pointer"
+                  className="w-full h-10 rounded-lg border border-slate-600 cursor-pointer bg-slate-700"
                 />
               </div>
             </div>
 
             {/* Line Settings */}
             <div className="space-y-3">
-              <h4 className="text-slate-800 font-semibold flex items-center space-x-2">
+              <h4 className="text-white font-semibold flex items-center space-x-2">
                 <Spline size={16} />
                 <span>Lines</span>
               </h4>
               <div>
-                <label className="block text-slate-600 text-sm mb-1">Width (mm)</label>
+                <label className="block text-slate-300 text-sm mb-1">Width (mm)</label>
                 <input
                   type="range"
                   min="0.2"
@@ -198,27 +199,27 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
                   onChange={(e) => handleSettingChange('lineWidth', parseFloat(e.target.value))}
                   className="w-full accent-blue-600"
                 />
-                <div className="text-slate-500 text-xs mt-1">{settings.lineWidth}mm</div>
+                <div className="text-slate-400 text-xs mt-1">{settings.lineWidth}mm</div>
               </div>
               <div>
-                <label className="block text-slate-600 text-sm mb-1">Color</label>
+                <label className="block text-slate-300 text-sm mb-1">Color</label>
                 <input
                   type="color"
                   value={settings.lineColor}
                   onChange={(e) => handleSettingChange('lineColor', e.target.value)}
-                  className="w-full h-10 rounded-lg border border-gray-300 cursor-pointer"
+                  className="w-full h-10 rounded-lg border border-slate-600 cursor-pointer bg-slate-700"
                 />
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-slate-600 text-sm">
+          <div className="mt-6 pt-4 border-t border-slate-600 flex items-center justify-between">
+            <div className="text-slate-300 text-sm">
               Active Tool: {activeTool ? drawingTools.find(t => t.id === activeTool)?.name || 'None' : 'None'}
             </div>
             <div className="flex items-center space-x-2">
-              <button className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-slate-700 rounded-lg text-sm transition-colors duration-200">
+              <button className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg text-sm transition-colors duration-200">
                 Clear All
               </button>
               <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors duration-200">
