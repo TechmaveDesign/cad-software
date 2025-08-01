@@ -69,7 +69,6 @@ const Navbar: React.FC<NavbarProps> = ({ onProfileClick, onLogout }) => {
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                 className="flex items-center space-x-2 p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors duration-200"
               >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#4fc6c2' }}>
                   {user.avatar ? (
                     <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full" />
