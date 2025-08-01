@@ -3,9 +3,10 @@ import { Save, FilePen as FileOpen, Download, Settings, User, ChevronDown, LogOu
 
 interface NavbarProps {
   onProfileClick: () => void;
+  onLogout: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onProfileClick }) => {
+const Navbar: React.FC<NavbarProps> = ({ onProfileClick, onLogout }) => {
   const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
   
   // Mock user data - in a real app, this would come from your auth system
@@ -17,7 +18,12 @@ const Navbar: React.FC<NavbarProps> = ({ onProfileClick }) => {
 
   const handleLogout = () => {
     console.log('Logging out...');
-    // TODO: Implement actual logout functionality
+    // Clear any stored authentication data
+    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('userSession');
+    
+    // Call the logout handler from App component
+    onLogout();
     setShowProfileDropdown(false);
   };
 

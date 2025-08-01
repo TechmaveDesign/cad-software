@@ -63,6 +63,15 @@ function App() {
     setIsToothLibraryOpen(false);
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    // Reset any app state if needed
+    setModels([]);
+    setActiveTool(null);
+    setShowProfileSettings(false);
+    console.log('User logged out successfully');
+  };
+
   // Camera control handlers
   const handleResetView = () => {
     // This will be handled by the Viewport3D component
@@ -121,7 +130,10 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col bg-slate-900">
-      <Navbar onProfileClick={() => setShowProfileSettings(true)} />
+      <Navbar 
+        onProfileClick={() => setShowProfileSettings(true)} 
+        onLogout={handleLogout}
+      />
       <CameraControls
         onResetView={() => {}}
         onZoomIn={() => {}}
