@@ -653,6 +653,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     if (rendererRef.current && cameraRef.current) {
       rendererRef.current.render(sceneRef.current, cameraRef.current);
     }
+  }, [showGrid]);
   
   // Update transform controls when active tool changes
   useEffect(() => {
