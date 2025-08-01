@@ -775,15 +775,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 {/* Back right corner dot */}
                 <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-60px', top: '-20px' }}></div>
                 
-                {/* Dashed lines connecting the 4 corner dots */}
+                {/* Dashed lines matching cube top layer perspective */}
                 <svg className="absolute" style={{ left: '-90px', top: '-30px', width: '180px', height: '50px' }}>
-                  {/* Front edge dashed line */}
+                  {/* Front edge - horizontal line */}
                   <line x1="10" y1="30" x2="170" y2="30" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Back edge dashed line */}
+                  {/* Back edge - horizontal line with perspective */}
                   <line x1="30" y1="10" x2="150" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Left edge dashed line */}
+                  {/* Left edge - angled to match cube perspective */}
                   <line x1="10" y1="30" x2="30" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Right edge dashed line */}
+                  {/* Right edge - angled to match cube perspective */}
                   <line x1="170" y1="30" x2="150" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
                 </svg>
               </div>
