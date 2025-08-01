@@ -658,7 +658,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
         </div>
 
         {/* 3D Model Container with spacing */}
-        <div className="relative flex-1 flex items-center justify-center pr-8 mt-16">
+        <div className="relative flex-1 flex items-center justify-center pr-8 mt-8">
           {/* 3D Dental Tooth Model */}
           <div className="relative w-80 h-full max-h-[800px] ml-8">
             {/* 3D Tooth with CSS Transform */}
