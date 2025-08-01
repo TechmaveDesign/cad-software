@@ -654,9 +654,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
 
         {/* 3D Model Container */}
         <div className="relative mt-16">
-          {/* 3D Cube Model */}
-          <div className="relative w-64 h-[600px]">
-            {/* 3D Cube with CSS Transform */}
+          {/* 3D Dental Tooth Model */}
+          <div className="relative w-80 h-[500px]">
+            {/* 3D Tooth with CSS Transform */}
             <div className="relative w-full h-full" style={{ 
               perspective: '1000px',
               transformStyle: 'preserve-3d'
@@ -665,126 +665,139 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
                 className="absolute inset-0"
                 style={{
                   transformStyle: 'preserve-3d',
-                  transform: 'rotateX(-15deg) rotateY(25deg)',
+                  transform: 'rotateX(-10deg) rotateY(15deg)',
                   animation: 'float 6s ease-in-out infinite'
                 }}
               >
-                {/* Front Face */}
-                <div 
-                  className="absolute border border-slate-600"
-                  style={{
-                    width: '160px',
-                    height: '300px',
-                    backgroundColor: '#0f0f0f',
-                    transform: 'translateZ(80px)',
-                    left: '50%',
-                    top: '50%',
-                    marginLeft: '-80px',
-                    marginTop: '-150px'
-                  }}
-                ></div>
-                
-                {/* Back Face */}
-                <div 
-                  className="absolute border border-slate-600"
-                  style={{
-                    width: '160px',
-                    height: '300px',
-                    backgroundColor: '#0f0f0f',
-                    transform: 'translateZ(-80px) rotateY(180deg)',
-                    left: '50%',
-                    top: '50%',
-                    marginLeft: '-80px',
-                    marginTop: '-150px'
-                  }}
-                ></div>
-                
-                {/* Right Face */}
-                <div 
-                  className="absolute border border-slate-600"
-                  style={{
-                    width: '160px',
-                    height: '300px',
-                    backgroundColor: '#0f0f0f',
-                    transform: 'rotateY(90deg) translateZ(80px)',
-                    left: '50%',
-                    top: '50%',
-                    marginLeft: '-80px',
-                    marginTop: '-150px'
-                  }}
-                ></div>
-                
-                {/* Left Face */}
-                <div 
-                  className="absolute border border-slate-600"
-                  style={{
-                    width: '160px',
-                    height: '300px',
-                    backgroundColor: '#0f0f0f',
-                    transform: 'rotateY(-90deg) translateZ(80px)',
-                    left: '50%',
-                    top: '50%',
-                    marginLeft: '-80px',
-                    marginTop: '-150px'
-                  }}
-                ></div>
-                
-                {/* Top Face */}
+                {/* Tooth Crown - Front */}
                 <div 
                   className="absolute border border-slate-500"
                   style={{
-                    width: '160px',
-                    height: '160px',
-                    backgroundColor: '#262a30',
-                    borderRadius: '8px',
-                    transform: 'rotateX(90deg) translateZ(150px)',
+                    width: '120px',
+                    height: '180px',
+                    backgroundColor: '#f8fafc',
+                    borderRadius: '60px 60px 20px 20px',
+                    transform: 'translateZ(60px)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-80px',
-                    marginTop: '-80px'
+                    marginLeft: '-60px',
+                    marginTop: '-90px',
+                    boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
                   }}
                 ></div>
                 
-                {/* Bottom Face */}
+                {/* Tooth Crown - Back */}
                 <div 
-                  className="absolute border border-slate-700"
+                  className="absolute border border-slate-500"
                   style={{
-                    width: '160px',
-                    height: '160px',
-                    backgroundColor: '#0f0f0f',
-                    transform: 'rotateX(-90deg) translateZ(150px)',
+                    width: '120px',
+                    height: '180px',
+                    backgroundColor: '#e2e8f0',
+                    borderRadius: '60px 60px 20px 20px',
+                    transform: 'translateZ(-60px) rotateY(180deg)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-80px',
-                    marginTop: '-80px'
+                    marginLeft: '-60px',
+                    marginTop: '-90px',
+                    boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
+                  }}
+                ></div>
+                
+                {/* Tooth Crown - Right Side */}
+                <div 
+                  className="absolute border border-slate-500"
+                  style={{
+                    width: '120px',
+                    height: '180px',
+                    backgroundColor: '#f1f5f9',
+                    borderRadius: '60px 60px 20px 20px',
+                    transform: 'rotateY(90deg) translateZ(60px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-60px',
+                    marginTop: '-90px',
+                    boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
+                  }}
+                ></div>
+                
+                {/* Tooth Crown - Left Side */}
+                <div 
+                  className="absolute border border-slate-500"
+                  style={{
+                    width: '120px',
+                    height: '180px',
+                    backgroundColor: '#f1f5f9',
+                    borderRadius: '60px 60px 20px 20px',
+                    transform: 'rotateY(-90deg) translateZ(60px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-60px',
+                    marginTop: '-90px',
+                    boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
+                  }}
+                ></div>
+                
+                {/* Tooth Crown - Top (Chewing Surface) */}
+                <div 
+                  className="absolute border border-slate-400"
+                  style={{
+                    width: '120px',
+                    height: '120px',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '50%',
+                    transform: 'rotateX(90deg) translateZ(90px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-60px',
+                    marginTop: '-60px',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  {/* Tooth Surface Details */}
+                  <div className="absolute inset-4 border border-slate-300 rounded-full opacity-30"></div>
+                  <div className="absolute inset-8 border border-slate-300 rounded-full opacity-20"></div>
+                </div>
+                
+                {/* Tooth Root */}
+                <div 
+                  className="absolute border border-slate-500"
+                  style={{
+                    width: '80px',
+                    height: '200px',
+                    backgroundColor: '#fef3c7',
+                    borderRadius: '0 0 40px 40px',
+                    transform: 'rotateX(-90deg) translateZ(-110px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-40px',
+                    marginTop: '-100px',
+                    boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)'
                   }}
                 ></div>
               </div>
             </div>
 
-            {/* Top Layer Corner Dots with Dashed Lines */}
-            <div className="absolute" style={{ top: '150px', left: '50%', transform: 'translateX(-50%)' }}>
-              {/* 4 corner dots positioned exactly on the cube's top layer corners */}
+            {/* Tooth Measurement Points */}
+            <div className="absolute" style={{ top: '160px', left: '50%', transform: 'translateX(-50%)' }}>
+              {/* 4 measurement points on tooth crown */}
               <div className="relative">
-                {/* Front left corner dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-80px', top: '0px' }}></div>
-                {/* Front right corner dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-80px', top: '0px' }}></div>
-                {/* Back left corner dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-60px', top: '-20px' }}></div>
-                {/* Back right corner dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-60px', top: '-20px' }}></div>
+                {/* Front measurement points */}
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ left: '-60px', top: '0px' }}></div>
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ right: '-60px', top: '0px' }}></div>
+                {/* Back measurement points */}
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ left: '-45px', top: '-15px' }}></div>
+                <div className="absolute w-2 h-2 bg-blue-400 rounded-full" style={{ right: '-45px', top: '-15px' }}></div>
                 
-                {/* Dashed lines matching cube top layer perspective */}
-                <svg className="absolute" style={{ left: '-90px', top: '-30px', width: '180px', height: '50px' }}>
-                  {/* Front edge - horizontal line */}
-                  <line x1="10" y1="30" x2="170" y2="30" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Back edge - horizontal line with perspective */}
-                  <line x1="30" y1="10" x2="150" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Left edge - angled to match cube perspective */}
-                  <line x1="10" y1="30" x2="30" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Right edge - angled to match cube perspective */}
-                  <line x1="170" y1="30" x2="150" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                {/* Measurement lines */}
+                <svg className="absolute" style={{ left: '-75px', top: '-25px', width: '150px', height: '40px' }}>
+                  {/* Front measurement line */}
+                  <line x1="15" y1="25" x2="135" y2="25" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
+                  {/* Back measurement line */}
+                  <line x1="30" y1="10" x2="120" y2="10" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
+                  {/* Left measurement line */}
+                  <line x1="15" y1="25" x2="30" y2="10" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
+                  {/* Right measurement line */}
+                  <line x1="135" y1="25" x2="120" y2="10" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
                 </svg>
               </div>
             </div>
