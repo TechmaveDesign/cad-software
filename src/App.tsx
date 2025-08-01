@@ -144,8 +144,8 @@ function App() {
           isOrthographic={isOrthographic}
         />
         
-        {/* Fixed Bottom Drawing Toolbar */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+        {/* Fixed Right Side Drawing Toolbar */}
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-50">
           <DrawingToolbar
             activeTool={activeTool}
             onToolSelect={handleToolSelect}
