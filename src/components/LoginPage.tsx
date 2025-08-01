@@ -229,7 +229,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
               <div className="space-y-3 mb-6">
                 <button
                   onClick={() => handleSocialLogin('google')}
-                  className="w-full flex items-center justify-center space-x-3 p-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-white transition-colors duration-200"
+                  className="w-full flex items-center justify-center space-x-3 p-4 border border-slate-700 rounded-lg text-white hover:bg-slate-700 transition-colors duration-200"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -242,7 +243,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
 
                 <button
                   onClick={() => handleSocialLogin('apple')}
-                  className="w-full flex items-center justify-center space-x-3 p-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-white transition-colors duration-200"
+                  className="w-full flex items-center justify-center space-x-3 p-4 border border-slate-700 rounded-lg text-white hover:bg-slate-700 transition-colors duration-200"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
@@ -653,7 +655,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
         {/* 3D Model Container */}
         <div className="relative mt-16">
           {/* 3D Cube Model */}
-          <div className="relative w-80 h-96">
+          <div className="relative w-64 h-[500px]">
             {/* 3D Cube with CSS Transform */}
             <div className="relative w-full h-full" style={{ 
               perspective: '1000px',
@@ -669,86 +671,104 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
               >
                 {/* Front Face */}
                 <div 
-                  className="absolute w-48 h-48 bg-gradient-to-br from-slate-600 to-slate-700 border border-slate-500"
+                  className="absolute border border-slate-600"
                   style={{
-                    transform: 'translateZ(96px)',
+                    width: '160px',
+                    height: '240px',
+                    backgroundColor: '#0f0f0f',
+                    transform: 'translateZ(80px)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-96px',
-                    marginTop: '-96px'
+                    marginLeft: '-80px',
+                    marginTop: '-120px'
                   }}
                 ></div>
                 
                 {/* Back Face */}
                 <div 
-                  className="absolute w-48 h-48 bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600"
+                  className="absolute border border-slate-600"
                   style={{
-                    transform: 'translateZ(-96px) rotateY(180deg)',
+                    width: '160px',
+                    height: '240px',
+                    backgroundColor: '#0f0f0f',
+                    transform: 'translateZ(-80px) rotateY(180deg)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-96px',
-                    marginTop: '-96px'
+                    marginLeft: '-80px',
+                    marginTop: '-120px'
                   }}
                 ></div>
                 
                 {/* Right Face */}
                 <div 
-                  className="absolute w-48 h-48 bg-gradient-to-br from-slate-650 to-slate-750 border border-slate-550"
+                  className="absolute border border-slate-600"
                   style={{
-                    transform: 'rotateY(90deg) translateZ(96px)',
+                    width: '160px',
+                    height: '240px',
+                    backgroundColor: '#0f0f0f',
+                    transform: 'rotateY(90deg) translateZ(80px)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-96px',
-                    marginTop: '-96px',
-                    backgroundColor: '#475569'
+                    marginLeft: '-80px',
+                    marginTop: '-120px'
                   }}
                 ></div>
                 
                 {/* Left Face */}
                 <div 
-                  className="absolute w-48 h-48 bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600"
+                  className="absolute border border-slate-600"
                   style={{
-                    transform: 'rotateY(-90deg) translateZ(96px)',
+                    width: '160px',
+                    height: '240px',
+                    backgroundColor: '#0f0f0f',
+                    transform: 'rotateY(-90deg) translateZ(80px)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-96px',
-                    marginTop: '-96px'
+                    marginLeft: '-80px',
+                    marginTop: '-120px'
                   }}
                 ></div>
                 
                 {/* Top Face */}
                 <div 
-                  className="absolute w-48 h-48 bg-gradient-to-br from-slate-500 to-slate-600 border border-slate-400"
+                  className="absolute border border-slate-500"
                   style={{
-                    transform: 'rotateX(90deg) translateZ(96px)',
+                    width: '160px',
+                    height: '160px',
+                    backgroundColor: '#262a30',
+                    borderRadius: '12px',
+                    transform: 'rotateX(90deg) translateZ(120px)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-96px',
-                    marginTop: '-96px'
+                    marginLeft: '-80px',
+                    marginTop: '-80px'
                   }}
                 ></div>
                 
                 {/* Bottom Face */}
                 <div 
-                  className="absolute w-48 h-48 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700"
+                  className="absolute border border-slate-700"
                   style={{
-                    transform: 'rotateX(-90deg) translateZ(96px)',
+                    width: '160px',
+                    height: '160px',
+                    backgroundColor: '#0f0f0f',
+                    transform: 'rotateX(-90deg) translateZ(120px)',
                     left: '50%',
                     top: '50%',
-                    marginLeft: '-96px',
-                    marginTop: '-96px'
+                    marginLeft: '-80px',
+                    marginTop: '-80px'
                   }}
                 ></div>
               </div>
             </div>
 
             {/* Corner Dots */}
-            <div className="absolute top-16 left-16 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute top-16 right-16 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-16 left-16 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-16 right-16 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute top-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute top-12 left-20 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute top-12 right-20 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute bottom-12 left-20 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute bottom-12 right-20 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
 
             {/* Orbital Circle with Arrow */}
             <div className="absolute inset-0 flex items-center justify-center">
