@@ -3,14 +3,17 @@ import { Eye, EyeOff, Mail, Lock, Shield, ArrowRight } from 'lucide-react';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
+  initialStep?: 'login' | '2fa' | 'forgot-password' | 'forgot-2fa';
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
-  const [step, setStep] = useState<'login' | '2fa'>('login');
+const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'login' }) => {
+  const [step, setStep] = useState<'login' | '2fa' | 'forgot-password' | 'forgot-2fa'>(initialStep);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    twoFactorCode: ''
+    twoFactorCode: '',
+    resetEmail: '',
+    resetCode: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -111,15 +114,94 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   };
 
   const handleForgotPassword = () => {
-    console.log('Redirecting to 2FA password reset...');
-    // TODO: Implement redirect to 2FA password reset
-    alert('Redirecting to 2FA password reset page...');
+    setStep('forgot-password');
+    setErrors({});
+    setFormData(prev => ({ ...prev, resetEmail: prev.email }));
+  };
+
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.resetEmail) {
+      setErrors({ resetEmail: 'Email is required' });
+      return;
+    }
+    
+    if (!validateEmail(formData.resetEmail)) {
+      setErrors({ resetEmail: 'Please enter a valid email address' });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Simulate API call to send reset code
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('Password reset code sent to:', formData.resetEmail);
+      
+      // Move to 2FA verification step
+      setStep('forgot-2fa');
+      setErrors({});
+      
+    } catch (error) {
+      setErrors({ resetEmail: 'Failed to send reset code. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetCodeVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.resetCode) {
+      setErrors({ resetCode: '2FA code is required' });
+      return;
+    }
+    
+    if (formData.resetCode.length !== 6) {
+      setErrors({ resetCode: '2FA code must be 6 digits' });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Simulate 2FA verification for password reset
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('Reset code verified:', formData.resetCode);
+      
+      // In a real app, you would redirect to a new password form
+      // For now, we'll show success and return to login
+      alert('Password reset successful! You can now login with your new password.');
+      setStep('login');
+      setFormData({
+        email: '',
+        password: '',
+        twoFactorCode: '',
+        resetEmail: '',
+        resetCode: ''
+      });
+      setErrors({});
+      
+    } catch (error) {
+      setErrors({ resetCode: 'Invalid reset code. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resend2FACode = () => {
     console.log('Resending 2FA code...');
     // TODO: Implement resend 2FA code
     alert('2FA code sent to your registered device');
+  };
+
+  const resendResetCode = () => {
+    console.log('Resending password reset code...');
+    // TODO: Implement resend reset code
+    alert('Password reset code sent to your email');
   };
 
   return (
@@ -258,7 +340,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 </button>
               </form>
             </>
-          ) : (
+          ) : step === '2fa' ? (
             <>
               {/* 2FA Verification */}
               <div className="mb-8">
@@ -326,6 +408,143 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     className="text-slate-400 hover:text-slate-300 text-sm transition-colors duration-200"
                   >
                     ← Back to login
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : step === 'forgot-password' ? (
+            <>
+              {/* Forgot Password */}
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Mail size={32} className="text-white" />
+                </div>
+                <h1 className="text-white text-3xl font-bold mb-2 text-center">Reset Password</h1>
+                <p className="text-slate-400 text-center">Enter your email address and we'll send you a 2FA code to reset your password</p>
+              </div>
+
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-6">
+                {errors.resetEmail && (
+                  <div className="p-3 bg-red-600/20 border border-red-600/30 rounded-lg text-red-400 text-sm text-center">
+                    {errors.resetEmail}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-slate-300 text-sm font-medium mb-2">Email Address</label>
+                  <div className="relative">
+                    <Mail size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email"
+                      value={formData.resetEmail}
+                      onChange={(e) => handleInputChange('resetEmail', e.target.value)}
+                      placeholder="Enter your email address"
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+                        errors.resetEmail ? 'border-red-500' : 'border-slate-700 focus:border-blue-500'
+                      }`}
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg font-medium transition-colors duration-200 ${
+                    isLoading
+                      ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <span>Send Reset Code</span>
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setStep('login')}
+                    className="text-slate-400 hover:text-slate-300 text-sm transition-colors duration-200"
+                  >
+                    ← Back to login
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              {/* Forgot Password 2FA Verification */}
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Shield size={32} className="text-white" />
+                </div>
+                <h1 className="text-white text-3xl font-bold mb-2 text-center">Verify Reset Code</h1>
+                <p className="text-slate-400 text-center">Enter the 6-digit code sent to {formData.resetEmail}</p>
+              </div>
+
+              <form onSubmit={handleResetCodeVerification} className="space-y-6">
+                {errors.resetCode && (
+                  <div className="p-3 bg-red-600/20 border border-red-600/30 rounded-lg text-red-400 text-sm text-center">
+                    {errors.resetCode}
+                  </div>
+                )}
+
+                <div>
+                  <input
+                    type="text"
+                    value={formData.resetCode}
+                    onChange={(e) => handleInputChange('resetCode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    className={`w-full px-4 py-4 bg-slate-800 border rounded-lg text-white text-center text-2xl font-mono tracking-widest placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+                      errors.resetCode ? 'border-red-500' : 'border-slate-700 focus:border-blue-500'
+                    }`}
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || formData.resetCode.length !== 6}
+                  className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg font-medium transition-colors duration-200 ${
+                    isLoading || formData.resetCode.length !== 6
+                      ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <span>Reset Password</span>
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={resendResetCode}
+                    className="text-blue-400 hover:text-blue-300 text-sm transition-colors duration-200"
+                  >
+                    Didn't receive a code? Resend
+                  </button>
+                </div>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setStep('forgot-password')}
+                    className="text-slate-400 hover:text-slate-300 text-sm transition-colors duration-200"
+                  >
+                    ← Back to email entry
                   </button>
                 </div>
               </form>

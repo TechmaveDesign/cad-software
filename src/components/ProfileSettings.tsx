@@ -3,6 +3,7 @@ import { ArrowLeft, User, Mail, Phone, Save, Upload, Shield, ExternalLink, Check
 
 interface ProfileSettingsProps {
   onBackToWorkspace: () => void;
+  onForgotPassword?: () => void;
 }
 
 interface UserProfile {
@@ -19,7 +20,7 @@ interface ValidationErrors {
   phone?: string;
 }
 
-const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace }) => {
+const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace, onForgotPassword }) => {
   const [profile, setProfile] = useState<UserProfile>({
     name: 'Dr. John Smith',
     email: 'john.smith@dentalclinic.com',
@@ -119,9 +120,12 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ onBackToWorkspace }) 
   };
 
   const handleChangePassword = () => {
-    console.log('Redirecting to 2FA password reset...');
-    // TODO: Implement redirect to 2FA password reset page
-    alert('Redirecting to 2FA password reset page...');
+    if (onForgotPassword) {
+      onForgotPassword();
+    } else {
+      console.log('Redirecting to 2FA password reset...');
+      alert('Redirecting to 2FA password reset page...');
+    }
   };
 
   const getLoginMethodDisplay = (method: string) => {

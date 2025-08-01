@@ -12,6 +12,7 @@ import { DrawingSettings } from './components/DrawingToolbar';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [models, setModels] = useState<STLModel[]>([]);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
@@ -65,11 +66,23 @@ function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setShowForgotPassword(false);
     // Reset any app state if needed
     setModels([]);
     setActiveTool(null);
     setShowProfileSettings(false);
     console.log('User logged out successfully');
+  };
+
+  const handleForgotPassword = () => {
+    setShowProfileSettings(false);
+    setIsAuthenticated(false);
+    setShowForgotPassword(true);
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    setShowForgotPassword(false);
   };
 
   // Camera control handlers
@@ -117,14 +130,20 @@ function App() {
   // If profile settings is open, show only the profile page
   if (showProfileSettings) {
     return (
-      <ProfileSettings onBackToWorkspace={() => setShowProfileSettings(false)} />
+      <ProfileSettings 
+        onBackToWorkspace={() => setShowProfileSettings(false)}
+        onForgotPassword={handleForgotPassword}
+      />
     );
   }
 
   // If not authenticated, show login page
   if (!isAuthenticated) {
     return (
-      <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
+      <LoginPage 
+        onLoginSuccess={handleLoginSuccess}
+        initialStep={showForgotPassword ? 'forgot-password' : 'login'}
+      />
     );
   }
 
