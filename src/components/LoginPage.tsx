@@ -763,59 +763,29 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, initialStep = 'lo
             </div>
 
             {/* Top Layer Corner Dots with Dashed Lines */}
-            <div className="absolute" style={{ top: '80px', left: '50%', transform: 'translateX(-50%)' }}>
-              {/* Top layer dots positioned around the cube top */}
+            <div className="absolute" style={{ top: '150px', left: '50%', transform: 'translateX(-50%)' }}>
+              {/* 4 corner dots positioned exactly on the cube's top layer corners */}
               <div className="relative">
-                {/* Front left dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-60px', top: '-10px' }}></div>
-                {/* Front right dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-60px', top: '-10px' }}></div>
-                {/* Back left dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-40px', top: '-30px' }}></div>
-                {/* Back right dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-40px', top: '-30px' }}></div>
-                {/* Top center dot */}
-                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-1px', top: '-25px' }}></div>
+                {/* Front left corner dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-80px', top: '0px' }}></div>
+                {/* Front right corner dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-80px', top: '0px' }}></div>
+                {/* Back left corner dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ left: '-60px', top: '-20px' }}></div>
+                {/* Back right corner dot */}
+                <div className="absolute w-2 h-2 bg-slate-400 rounded-full" style={{ right: '-60px', top: '-20px' }}></div>
                 
-                {/* Dashed lines connecting the dots around top layer */}
-                <svg className="absolute" style={{ left: '-70px', top: '-40px', width: '140px', height: '60px' }}>
+                {/* Dashed lines connecting the 4 corner dots */}
+                <svg className="absolute" style={{ left: '-90px', top: '-30px', width: '180px', height: '50px' }}>
                   {/* Front edge dashed line */}
-                  <line x1="10" y1="20" x2="130" y2="20" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Left edge dashed line */}
-                  <line x1="10" y1="20" x2="30" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Right edge dashed line */}
-                  <line x1="130" y1="20" x2="110" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  <line x1="10" y1="30" x2="170" y2="30" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
                   {/* Back edge dashed line */}
-                  <line x1="30" y1="5" x2="110" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
-                  {/* Center connecting lines */}
-                  <line x1="70" y1="10" x2="30" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
-                  <line x1="70" y1="10" x2="110" y2="5" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
-                  <line x1="70" y1="10" x2="10" y2="20" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
-                  <line x1="70" y1="10" x2="130" y2="20" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
+                  <line x1="30" y1="10" x2="150" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  {/* Left edge dashed line */}
+                  <line x1="10" y1="30" x2="30" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+                  {/* Right edge dashed line */}
+                  <line x1="170" y1="30" x2="150" y2="10" stroke="#64748b" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
                 </svg>
-              </div>
-            </div>
-
-            {/* Orbital Circle with Arrow */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div 
-                className="w-96 h-96 border border-slate-600 rounded-full relative"
-                style={{
-                  animation: 'rotate 8s linear infinite',
-                  transform: 'rotateX(75deg)'
-                }}
-              >
-                {/* Arrow on the circle */}
-                <div 
-                  className="absolute -top-1 left-1/2 transform -translate-x-1/2"
-                  style={{
-                    width: '0',
-                    height: '0',
-                    borderLeft: '6px solid transparent',
-                    borderRight: '6px solid transparent',
-                    borderBottom: '10px solid #28c489'
-                  }}
-                ></div>
               </div>
             </div>
           </div>
