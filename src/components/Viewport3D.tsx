@@ -17,6 +17,8 @@ interface Viewport3DProps {
   activeTool: string | null;
   drawingSettings: DrawingSettings;
   isOrthographic: boolean;
+  showGrid: boolean;
+  onGridToggle: (show: boolean) => void;
 }
 
 const Viewport3D: React.FC<Viewport3DProps> = ({ 
@@ -24,7 +26,9 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   onModelsChange, 
   activeTool, 
   drawingSettings,
-  isOrthographic
+  isOrthographic,
+  showGrid,
+  onGridToggle
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
@@ -60,7 +64,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   
   const [viewportSettings, setViewportSettings] = useState<ViewportSettings>({
     wireframe: false,
-    showGrid: true,
+    showGrid: showGrid,
     backgroundColor: '#1e293b',
     lightIntensity: 1.0
   });
@@ -129,6 +133,11 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
     controlsRef.current.update();
   }, [models, isOrthographic]);
 
+  // Update viewport settings when showGrid prop changes
+  useEffect(() => {
+    setViewportSettings(prev => ({ ...prev, showGrid }));
+  }, [showGrid]);
+  
   const viewTop = useCallback(() => {
     if (cameraRef.current && controlsRef.current) {
       cameraRef.current.position.set(0, 50, 0);
@@ -770,7 +779,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
   };
 
   const toggleGrid = () => {
-    setViewportSettings(prev => ({ ...prev, showGrid: !prev.showGrid }));
+    onGridToggle(!showGrid);
   };
 
   const clearAnnotations = () => {
@@ -806,7 +815,7 @@ const Viewport3D: React.FC<Viewport3DProps> = ({
           <button
             onClick={toggleGrid}
             className={`px-3 py-1 rounded text-xs transition-colors duration-200 flex items-center space-x-1 ${
-              viewportSettings.showGrid
+              showGrid
                 ? 'bg-blue-600 text-white'
                 : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
             }`}

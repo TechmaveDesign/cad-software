@@ -13,6 +13,7 @@ function App() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [isToothLibraryOpen, setIsToothLibraryOpen] = useState(false);
   const [isOrthographic, setIsOrthographic] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
   const [drawingSettings, setDrawingSettings] = useState<DrawingSettings>({
     brushSize: 2.0,
     brushOpacity: 0.8,
@@ -142,6 +143,8 @@ function App() {
           activeTool={activeTool}
           drawingSettings={drawingSettings}
           isOrthographic={isOrthographic}
+          showGrid={showGrid}
+          onGridToggle={setShowGrid}
         />
         
         {/* Fixed Right Side Drawing Toolbar */}
