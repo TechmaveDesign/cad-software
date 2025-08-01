@@ -344,6 +344,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           }}></div>
         </div>
 
+        {/* Large "3D" Background Text */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-[20rem] font-black text-slate-700/20 select-none leading-none tracking-wider">
+            3D
+          </div>
+        </div>
         {/* Stats */}
         <div className="absolute top-8 right-8 text-right">
           <div className="text-white text-4xl font-bold mb-2">1000+ users. 50M+ AI</div>
@@ -352,51 +358,141 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
         {/* 3D Model Container */}
         <div className="relative">
-          {/* 3D Cube/Model */}
-          <div className="relative w-80 h-80">
-            {/* Main 3D Cube */}
-            <div className="absolute inset-0 transform-gpu perspective-1000">
-              <div className="relative w-full h-full transform-gpu rotate-x-12 rotate-y-12 animate-pulse">
-                {/* Cube faces */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-2xl backdrop-blur-sm"></div>
-                <div className="absolute inset-2 bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-blue-300/20 rounded-xl"></div>
-                <div className="absolute inset-4 bg-gradient-to-br from-blue-700/10 to-purple-700/10 border border-blue-200/20 rounded-lg"></div>
+          {/* 3D Cube Model */}
+          <div className="relative w-64 h-64">
+            {/* 3D Cube with CSS Transform */}
+            <div className="relative w-full h-full" style={{ 
+              perspective: '1000px',
+              transformStyle: 'preserve-3d'
+            }}>
+              <div 
+                className="absolute inset-0"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transform: 'rotateX(-15deg) rotateY(25deg)',
+                  animation: 'float 6s ease-in-out infinite'
+                }}
+              >
+                {/* Front Face */}
+                <div 
+                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-600 to-slate-700 border border-slate-500"
+                  style={{
+                    transform: 'translateZ(64px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-64px',
+                    marginTop: '-64px'
+                  }}
+                ></div>
+                
+                {/* Back Face */}
+                <div 
+                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600"
+                  style={{
+                    transform: 'translateZ(-64px) rotateY(180deg)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-64px',
+                    marginTop: '-64px'
+                  }}
+                ></div>
+                
+                {/* Right Face */}
+                <div 
+                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-650 to-slate-750 border border-slate-550"
+                  style={{
+                    transform: 'rotateY(90deg) translateZ(64px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-64px',
+                    marginTop: '-64px',
+                    backgroundColor: '#475569'
+                  }}
+                ></div>
+                
+                {/* Left Face */}
+                <div 
+                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600"
+                  style={{
+                    transform: 'rotateY(-90deg) translateZ(64px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-64px',
+                    marginTop: '-64px'
+                  }}
+                ></div>
+                
+                {/* Top Face */}
+                <div 
+                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-500 to-slate-600 border border-slate-400"
+                  style={{
+                    transform: 'rotateX(90deg) translateZ(64px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-64px',
+                    marginTop: '-64px'
+                  }}
+                ></div>
+                
+                {/* Bottom Face */}
+                <div 
+                  className="absolute w-32 h-32 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700"
+                  style={{
+                    transform: 'rotateX(-90deg) translateZ(64px)',
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-64px',
+                    marginTop: '-64px'
+                  }}
+                ></div>
               </div>
             </div>
 
-            {/* Floating particles/nodes */}
-            <div className="absolute top-8 left-8 w-3 h-3 bg-blue-400 rounded-full animate-bounce"></div>
-            <div className="absolute top-16 right-12 w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }}></div>
-            <div className="absolute bottom-12 left-16 w-2 h-2 bg-blue-300 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
-            <div className="absolute bottom-8 right-8 w-3 h-3 bg-purple-300 rounded-full animate-bounce" style={{ animationDelay: '1.5s' }}></div>
+            {/* Corner Dots */}
+            <div className="absolute top-12 left-12 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute top-12 right-12 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute bottom-12 left-12 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute bottom-12 right-12 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
+            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-400 rounded-full"></div>
 
-            {/* Orbital ring */}
-            <div className="absolute inset-0 border-2 border-dashed border-blue-400/30 rounded-full animate-spin" style={{ animationDuration: '20s' }}>
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full"></div>
+            {/* Orbital Circle with Arrow */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div 
+                className="w-80 h-80 border border-slate-600 rounded-full relative"
+                style={{
+                  animation: 'rotate 8s linear infinite'
+                }}
+              >
+                {/* Arrow on the circle */}
+                <div 
+                  className="absolute w-0 h-0 -top-2 left-1/2 transform -translate-x-1/2"
+                  style={{
+                    borderLeft: '8px solid transparent',
+                    borderRight: '8px solid transparent',
+                    borderBottom: '12px solid #8b5cf6'
+                  }}
+                ></div>
+              </div>
             </div>
-
-            {/* Connection lines */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 320">
-              <defs>
-                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.3" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M50 50 L270 100 L200 250 L80 200 Z"
-                stroke="url(#lineGradient)"
-                strokeWidth="1"
-                fill="none"
-                strokeDasharray="5,5"
-                className="animate-pulse"
-              />
-            </svg>
           </div>
         </div>
 
         {/* Bottom gradient fade */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-900 to-transparent"></div>
+
+        {/* CSS Animations */}
+        <style jsx>{`
+          @keyframes float {
+            0%, 100% { transform: rotateX(-15deg) rotateY(25deg) translateY(0px); }
+            50% { transform: rotateX(-15deg) rotateY(25deg) translateY(-10px); }
+          }
+          
+          @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     </div>
   );
