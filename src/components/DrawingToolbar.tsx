@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Brush, Pencil, Spline, Hexagon as Polygon, Eraser, Palette, Settings, Move3D } from 'lucide-react';
+import { Brush, Pencil, Spline, Hexagon as Polygon, Eraser, Palette, Settings, Move3D, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DrawingToolbarProps {
   activeTool: string | null;
@@ -35,6 +35,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // Handle click outside to close settings panel
   useEffect(() => {
@@ -84,6 +85,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
     console.log('Clearing all drawings');
     // TODO: Implement clear functionality
   };
+
   const ToolButton = ({ tool }: { tool: typeof drawingTools[0] }) => (
     <button
       onClick={() => onToolSelect(tool.id)}
@@ -95,7 +97,7 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       title={tool.description}
     >
       <tool.icon size={24} />
-      <span className="text-xs mt-1 font-medium hidden group-hover:block absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
+      <span className="text-xs mt-1 font-medium hidden group-hover:block absolute -left-20 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
         {tool.name}
       </span>
       
@@ -107,49 +109,64 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   );
 
   return (
-    <div ref={toolbarRef} className="bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 p-3">
-      <div className="flex items-center justify-center">
-        {/* Drawing Tools - Horizontal Layout */}
-        <div className="flex items-center space-x-3">
-          {drawingTools.map(tool => (
-            <ToolButton key={tool.id} tool={tool} />
-          ))}
+    <div ref={toolbarRef} className="flex items-center">
+      {/* Toggle Button */}
+      <button
+        onClick={() => setIsMinimized(!isMinimized)}
+        className="bg-slate-800/95 backdrop-blur-sm rounded-l-xl shadow-2xl border border-slate-600 border-r-0 p-3 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-300"
+        title={isMinimized ? "Show Tools" : "Hide Tools"}
+      >
+        {isMinimized ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+      </button>
 
-          {/* Settings Toggle */}
-          <div className="w-px h-8 bg-gray-300 mx-2"></div>
-          <div className="w-px h-8 bg-slate-600 mx-2"></div>
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className={`relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200 ${
-              showSettings
-                ? 'bg-blue-600 text-white shadow-lg scale-110'
-                : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-md'
-            }`}
-            title="Tool Settings"
-          >
-            <Settings size={24} />
-            <span className="text-xs mt-1 font-medium hidden group-hover:block absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
-              Settings
-            </span>
-            {showSettings && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-slate-800"></div>
-            )}
-          </button>
-        </div>
+      {/* Main Toolbar */}
+      <div className={`bg-slate-800/95 backdrop-blur-sm rounded-r-2xl shadow-2xl border border-slate-600 transition-all duration-300 ${
+        isMinimized ? 'w-0 overflow-hidden border-l-0' : 'p-3'
+      }`}>
+        {!isMinimized && (
+          <div className="flex flex-col items-center justify-center">
+            {/* Drawing Tools - Vertical Layout */}
+            <div className="flex flex-col items-center space-y-3">
+              {drawingTools.map(tool => (
+                <ToolButton key={tool.id} tool={tool} />
+              ))}
+
+              {/* Settings Toggle */}
+              <div className="w-8 h-px bg-slate-600 my-2"></div>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={`relative group flex flex-col items-center p-3 rounded-xl transition-all duration-200 ${
+                  showSettings
+                    ? 'bg-blue-600 text-white shadow-lg scale-110'
+                    : 'bg-slate-700/90 text-slate-300 hover:bg-slate-600 hover:text-white shadow-md'
+                }`}
+                title="Tool Settings"
+              >
+                <Settings size={24} />
+                <span className="text-xs mt-1 font-medium hidden group-hover:block absolute -left-20 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-2 py-1 rounded whitespace-nowrap">
+                  Settings
+                </span>
+                {showSettings && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-slate-800"></div>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tool Settings Panel */}
-      {showSettings && (
+      {showSettings && !isMinimized && (
         <div 
           ref={settingsPanelRef}
-          className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-6 bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 min-w-[600px] transition-all duration-500 ease-out ${
+          className={`absolute right-full top-1/2 transform -translate-y-1/2 mr-4 p-6 bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-600 min-w-[600px] transition-all duration-500 ease-out ${
             showSettings 
-              ? 'opacity-100 scale-100 translate-y-0' 
-              : 'opacity-0 scale-95 translate-y-4'
+              ? 'opacity-100 scale-100 translate-x-0' 
+              : 'opacity-0 scale-95 translate-x-4'
           }`}
           style={{
-            transformOrigin: 'bottom center',
-            animation: showSettings ? 'slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1)' : 'slideDownFade 0.3s cubic-bezier(0.4, 0, 1, 1)'
+            transformOrigin: 'right center',
+            animation: showSettings ? 'slideLeftFade 0.5s cubic-bezier(0.16, 1, 0.3, 1)' : 'slideRightFade 0.3s cubic-bezier(0.4, 0, 1, 1)'
           }}
         >
           <div className="grid grid-cols-3 gap-6">
@@ -282,25 +299,25 @@ const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
       {/* CSS Animations */}
       <style jsx>{`
-        @keyframes slideUpFade {
+        @keyframes slideLeftFade {
           0% {
             opacity: 0;
-            transform: translateX(-50%) translateY(20px) scale(0.95);
+            transform: translateY(-50%) translateX(20px) scale(0.95);
           }
           100% {
             opacity: 1;
-            transform: translateX(-50%) translateY(0) scale(1);
+            transform: translateY(-50%) translateX(0) scale(1);
           }
         }
 
-        @keyframes slideDownFade {
+        @keyframes slideRightFade {
           0% {
             opacity: 1;
-            transform: translateX(-50%) translateY(0) scale(1);
+            transform: translateY(-50%) translateX(0) scale(1);
           }
           100% {
             opacity: 0;
-            transform: translateX(-50%) translateY(20px) scale(0.95);
+            transform: translateY(-50%) translateX(20px) scale(0.95);
           }
         }
       `}</style>
